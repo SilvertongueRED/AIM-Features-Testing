@@ -711,7 +711,7 @@ Alihkan ke AIM?</value></data>
   <data name="GUICrashNoModList" xml:space="preserve"><value>AIM tidak dapat melihat daftar mod dari sini, jadi dapat menampilkan crash tetapi tidak dapat mengatakan mod mana penyebabnya.</value></data>
   <data name="GUICrashFailed" xml:space="preserve"><value>AIM tidak dapat selesai membaca crash ini: {0}</value></data>
   <data name="GUICrashStale" xml:space="preserve"><value>Crash ini lebih lama daripada mod yang sekarang terpasang. AIM membangun ulang game setelahnya, jadi game yang crash bukan game yang sekarang ada di disk. Mainkan sekali sebelum mengubah apa pun, dan anggap mod di bawah sebagai petunjuk, bukan kesimpulan.</value></data>
-  <data name="GUICrashNoApiKey" xml:space="preserve"><value>Kamu belum masuk ke Nexus, jadi AIM tidak dapat membaca pelacak bug mod. Semua hasil di atas berasal dari file milikmu sendiri.</value></data>
+  <data name="GUICrashNoApiKey" xml:space="preserve"><value>Kamu belum login ke Nexus, jadi AIM hanya membaca komentar dan laporan bug publik mod, bukan deskripsi atau catatan rilisnya. Semua di atas disimpulkan dari file kamu sendiri.</value></data>
   <data name="GUICrashWorking" xml:space="preserve"><value>Membaca pelacak bug dan komentar mod yang ditunjuk…</value></data>
   <data name="GUICrashNothingToResearch" xml:space="preserve"><value>Tidak ada mod yang cukup jelas untuk diteliti halamannya.</value></data>
   <data name="GUICrashResearchFailed" xml:space="preserve"><value>AIM tidak dapat membaca halaman mod: {0}. Kesimpulan dari file milikmu tetap berlaku.</value></data>
@@ -842,4 +842,53 @@ Alihkan ke AIM?</value></data>
   <data name="GUISettingsUpToDate" xml:space="preserve"><value>AIM sudah terbaru.</value></data>
   <data name="GUISettingsUpdateAvailable" xml:space="preserve"><value>Pembaruan AIM tersedia. Gunakan pemberitahuan di bawah untuk membuka halaman rilisnya.</value></data>
   <data name="GUISettingsUpdateCheckFailed" xml:space="preserve"><value>Pemeriksaan pembaruan AIM gagal.</value></data>
+  <data name="GUIIssueSearchDismissed" xml:space="preserve"><value>Cari masalah yang kamu tandai aman…</value></data>
+  <data name="GUIIssueSortNewest" xml:space="preserve"><value>Yang terakhir ditandai dulu</value></data>
+  <data name="GUIIssueSortOldest" xml:space="preserve"><value>Yang paling lama ditandai dulu</value></data>
+  <data name="GUIIssueSortName" xml:space="preserve"><value>A sampai Z</value></data>
+  <data name="GUIIssueDismissedMatches" xml:space="preserve"><value>Ditandai aman - {0} dari {1} cocok</value></data>
+  <data name="GUIIssueDismissedNoMatch" xml:space="preserve"><value>Tidak ada masalah yang ditandai aman yang cocok dengan "{0}".</value></data>
+  <data name="GUIIssueMarkedFineOn" xml:space="preserve"><value>Ditandai aman pada {0}</value></data>
+  <data name="GUIIssueOpenModPage" xml:space="preserve"><value>Buka {0} di Nexus</value></data>
+  <data name="GUIVerdictWinnerChosen" xml:space="preserve"><value>Kamu memilih {0} untuk menang.</value></data>
+  <data name="GUIVersionsUnknownVersion" xml:space="preserve"><value>Versi tidak diketahui</value></data>
+  <data name="GUIVersionsChangelogTooltip" xml:space="preserve"><value>Catatan rilis, dibuka di versi {0}</value></data>
+  <data name="GUIVersionsChangelogTooltipNoVersion" xml:space="preserve"><value>Catatan rilis</value></data>
+  <data name="GUIChangelogVersionNotListed" xml:space="preserve"><value>Pembuat tidak menulis catatan rilis untuk versi {0}. Semua versi yang punya catatan ada di bawah.</value></data>
+  <data name="GUIChangelogShowingVersion" xml:space="preserve"><value>Dibuka di versi {0}, disorot di bawah.</value></data>
+  <data name="GUICrashResearchProgress" xml:space="preserve"><value>Membaca halaman Nexus {0} ({1} dari {2})…</value></data>
+  <data name="GUICrashTreatmentsHeader" xml:space="preserve"><value>Yang bisa dicoba, dari halaman mod itu sendiri</value></data>
+  <data name="GUICrashTreatmentsHint" xml:space="preserve"><value>Perbaikan yang dijelaskan pembuat mod dan pemain lain untuk crash seperti ini. Coba yang pertama cocok, lalu periksa dengan tombol di atas.</value></data>
+  <data name="GUICrashMentionsHeader" xml:space="preserve"><value>Apa kata komentar tentang mod kamu yang lain</value></data>
+  <data name="GUICrashMentionsHint" xml:space="preserve"><value>Komentar di halaman mod tersangka yang menyebut mod lain yang kamu aktifkan - biasanya pertanyaan apakah keduanya cocok - beserta jawaban pembuat jika ada.</value></data>
+  <data name="GUICrashMentionsGroup" xml:space="preserve"><value>Di halaman {0}, tentang {1}</value></data>
+  <data name="GUICrashNothingReadable" xml:space="preserve"><value>Tidak ada yang ditemukan - tetapi Nexus memblokir AIM membaca beberapa halaman. Lihat "Yang dibaca AIM" di bawah.</value></data>
+  <data name="GUICrashFoundSummary" xml:space="preserve"><value>Ditemukan {0} hal di halaman mod tersangka: {1} untuk dicoba, {2} tentang mod kamu yang lain.</value></data>
+  <data name="GUICrashCoverageHeader" xml:space="preserve"><value>Yang dibaca AIM ({0} dari {1} bagian halaman)</value></data>
+  <data name="GUICrashResearchBlocked" xml:space="preserve"><value>Nexus menjawab sebagian permintaan AIM dengan pemeriksaan bot alih-alih halamannya, jadi komentar atau laporan bug itu tidak bisa dibaca. Nexus tidak punya API untuk komentar atau laporan bug - login Nexus kamu hanya mencakup deskripsi, catatan rilis, dan file. Gunakan tombol di bawah untuk membaca halaman yang diblokir di browser.</value></data>
+  <data name="GUICrashResearchSignedOut" xml:space="preserve"><value>Kamu belum login ke Nexus, jadi AIM melewati deskripsi dan catatan rilis mod. Login dari menu roda gigi → Unduhan Nexus untuk menyertakannya.</value></data>
+  <data name="GUICrashSourceDescription" xml:space="preserve"><value>deskripsi</value></data>
+  <data name="GUICrashSourceChangelog" xml:space="preserve"><value>catatan rilis</value></data>
+  <data name="GUICrashSourceReadme" xml:space="preserve"><value>readme</value></data>
+  <data name="GUICrashSourceComments" xml:space="preserve"><value>komentar</value></data>
+  <data name="GUICrashSourceBugs" xml:space="preserve"><value>laporan bug</value></data>
+  <data name="GUICrashCoverageBlocked" xml:space="preserve"><value>diblokir oleh pemeriksaan bot Nexus</value></data>
+  <data name="GUICrashCoverageFailed" xml:space="preserve"><value>tidak bisa dibaca (Nexus menjawab {0})</value></data>
+  <data name="GUICrashCoverageOffline" xml:space="preserve"><value>tidak bisa dibaca (tidak ada jawaban - offline atau waktu habis)</value></data>
+  <data name="GUICrashCoverageNoPage" xml:space="preserve"><value>dilewati - AIM tidak tahu halaman Nexus mod ini</value></data>
+  <data name="GUICrashCoverageNotSignedIn" xml:space="preserve"><value>dilewati - login ke Nexus untuk menyertakannya</value></data>
+  <data name="GUICrashCoverageStopped" xml:space="preserve"><value>dilewati - Nexus memblokir halaman sebelumnya</value></data>
+  <data name="GUICrashCoverageComments" xml:space="preserve"><value>membaca {0} komentar dalam {1} pencarian, menyimpan {2}</value></data>
+  <data name="GUICrashCoverageBugs" xml:space="preserve"><value>membaca {0} laporan, membuka {1}, menyimpan {2}</value></data>
+  <data name="GUICrashCoverageChangelog" xml:space="preserve"><value>membaca {0} versi, menyimpan {1}</value></data>
+  <data name="GUICrashCoverageKept" xml:space="preserve"><value>dibaca, menyimpan {0}</value></data>
+  <data name="GUICrashTreatmentBasis" xml:space="preserve"><value>Dari {0} · {1} · {2}</value></data>
+  <data name="GUICrashOpenSource" xml:space="preserve"><value>Buka halaman ↗</value></data>
+  <data name="GUICrashChipSameCrash" xml:space="preserve"><value>Crash yang sama</value></data>
+  <data name="GUICrashChipMentions" xml:space="preserve"><value>Menyebut {0}</value></data>
+  <data name="GUICrashChipAuthor" xml:space="preserve"><value>Pembuat mod</value></data>
+  <data name="GUICrashChipAuthorAnswered" xml:space="preserve"><value>Pembuat menjawab</value></data>
+  <data name="GUICrashAuthorAnswered" xml:space="preserve"><value>↳ {0} menjawab: “{1}”</value></data>
+  <data name="GUICrashTheAuthor" xml:space="preserve"><value>Pembuat</value></data>
+  <data name="GUICrashWhatToDo" xml:space="preserve"><value>Yang perlu dilakukan: {0}</value></data>
 </root>

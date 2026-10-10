@@ -1,14 +1,26 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 using Garethp.ModsOfMistriaInstallerLib.Lang;
+using Garethp.ModsOfMistriaInstallerLib.ModTypes;
 
 namespace Garethp.ModsOfMistriaInstallerLib.Nexus;
 
 public record ModBackup(string Path, string ModName, string? Version, DateTimeOffset CreatedAt)
 {
-    public string Describe() =>
-        string.IsNullOrWhiteSpace(Version)
-            ? CreatedAt.LocalDateTime.ToString("g", CultureInfo.CurrentCulture)
-            : $"{Version} ({CreatedAt.LocalDateTime.ToString("g", CultureInfo.CurrentCulture)})";
+    /// <summary>
+    /// Whatever else the restore point was labelled with besides its version - "before AIM's fix",
+    /// "replaced". Empty for a plain update backup.
+    /// </summary>
+    public string Note { get; init; } = "";
+
+    /// <summary>When the copy was taken, in the user's own date format.</summary>
+    public string When => CreatedAt.LocalDateTime.ToString("g", CultureInfo.CurrentCulture);
+
+    public string Describe()
+    {
+        var label = string.Join(" ", new[] { Version, Note }.Where(part => !string.IsNullOrWhiteSpace(part)));
+        return label.Length == 0 ? When : $"{label} ({When})";
+    }
 }
 
 /// <summary>
@@ -48,6 +60,12 @@ public class ModBackupStore
         var leaf = Path.GetFileName(modFolderPath.TrimEnd('/', '\\'));
         var modName = isFile ? Path.GetFileNameWithoutExtension(leaf) : leaf;
         var createdAt = DateTimeOffset.UtcNow;
+
+        // Read off the mod itself when the caller could not say. A restore point labelled only with
+        // a date is one nobody can choose between: "which of these three was 2.0.10?" is the whole
+        // question the dropdown exists to answer.
+        if (string.IsNullOrWhiteSpace(version)) version = ReadVersionAt(modFolderPath);
+
         var destination = Path.Combine(FolderFor(modName), StampFor(createdAt, version));
 
         try
@@ -79,7 +97,8 @@ public class ModBackupStore
         }
 
         Prune(modName, keep);
-        return new ModBackup(destination, modName, version, createdAt);
+        VersionsInside.TryRemove(destination, out _);
+        return Read(destination, modName) ?? new ModBackup(destination, modName, version, createdAt);
     }
 
     /// <summary>
@@ -127,7 +146,8 @@ public class ModBackupStore
         }
 
         Prune(modName, keep);
-        return new ModBackup(destination, modName, label, createdAt);
+        VersionsInside.TryRemove(destination, out _);
+        return Read(destination, modName) ?? new ModBackup(destination, modName, label, createdAt);
     }
 
     private static void CopyInto(string source, string destination)
@@ -186,8 +206,10 @@ public class ModBackupStore
 
         try
         {
+            // Labelled with the version it holds as well as why it was taken, so the copy a rollback
+            // replaced is as easy to pick out of the dropdown as any other.
             if (Directory.Exists(modFolderPath) || File.Exists(modFolderPath))
-                Archive(modFolderPath, "replaced");
+                Archive(modFolderPath, $"{ReadVersionAt(modFolderPath)} {ReplacedNote}".Trim());
 
             // A backup holding a single archive is a mod that was installed as a .zip. It goes back
             // beside the other mods under its own file name rather than as a folder, because that
@@ -238,6 +260,12 @@ public class ModBackupStore
         return string.IsNullOrWhiteSpace(version) ? stamp : $"{stamp}__{Sanitise(version)}";
     }
 
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, string?> VersionsInside =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The label a restore taken by <see cref="Restore"/> carries besides its version.</summary>
+    private const string ReplacedNote = "replaced";
+
     private static ModBackup? Read(string path, string modName)
     {
         var name = Path.GetFileName(path);
@@ -247,8 +275,117 @@ public class ModBackupStore
                 DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var createdAt))
             return null;
 
-        return new ModBackup(path, modName, parts.Length > 1 ? parts[1] : null,
-            new DateTimeOffset(createdAt, TimeSpan.Zero));
+        var (version, note) = SplitLabel(parts.Length > 1 ? parts[1] : null);
+
+        // Backups taken before AIM wrote the version into the folder name - and every backup made
+        // by a path that did not know it - are labelled with a date alone. The mod inside still
+        // says which version it is. A restore point never changes once taken, so the answer is
+        // kept: the dropdown is rebuilt on every list load, and a kept .zip would otherwise be
+        // reopened every time.
+        version ??= VersionsInside.GetOrAdd(path, ReadVersionAt);
+
+        return new ModBackup(path, modName, version, new DateTimeOffset(createdAt, TimeSpan.Zero))
+        {
+            Note = note
+        };
+    }
+
+    /// <summary>The notes AIM writes into a restore point's label: <see cref="Restore"/>'s, and an edit's.</summary>
+    private static readonly string[] KnownNotes = [ReplacedNote, "before AIM's fix"];
+
+    /// <summary>A version at the start of a label: "2.0.10", "v1.3", "1.0.0-beta2".</summary>
+    private static readonly Regex LeadingVersion = new(
+        @"^v?\d+(?:\.\d+)*(?:[-+][0-9A-Za-z.]+)?(?=\s|$)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    /// <summary>
+    /// Splits a restore point's label into the version it names and whatever else it says.
+    ///
+    /// Labels are written as "{version} {note}" - "2.1.0 before AIM's fix", "2.0.12 replaced" - or
+    /// as a bare version, or as a bare note when the version was not known. A label that does not
+    /// start with something version-shaped is all note, so a mod whose author versions it "Beta"
+    /// still shows the word rather than losing it.
+    /// </summary>
+    internal static (string? Version, string Note) SplitLabel(string? label)
+    {
+        if (string.IsNullOrWhiteSpace(label)) return (null, "");
+
+        var text = label.Trim();
+
+        // The notes AIM itself writes go after the version, which can be anything an author typed -
+        // "Beta 2 replaced" is version "Beta 2" - so those are taken off the end first.
+        foreach (var known in KnownNotes)
+        {
+            if (text.Equals(known, StringComparison.OrdinalIgnoreCase)) return (null, text);
+            if (text.EndsWith(" " + known, StringComparison.OrdinalIgnoreCase))
+                return (text[..^(known.Length + 1)].Trim(), text[^known.Length..]);
+        }
+
+        var match = LeadingVersion.Match(text);
+        if (!match.Success) return text.Equals(ReplacedNote, StringComparison.OrdinalIgnoreCase) ||
+                                    text.Contains(' ')
+            ? (null, text)
+            : (text, "");
+
+        return (match.Value, text[match.Length..].Trim());
+    }
+
+    /// <summary>
+    /// The version a mod - or a restore point of one - declares in its own manifest.
+    ///
+    /// Looks where AIM itself would find the manifest: at the top of the folder, one or two folders
+    /// down (an archive unpacked with its own top-level directory), or inside a single kept .zip.
+    /// Null when nothing readable is there; a label is a convenience, never a reason to fail.
+    /// </summary>
+    internal static string? ReadVersionAt(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+                return ModArchiveInstaller.LooksLikeArchive(path) ? ModArchiveInstaller.ReadManifestVersion(path) : null;
+
+            if (!Directory.Exists(path)) return null;
+
+            var archived = SingleArchiveIn(path);
+            if (archived is not null) return ModArchiveInstaller.ReadManifestVersion(archived);
+
+            foreach (var folder in FoldersToDepth(path, 2))
+            {
+                foreach (var manifest in new[] { "manifest.json", "manifest.toml" })
+                {
+                    var file = Path.Combine(folder, manifest);
+                    if (!File.Exists(file)) continue;
+
+                    var version = ModIdentity.ReadManifest(manifest, File.ReadAllText(file))?.Version;
+                    if (!string.IsNullOrWhiteSpace(version)) return version.Trim();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.Log($"Could not read the version of {path}: {e.Message}");
+        }
+
+        return null;
+    }
+
+    /// <summary>The folder itself, then its children, then theirs - shallowest first.</summary>
+    private static IEnumerable<string> FoldersToDepth(string root, int depth)
+    {
+        var level = new List<string> { root };
+
+        for (var current = 0; current <= depth && level.Count > 0; current++)
+        {
+            foreach (var folder in level) yield return folder;
+
+            level = level
+                .SelectMany(folder =>
+                {
+                    try { return Directory.GetDirectories(folder); }
+                    catch { return []; }
+                })
+                .OrderBy(folder => folder, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
     }
 
     private void Prune(string modName, int keep)
