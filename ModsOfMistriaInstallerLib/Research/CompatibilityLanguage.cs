@@ -90,10 +90,57 @@ public static class CompatibilityLanguage
         (new Regex(@"\bstand[\s-]?alone\b", Options),
             Polarity.Clearance, "describes the mod as standalone", false),
 
+        // ── Problems that are already gone ───────────────────────────────────────────────
+
+        // "Updates the mod so it no longer breaks with game patches", "fixed a conflict with Foo",
+        // "doesn't clash with the bakery mod any more". Every one of these carries a blocker's own
+        // verb, and the bare "breaks with" rule below used to file the first of them - a March
+        // Expanded changelog line about surviving game updates - under "says this is a known
+        // problem" in the crash window. They report the opposite: the problem has been dealt with.
+        //
+        // Needs pairing, because a fix only clears *this* pairing when it names the other mod. "No
+        // longer breaks with game patches" says nothing at all about the mods in front of the user.
+        //
+        // The words allowed between the negation and the verb are kept few, and a conjunction ends
+        // the run: "it doesn't work and crashes" and "fixed the icons but it still crashes" are both
+        // complaints, and letting the gap run across "and" or "but" would read them as all-clears.
+        //
+        // A bare "fix" counts only where a changelog writes it, at the start of a line - "Fix crash
+        // on startup". Anywhere else it is the noun: "tried the fix you posted, game crashes" is a
+        // crash report.
+        (new Regex(
+            @"\b(?:(?:no\s+longer|not\s+any\s?more)(?:\s+(?!(?:but|and|yet|still|however|though)\b)\S+){0,2}?" +
+            @"|(?:(?<=^\s*(?:[-•*]\s*)?)fix|fixed|fixes|resolv(?:ed|es)|solv(?:ed|es)|prevent(?:s|ed)?)" +
+            @"(?:\s+(?!(?:but|and|yet|still|however|though)\b)\S+){0,4}?)" +
+            @"\s+(?:break\w*|conflict\w*|clash\w*|crash\w*|incompatib\w*)", Options),
+            Polarity.Clearance, "says a problem was fixed", true),
+
+        // "It doesn't conflict with Foo", "they won't clash". The same verbs, denied rather than
+        // fixed - and like a fix, an all-clear only for the pairing it names.
+        (new Regex(
+            @"\b(?:doesn'?t|does\s+not|don'?t|do\s+not|won'?t|will\s+not|shouldn'?t|should\s+not)" +
+            @"(?:\s+(?:really|even|actually|ever))?" +
+            @"\s+(?:break\w*|conflict\w*|clash\w*|crash\w*|interfere\w*)", Options),
+            Polarity.Clearance, "says they do not conflict", true),
+
         // ── Blockers ─────────────────────────────────────────────────────────────────────
 
+        // Broken by the game itself rather than by another mod. Worth knowing in its own right - it
+        // is a real, current problem with the mod - but it is not "a conflict", and calling it one
+        // sent the user looking for a second mod that was never involved. Tested before the conflict
+        // rule so the reason says which of the two it is.
+        //
+        // It has to name an update, a patch or a version: "crashes on game start" and "no crashes
+        // in the game since I installed it" are about the game, but not about the game changing.
         (new Regex(
-            @"\b(?:not|isn'?t|aren'?t|won'?t\s+be|will\s+not\s+be|never)\s+" +
+            @"(?<!\bno\s+)\b(?:breaks?|broke|broken|crash(?:es|ed|ing)?)\s+(?:with|after|since)\s+" +
+            @"(?:the\s+|this\s+)?(?:latest\s+|new(?:est)?\s+|recent\s+|last\s+|current\s+)?" +
+            @"(?:(?:game|fom|fields\s+of\s+mistria)(?:'s)?\s+(?:update|patch|version)\w*" +
+            @"|(?:update\w*|patch\w*)(?!\s+(?:of|to|for)\b)|v?\d+\.\d+(?:\.\d+)*)\b", Options),
+            Polarity.Blocker, "says it breaks with a game update", false),
+
+        (new Regex(
+            @"\b(?:not|isn'?t|aren'?t|won'?t|will\s+not|never)\s+(?:be\s+)?" +
             @"(?:fully\s+|currently\s+|entirely\s+)?compatib\w*", Options),
             Polarity.Blocker, "says something is not compatible", false),
 
@@ -105,7 +152,11 @@ public static class CompatibilityLanguage
             @"(?:\s+\w+){0,3}?\s+\b(?:with|alongside|together)\b", Options),
             Polarity.Blocker, "warns against using them together", false),
 
-        (new Regex(@"\b(?:conflicts?\s+with|clashes?\s+with|breaks?\s+(?:with|when\s+used\s+with))\b", Options),
+        // "Breaks with game patches" is not a conflict with another mod, so the object of the verb is
+        // checked: game, patch, update and version words are the game's, not a mod's.
+        (new Regex(
+            @"\b(?:conflicts?\s+with|clashes?\s+with|breaks?\s+(?:with|when\s+used\s+with))\b" +
+            @"(?!\s+(?:the\s+|any\s+|some\s+)?(?:game|patch\w*|update\w*|version\w*|gml|steam)\b)", Options),
             Polarity.Blocker, "names a conflict", false),
 
         // ── Conditional - it works, but only if you do something ─────────────────────────
@@ -182,6 +233,22 @@ public static class CompatibilityLanguage
 
         (new Regex(@"\bworks?\s+together\b", Options),
             Polarity.Clearance, "states that they work together", true),
+
+        // "It should be compatible", "yes, they're compatible" - how an author answers "does this
+        // work with X?" in the comments. The negated forms were settled as blockers further up, so
+        // anything reaching here is the positive claim. Only about the pairing it answers.
+        //
+        // A question is not a claim, and neither is a doubt: "will this be compatible with X?" and
+        // "I don't think it's compatible" read exactly like the answer without these two guards,
+        // and a commenter's question would otherwise count as evidence the conflict is not real.
+        // "If it only changes the portraits then it should be compatible" stays - a condition on
+        // an answer is still an answer.
+        (new Regex(
+            @"^(?![^?]*\?)(?!\s*(?:is|are|will|would|does|do|can|could)\b)" +
+            @"(?!.*\b(?:not\s+sure|unsure|don'?t\s+think|do\s+not\s+think|doubt|wonder(?:ing)?|no\s+idea)\b)" +
+            @".*?\b(?:should\s+be|is|are|it'?s|they'?re)\s+(?:still\s+|totally\s+|perfectly\s+|fully\s+)?compatible\b",
+            Options | RegexOptions.Singleline),
+            Polarity.Clearance, "says they are compatible", true),
 
         // ── Anything else that discusses the subject at all ──────────────────────────────
 

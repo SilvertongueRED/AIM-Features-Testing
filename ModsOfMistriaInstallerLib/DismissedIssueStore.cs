@@ -40,6 +40,12 @@ public sealed class DismissedIssueStore
     public const string VerdictIncompatible = "incompatible";
     public const string VerdictRebound = "rebound";
 
+    /// <summary>
+    /// The user settled a file conflict by choosing which mod's copy wins. The choice is the
+    /// answer - the conflict still exists on disk, but it now resolves the way they asked.
+    /// </summary>
+    public const string VerdictWinnerChosen = "winner";
+
     private readonly string _path;
 
     // When each judgement was made. Every key the store knows about has an entry here, whether it
@@ -64,6 +70,16 @@ public sealed class DismissedIssueStore
     /// <summary>What the user concluded, when they said. Null when they never recorded a reason.</summary>
     public IssueVerdict? Verdict(string key) =>
         key.Length > 0 && _verdicts.TryGetValue(WithoutVersions(key), out var verdict) ? verdict : null;
+
+    /// <summary>
+    /// When the user last recorded a judgement about this issue, or null when they never did.
+    ///
+    /// The "marked fine" list is sorted by this, newest first: the issue somebody ticked a minute
+    /// ago is the one they are most likely to be looking for again, and on a list of fifty settled
+    /// conflicts the old order - the order the scan happened to find them in - buried it.
+    /// </summary>
+    public DateTimeOffset? RecordedAt(string key) =>
+        key.Length > 0 && _recordedAt.TryGetValue(WithoutVersions(key), out var at) ? at : null;
 
     /// <summary>Records the user's judgement and writes it out immediately.</summary>
     public void SetDismissed(string key, bool dismissed, string? label = null, IssueVerdict? verdict = null)

@@ -31,7 +31,15 @@ public record NexusFileInfo(int FileId, string FileName, string Name, string? Ve
 public record NexusRateLimit(int? HourlyRemaining, int? DailyRemaining);
 
 /// <summary>The text of a mod's Nexus page, as far as the public API exposes it.</summary>
-public record NexusModOverview(string Name, string Summary, string Description, string Version);
+public record NexusModOverview(string Name, string Summary, string Description, string Version)
+{
+    /// <summary>
+    /// The Nexus account that uploaded the mod - the name its author posts under. The bug tracker
+    /// does not mark the author's replies the way the comment thread does, so this is how a reply
+    /// from them is told apart from anybody else's.
+    /// </summary>
+    public string Uploader { get; init; } = "";
+}
 
 /// <summary>One version's release notes, as the mod's author wrote them.</summary>
 public record ModChangelogEntry(string Version, List<string> Lines)
@@ -243,7 +251,10 @@ public class NexusApiClient
                 json.Value<string>("name") ?? "",
                 json.Value<string>("summary") ?? "",
                 json.Value<string>("description") ?? "",
-                json.Value<string>("version") ?? "");
+                json.Value<string>("version") ?? "")
+            {
+                Uploader = json.Value<string>("uploaded_by") ?? (json["user"] as JObject)?.Value<string>("name") ?? ""
+            };
         }
         catch (NexusApiException exception)
         {

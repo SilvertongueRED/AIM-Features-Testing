@@ -649,7 +649,7 @@
   <data name="GUICrashNoModList" xml:space="preserve"><value>AIM 无法查看模组列表，因此只能显示崩溃，无法指出原因。</value></data>
   <data name="GUICrashFailed" xml:space="preserve"><value>AIM 无法完成对此崩溃的读取：{0}</value></data>
   <data name="GUICrashStale" xml:space="preserve"><value>此崩溃早于当前模组。请在修改前运行一次游戏，并把下面的模组视为线索而非结论。</value></data>
-  <data name="GUICrashNoApiKey" xml:space="preserve"><value>你尚未登录 Nexus，因此 AIM 无法读取模组错误追踪器。</value></data>
+  <data name="GUICrashNoApiKey" xml:space="preserve"><value>你没有登录 Nexus，所以 AIM 只读取了模组公开的评论和错误报告，没有读取简介和更新说明。以上内容都是根据你自己的文件得出的。</value></data>
   <data name="GUICrashWorking" xml:space="preserve"><value>正在读取错误追踪器和评论…</value></data>
   <data name="GUICrashNothingToResearch" xml:space="preserve"><value>没有模组被明确指出，暂不值得读取其页面。</value></data>
   <data name="GUICrashResearchFailed" xml:space="preserve"><value>AIM 无法读取模组页面：{0}</value></data>
@@ -801,4 +801,53 @@
   <data name="GUISettingsUpToDate" xml:space="preserve"><value>AIM 已是最新版本。</value></data>
   <data name="GUISettingsUpdateAvailable" xml:space="preserve"><value>有可用的 AIM 更新。请使用下方通知打开其发布页面。</value></data>
   <data name="GUISettingsUpdateCheckFailed" xml:space="preserve"><value>检查 AIM 更新失败。</value></data>
+  <data name="GUIIssueSearchDismissed" xml:space="preserve"><value>搜索已标记为无问题的项目…</value></data>
+  <data name="GUIIssueSortNewest" xml:space="preserve"><value>最近标记的优先</value></data>
+  <data name="GUIIssueSortOldest" xml:space="preserve"><value>最早标记的优先</value></data>
+  <data name="GUIIssueSortName" xml:space="preserve"><value>按名称排序</value></data>
+  <data name="GUIIssueDismissedMatches" xml:space="preserve"><value>已标记为无问题 - {1} 项中有 {0} 项匹配</value></data>
+  <data name="GUIIssueDismissedNoMatch" xml:space="preserve"><value>已标记为无问题的项目中没有与“{0}”匹配的。</value></data>
+  <data name="GUIIssueMarkedFineOn" xml:space="preserve"><value>于 {0} 标记为无问题</value></data>
+  <data name="GUIIssueOpenModPage" xml:space="preserve"><value>在 Nexus 上打开 {0}</value></data>
+  <data name="GUIVerdictWinnerChosen" xml:space="preserve"><value>你选择让 {0} 优先。</value></data>
+  <data name="GUIVersionsUnknownVersion" xml:space="preserve"><value>未知版本</value></data>
+  <data name="GUIVersionsChangelogTooltip" xml:space="preserve"><value>更新说明，定位到版本 {0}</value></data>
+  <data name="GUIVersionsChangelogTooltipNoVersion" xml:space="preserve"><value>更新说明</value></data>
+  <data name="GUIChangelogVersionNotListed" xml:space="preserve"><value>作者没有为版本 {0} 写更新说明。下面是所有有说明的版本。</value></data>
+  <data name="GUIChangelogShowingVersion" xml:space="preserve"><value>已定位到版本 {0}，下方已高亮。</value></data>
+  <data name="GUICrashResearchProgress" xml:space="preserve"><value>正在读取 {0} 的 Nexus 页面（第 {1} 个，共 {2} 个）…</value></data>
+  <data name="GUICrashTreatmentsHeader" xml:space="preserve"><value>可以尝试的做法（来自模组页面）</value></data>
+  <data name="GUICrashTreatmentsHint" xml:space="preserve"><value>作者和其他玩家针对类似崩溃描述的解决办法。先试第一个合适的，再用上面的按钮验证。</value></data>
+  <data name="GUICrashMentionsHeader" xml:space="preserve"><value>评论中提到你其他模组的内容</value></data>
+  <data name="GUICrashMentionsHint" xml:space="preserve"><value>嫌疑模组页面中提到你已启用的其他模组的评论（通常是在问两者能否一起使用），如有作者回复也会一并显示。</value></data>
+  <data name="GUICrashMentionsGroup" xml:space="preserve"><value>{0} 的页面中，关于 {1}</value></data>
+  <data name="GUICrashNothingReadable" xml:space="preserve"><value>没有找到内容，但 Nexus 阻止了 AIM 读取部分页面。见下方“AIM 读取了什么”。</value></data>
+  <data name="GUICrashFoundSummary" xml:space="preserve"><value>在嫌疑模组页面找到 {0} 条内容：{1} 条可尝试，{2} 条关于你的其他模组。</value></data>
+  <data name="GUICrashCoverageHeader" xml:space="preserve"><value>AIM 读取了什么（页面 {1} 部分中的 {0} 部分）</value></data>
+  <data name="GUICrashResearchBlocked" xml:space="preserve"><value>Nexus 对 AIM 的部分请求返回了机器人验证而不是页面，所以这些评论或错误报告无法读取。Nexus 没有评论或错误报告的 API，你的 Nexus 登录只覆盖简介、更新说明和文件。请用下方按钮在浏览器中查看被阻止的页面。</value></data>
+  <data name="GUICrashResearchSignedOut" xml:space="preserve"><value>你没有登录 Nexus，所以 AIM 跳过了模组的简介和更新说明。从齿轮菜单 → Nexus 下载 登录即可包含它们。</value></data>
+  <data name="GUICrashSourceDescription" xml:space="preserve"><value>简介</value></data>
+  <data name="GUICrashSourceChangelog" xml:space="preserve"><value>更新说明</value></data>
+  <data name="GUICrashSourceReadme" xml:space="preserve"><value>说明文件</value></data>
+  <data name="GUICrashSourceComments" xml:space="preserve"><value>评论</value></data>
+  <data name="GUICrashSourceBugs" xml:space="preserve"><value>错误报告</value></data>
+  <data name="GUICrashCoverageBlocked" xml:space="preserve"><value>被 Nexus 的机器人验证阻止</value></data>
+  <data name="GUICrashCoverageFailed" xml:space="preserve"><value>无法读取（Nexus 返回 {0}）</value></data>
+  <data name="GUICrashCoverageOffline" xml:space="preserve"><value>无法读取（没有响应：离线或超时）</value></data>
+  <data name="GUICrashCoverageNoPage" xml:space="preserve"><value>已跳过：AIM 不知道这个模组的 Nexus 页面</value></data>
+  <data name="GUICrashCoverageNotSignedIn" xml:space="preserve"><value>已跳过：登录 Nexus 后才会包含</value></data>
+  <data name="GUICrashCoverageStopped" xml:space="preserve"><value>已跳过：Nexus 阻止了之前的页面</value></data>
+  <data name="GUICrashCoverageComments" xml:space="preserve"><value>通过 {1} 次搜索读取 {0} 条评论，保留 {2} 条</value></data>
+  <data name="GUICrashCoverageBugs" xml:space="preserve"><value>读取 {0} 份报告，打开 {1} 份，保留 {2} 份</value></data>
+  <data name="GUICrashCoverageChangelog" xml:space="preserve"><value>读取 {0} 个版本，保留 {1} 条</value></data>
+  <data name="GUICrashCoverageKept" xml:space="preserve"><value>已读取，保留 {0} 条</value></data>
+  <data name="GUICrashTreatmentBasis" xml:space="preserve"><value>来自 {0} · {1} · {2}</value></data>
+  <data name="GUICrashOpenSource" xml:space="preserve"><value>打开页面 ↗</value></data>
+  <data name="GUICrashChipSameCrash" xml:space="preserve"><value>同一崩溃</value></data>
+  <data name="GUICrashChipMentions" xml:space="preserve"><value>提到 {0}</value></data>
+  <data name="GUICrashChipAuthor" xml:space="preserve"><value>模组作者</value></data>
+  <data name="GUICrashChipAuthorAnswered" xml:space="preserve"><value>作者已回复</value></data>
+  <data name="GUICrashAuthorAnswered" xml:space="preserve"><value>↳ {0} 回复：“{1}”</value></data>
+  <data name="GUICrashTheAuthor" xml:space="preserve"><value>作者</value></data>
+  <data name="GUICrashWhatToDo" xml:space="preserve"><value>处理办法：{0}</value></data>
 </root>

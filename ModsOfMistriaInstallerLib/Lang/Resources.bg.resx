@@ -699,7 +699,7 @@
   <data name="GUICrashNoModList" xml:space="preserve"><value>AIM не вижда списъка ти с модове оттук, затова може да покаже срива, но не и да каже кой мод го е причинил.</value></data>
   <data name="GUICrashFailed" xml:space="preserve"><value>AIM не можа да завърши прочитането на този срив: {0}</value></data>
   <data name="GUICrashStale" xml:space="preserve"><value>Този срив е по-стар от модовете, които имаш сега. AIM е възстановил играта след него, така че причината за срива вече не е същата като файловете на диска - изиграй веднъж, преди да променяш нещо, и приеми модовете по-долу като насоки, а не като заключение.</value></data>
-  <data name="GUICrashNoApiKey" xml:space="preserve"><value>Не си влязъл в Nexus, затова AIM не може да прочете bug tracker-ите на модовете. Всичко по-горе е установено само от собствените ти файлове.</value></data>
+  <data name="GUICrashNoApiKey" xml:space="preserve"><value>Не сте вписани в Nexus, затова AIM прочете само публичните коментари и доклади за грешки на модовете, без описанията и бележките към версиите. Всичко отгоре е изведено от собствените ви файлове.</value></data>
   <data name="GUICrashWorking" xml:space="preserve"><value>Прочитане на bug tracker-ите и коментарите за модовете, към които това сочи…</value></data>
   <data name="GUICrashNothingToResearch" xml:space="preserve"><value>Нищо не сочи достатъчно ясно към мод, за да си струва да се прочете страницата му.</value></data>
   <data name="GUICrashResearchFailed" xml:space="preserve"><value>AIM не можа да прочете страниците на модовете: {0}. Изводът от собствените ти файлове остава валиден.</value></data>
@@ -846,4 +846,53 @@
   <data name="GUISettingsUpToDate" xml:space="preserve"><value>AIM е актуален.</value></data>
   <data name="GUISettingsUpdateAvailable" xml:space="preserve"><value>Налично е обновление за AIM. Използвайте известието отдолу, за да отворите страницата му.</value></data>
   <data name="GUISettingsUpdateCheckFailed" xml:space="preserve"><value>Проверката за обновления на AIM не бе успешна.</value></data>
+  <data name="GUIIssueSearchDismissed" xml:space="preserve"><value>Търсене в проблемите, отбелязани като наред…</value></data>
+  <data name="GUIIssueSortNewest" xml:space="preserve"><value>Последно отбелязаните първо</value></data>
+  <data name="GUIIssueSortOldest" xml:space="preserve"><value>Най-отдавна отбелязаните първо</value></data>
+  <data name="GUIIssueSortName" xml:space="preserve"><value>От А до Я</value></data>
+  <data name="GUIIssueDismissedMatches" xml:space="preserve"><value>Отбелязани като наред - {0} от {1} съвпадат</value></data>
+  <data name="GUIIssueDismissedNoMatch" xml:space="preserve"><value>Нито един от проблемите, отбелязани като наред, не съвпада с "{0}".</value></data>
+  <data name="GUIIssueMarkedFineOn" xml:space="preserve"><value>Отбелязано като наред на {0}</value></data>
+  <data name="GUIIssueOpenModPage" xml:space="preserve"><value>Отвори {0} в Nexus</value></data>
+  <data name="GUIVerdictWinnerChosen" xml:space="preserve"><value>Избрахте {0} да печели.</value></data>
+  <data name="GUIVersionsUnknownVersion" xml:space="preserve"><value>Неизвестна версия</value></data>
+  <data name="GUIVersionsChangelogTooltip" xml:space="preserve"><value>Бележки към версиите, отворени на версия {0}</value></data>
+  <data name="GUIVersionsChangelogTooltipNoVersion" xml:space="preserve"><value>Бележки към версиите</value></data>
+  <data name="GUIChangelogVersionNotListed" xml:space="preserve"><value>Авторът не е написал бележки за версия {0}. Отдолу са всички версии, за които има бележки.</value></data>
+  <data name="GUIChangelogShowingVersion" xml:space="preserve"><value>Отворено на версия {0}, маркирана отдолу.</value></data>
+  <data name="GUICrashResearchProgress" xml:space="preserve"><value>Четене на страниците на {0} в Nexus ({1} от {2})…</value></data>
+  <data name="GUICrashTreatmentsHeader" xml:space="preserve"><value>Какво да опитате, според страниците на модовете</value></data>
+  <data name="GUICrashTreatmentsHint" xml:space="preserve"><value>Решения, които авторите и други играчи описват за сривове като този. Опитайте първото подходящо, после проверете с бутона отгоре.</value></data>
+  <data name="GUICrashMentionsHeader" xml:space="preserve"><value>Какво казват коментарите за другите ви модове</value></data>
+  <data name="GUICrashMentionsHint" xml:space="preserve"><value>Коментари по страниците на заподозрените модове, които споменават друг ваш включен мод - обикновено въпрос дали двата работят заедно - с отговора на автора, ако има такъв.</value></data>
+  <data name="GUICrashMentionsGroup" xml:space="preserve"><value>На страницата на {0}, за {1}</value></data>
+  <data name="GUICrashNothingReadable" xml:space="preserve"><value>Нищо не е намерено - но Nexus не позволи на AIM да прочете някои страници. Вижте "Какво прочете AIM" отдолу.</value></data>
+  <data name="GUICrashFoundSummary" xml:space="preserve"><value>Открити са {0} неща по страниците на заподозрените: {1} за опитване, {2} за другите ви модове.</value></data>
+  <data name="GUICrashCoverageHeader" xml:space="preserve"><value>Какво прочете AIM ({0} от {1} части на страниците)</value></data>
+  <data name="GUICrashResearchBlocked" xml:space="preserve"><value>Nexus отговори на някои заявки на AIM с проверката си за ботове вместо със страницата, затова тези коментари или доклади за грешки не можаха да бъдат прочетени. Nexus няма API за коментари и доклади за грешки - вписването ви в Nexus покрива само описания, бележки към версиите и файлове. Използвайте бутоните отдолу, за да прочетете блокираните страници в браузъра си.</value></data>
+  <data name="GUICrashResearchSignedOut" xml:space="preserve"><value>Не сте вписани в Nexus, затова AIM пропусна описанията и бележките към версиите на модовете. Впишете се от менюто със зъбното колело → Изтегляния от Nexus, за да ги включите.</value></data>
+  <data name="GUICrashSourceDescription" xml:space="preserve"><value>описание</value></data>
+  <data name="GUICrashSourceChangelog" xml:space="preserve"><value>бележки към версиите</value></data>
+  <data name="GUICrashSourceReadme" xml:space="preserve"><value>readme</value></data>
+  <data name="GUICrashSourceComments" xml:space="preserve"><value>коментари</value></data>
+  <data name="GUICrashSourceBugs" xml:space="preserve"><value>доклади за грешки</value></data>
+  <data name="GUICrashCoverageBlocked" xml:space="preserve"><value>блокирано от проверката за ботове на Nexus</value></data>
+  <data name="GUICrashCoverageFailed" xml:space="preserve"><value>не можа да бъде прочетено (Nexus отговори {0})</value></data>
+  <data name="GUICrashCoverageOffline" xml:space="preserve"><value>не можа да бъде прочетено (няма отговор - офлайн или изтекло време)</value></data>
+  <data name="GUICrashCoverageNoPage" xml:space="preserve"><value>пропуснато - AIM не знае страницата на този мод в Nexus</value></data>
+  <data name="GUICrashCoverageNotSignedIn" xml:space="preserve"><value>пропуснато - впишете се в Nexus, за да бъде включено</value></data>
+  <data name="GUICrashCoverageStopped" xml:space="preserve"><value>пропуснато - Nexus блокира предишна страница</value></data>
+  <data name="GUICrashCoverageComments" xml:space="preserve"><value>прочетени {0} коментара при {1} търсения, запазени {2}</value></data>
+  <data name="GUICrashCoverageBugs" xml:space="preserve"><value>прочетени {0} доклада, отворени {1}, запазени {2}</value></data>
+  <data name="GUICrashCoverageChangelog" xml:space="preserve"><value>прочетени {0} версии, запазени {1}</value></data>
+  <data name="GUICrashCoverageKept" xml:space="preserve"><value>прочетено, запазени {0}</value></data>
+  <data name="GUICrashTreatmentBasis" xml:space="preserve"><value>От {0} · {1} · {2}</value></data>
+  <data name="GUICrashOpenSource" xml:space="preserve"><value>Отвори страницата ↗</value></data>
+  <data name="GUICrashChipSameCrash" xml:space="preserve"><value>Същият срив</value></data>
+  <data name="GUICrashChipMentions" xml:space="preserve"><value>Споменава {0}</value></data>
+  <data name="GUICrashChipAuthor" xml:space="preserve"><value>Автор на мода</value></data>
+  <data name="GUICrashChipAuthorAnswered" xml:space="preserve"><value>Авторът отговори</value></data>
+  <data name="GUICrashAuthorAnswered" xml:space="preserve"><value>↳ {0} отговори: „{1}“</value></data>
+  <data name="GUICrashTheAuthor" xml:space="preserve"><value>Авторът</value></data>
+  <data name="GUICrashWhatToDo" xml:space="preserve"><value>Какво да направите: {0}</value></data>
 </root>

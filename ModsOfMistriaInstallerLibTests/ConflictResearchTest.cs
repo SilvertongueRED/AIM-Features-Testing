@@ -200,4 +200,82 @@ public class ConflictResearchTest
 
         Assert.That(plain, Does.Contain("[see the FAQ]"));
     }
+
+    // Keeping line breaks stops a bulleted list running together into one quote - and separates a
+    // list's verdict from the names it is about. They have to be put back together.
+    [Test]
+    public void ShouldReadAListOfIncompatibleModsUnderItsLeadIn()
+    {
+        var mod = new ResearchSubject("Portrait Pack", 1, null);
+
+        var findings = ConflictResearch.Scan(mod,
+                "Incompatible with:<br />[list][*]March Expanded[*]Effe's Ears[/list]Enjoy!",
+                ["March Expanded", "Seasonal Grass"], "https://example.invalid", "description")
+            .ToList();
+
+        Assert.That(findings, Has.Count.EqualTo(1));
+        Assert.That(findings[0].FullQuote, Is.EqualTo("Incompatible with: March Expanded"));
+        Assert.That(findings[0].Polarity, Is.EqualTo(Polarity.Blocker));
+        Assert.That(findings[0].NamesTheOtherMod, Is.True);
+    }
+
+    [Test]
+    public void ShouldReadAHeadingAsTheVerdictForItsList()
+    {
+        var mod = new ResearchSubject("Portrait Pack", 1, null);
+
+        var findings = ConflictResearch.Scan(mod,
+                "Known conflicts:\nSeasonal Grass\n\nCompatible with:\nMarch Expanded",
+                ["March Expanded", "Seasonal Grass"], "https://example.invalid", "description")
+            .ToList();
+
+        Assert.That(findings.Select(finding => (finding.FullQuote, finding.Polarity)), Is.EquivalentTo(new[]
+        {
+            ("Known conflicts: Seasonal Grass", Polarity.Blocker),
+            ("Compatible with: March Expanded", Polarity.Clearance)
+        }));
+    }
+
+    // The screenshot this started from: a description's bullet list, an image link and raw [/*]
+    // tags quoted as one block, when only its last sentence said anything.
+    [Test]
+    public void ShouldNotRunABulletedListIntoOneQuote()
+    {
+        var plain = ConflictResearch.PlainTextKeepingBreaks(
+            "Lines: Banked, general [/*] Friday night at the inn [/*] https://i.postimg.cc/x/compatibility.png Dialogue I can only guarantee compatibility with patched mods.");
+
+        Assert.That(plain, Does.Not.Contain("[/*]").And.Not.Contain("postimg"));
+        Assert.That(ConflictResearch.Sentences(plain), Does.Contain("Dialogue I can only guarantee compatibility with patched mods."));
+    }
+
+    [Test]
+    public void ShouldEndAListWhereALineGivesAVerdictOfItsOwn()
+    {
+        var mod = new ResearchSubject("Portrait Pack", 1, null);
+
+        var findings = ConflictResearch.Scan(mod,
+                "Compatible with:<br />- Better Dialogue<br />Not compatible with March Expanded (it overwrites the inn).",
+                ["March Expanded", "Better Dialogue"], "https://example.invalid", "description")
+            .ToList();
+
+        Assert.That(findings.Select(finding => (finding.FullQuote, finding.Polarity)), Is.EquivalentTo(new[]
+        {
+            ("Compatible with: Better Dialogue", Polarity.Clearance),
+            ("Not compatible with March Expanded (it overwrites the inn).", Polarity.Blocker)
+        }), "March Expanded is not one more item under \"Compatible with\"");
+    }
+
+    [Test]
+    public void ShouldStillReadALeadInWhoseListNamesNoOtherMod()
+    {
+        var mod = new ResearchSubject("Bakery Overhaul", 1, null);
+
+        var findings = ConflictResearch.Scan(mod,
+                "This mod is not compatible with any other mod that edits the bakery, for this reason:\nIt replaces the whole shop.",
+                ["March Expanded"], "https://example.invalid", "description")
+            .ToList();
+
+        Assert.That(findings, Has.Count.EqualTo(1));
+        Assert.That(findings[0].Polarity, Is.EqualTo(Polarity.Blocker));
+    }
 }
