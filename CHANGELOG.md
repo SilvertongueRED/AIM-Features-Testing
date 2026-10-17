@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Mod list
+
+- Removing a mod no longer resets the tick boxes you had changed but not yet applied.
+
 ## 0.2.2 - 2026-09-18
 
 ### Fields of Mistria 1.0.5 support
