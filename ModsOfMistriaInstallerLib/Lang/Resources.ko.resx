@@ -251,7 +251,8 @@
   <data name="GUINexusHandlerDisableMenuItem" xml:space="preserve"><value>AIM의 NMD 처리 중지</value></data>
   <data name="GUINexusPasteLinkMenuItem" xml:space="preserve"><value>복사한 nxm:// 링크에서 설치</value></data>
   <data name="GUINexusShareLinksMenuItem" xml:space="preserve"><value>다른 모드 관리자와 NMD 링크 공유</value></data>
-  <data name="GUINexusShareLinksEnabled" xml:space="preserve"><value>이제 AIM은 “Vortex” 링크를 가장 최근에 연 모드 관리자(AIM, Vortex 또는 Stardrop)에 전달합니다. 열려 있는 관리자가 없으면 마지막 링크를 받은 관리자가 받습니다.&#xD;&#xA;&#xD;&#xA;이 링크에 Windows가 사용하는 프로그램은 AIM으로 유지해야 합니다.</value></data>
+  <data name="GUINexusShareLinksEnabled" xml:space="preserve"><value>이제 AIM은 다운로드 링크를 사용할 수 있는 모드 관리자에 전달합니다. Stardew Valley는 Stardrop, 다른 게임은 Vortex입니다. Fields of Mistria 링크는 항상 AIM이 처리합니다.&#xD;&#xA;&#xD;&#xA;이 링크에 Windows가 사용하는 프로그램은 AIM으로 유지해야 합니다.</value></data>
+  <data name="GUINexusDefaultAppGuide" xml:space="preserve"><value>마지막 단계가 하나 남았는데, Windows는 프로그램이 대신 선택하지 못하게 하므로 직접 해야 합니다.&#xD;&#xA;&#xD;&#xA;OK를 누르면 AIM 페이지에서 Windows 설정이 열립니다. “NXM”을 찾아 AIM을 선택하고 기본값으로 설정을 클릭하세요.&#xD;&#xA;&#xD;&#xA;나중에 Windows가 nxm 링크를 열 앱을 물으면 AIM을 선택하고 항상을 클릭하세요. Stardew Valley와 다른 게임의 링크는 AIM이 계속 Stardrop과 Vortex로 대신 전달합니다.</value></data>
   <data name="GUINexusDownloadsHeader" xml:space="preserve"><value>Nexus에서 다운로드 중</value></data>
   <data name="GUINexusClearFinished" xml:space="preserve"><value>완료된 항목 지우기</value></data>
   <data name="GUINexusDownloadTitle" xml:space="preserve"><value>Nexus 모드 {0}</value></data>

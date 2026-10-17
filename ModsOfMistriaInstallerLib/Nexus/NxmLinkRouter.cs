@@ -9,11 +9,13 @@ namespace Garethp.ModsOfMistriaInstallerLib.Nexus;
 /// <param name="ProcessName">The process name without ".exe", used to tell whether it is open.</param>
 /// <param name="ArgumentTemplate">Its command-line arguments, with %1 standing for the link.</param>
 /// <param name="DefaultExecutablePath">Where its installer puts it, when that is predictable.</param>
+/// <param name="Games">The Nexus game domains it is built for, or null when it takes any game.</param>
 public sealed record NxmLinkManager(
     string Name,
     string ProcessName,
     string ArgumentTemplate,
-    string? DefaultExecutablePath = null);
+    string? DefaultExecutablePath = null,
+    IReadOnlyList<string>? Games = null);
 
 /// <summary>A mod manager that is open right now, and when it was opened.</summary>
 public sealed record NxmRunningManager(string Name, DateTime StartedAt);
@@ -31,10 +33,13 @@ public sealed record NxmRouteDecision(string? ManagerName, string Reason)
 /// Settings. A manager's own "handle these links" switch can therefore stop working the moment the
 /// user has picked a default, which is why handing links between AIM, Vortex and Stardrop breaks.
 ///
-/// With link sharing on, AIM stays the default app and passes each link on: to whichever manager
-/// was opened most recently, or, when none is open, to the manager that received the last link.
-/// AIM keeps the link itself when it is that manager. Forwarding happens in the short-lived process
-/// Windows starts for the link, before any window is built, so the user never sees AIM open.
+/// With link sharing on, AIM stays the default app and passes each link on to a manager that can
+/// use it. The game in the link decides who that can be: Fields of Mistria is AIM's, Stardew Valley
+/// belongs to Stardrop and Vortex, and Vortex takes every other game. Among the managers that can
+/// use the link, the one opened most recently gets it, or, when none is open, the one that received
+/// the last link. AIM keeps the link whenever nobody else can take it. Forwarding happens in the
+/// short-lived process Windows starts for the link, before any window is built, so the user never
+/// sees AIM open.
 /// </summary>
 public static class NxmLinkRouter
 {
@@ -47,20 +52,51 @@ public static class NxmLinkRouter
     [
         new("Vortex", "Vortex", "-d \"%1\"",
             @"C:\Program Files\Black Tree Gaming Ltd\Vortex\Vortex.exe"),
-        new("Stardrop", "Stardrop", "--nxm \"%1\""),
+        new("Stardrop", "Stardrop", "--nxm \"%1\"", Games: ["stardewvalley"]),
     ];
+
+    /// <summary>The game a link is for (the host of nxm://{game}/...), lower-cased, or null if it has none.</summary>
+    public static string? GetGameDomain(string link) =>
+        Uri.TryCreate(link.Trim(), UriKind.Absolute, out var uri) &&
+        uri.Scheme.Equals("nxm", StringComparison.OrdinalIgnoreCase) &&
+        !string.IsNullOrEmpty(uri.Host)
+            ? uri.Host.ToLowerInvariant()
+            : null;
+
+    /// <summary>
+    /// Whether a manager can make use of a link for <paramref name="game"/>. AIM installs Fields of
+    /// Mistria mods only, Stardrop Stardew Valley mods only, and Vortex any game. A link with no
+    /// readable game is offered to everyone.
+    /// </summary>
+    public static bool Supports(string manager, string? game)
+    {
+        if (game is null) return true;
+        if (IsAim(manager)) return game.Equals(NxmLink.MistriaGameDomain, StringComparison.OrdinalIgnoreCase);
+
+        var known = KnownManagers.FirstOrDefault(m => m.Name.Equals(manager, StringComparison.OrdinalIgnoreCase));
+        return known is not null &&
+               (known.Games is null || known.Games.Contains(game, StringComparer.OrdinalIgnoreCase));
+    }
 
     /// <summary>
     /// Chooses who receives a link. Kept free of process and registry access so it can be tested.
     /// </summary>
+    /// <param name="game">The game domain in the link, such as "fieldsofmistria".</param>
     /// <param name="running">Managers open right now, AIM included (but not the process deciding).</param>
     /// <param name="lastManager">The manager that received the previous link, if any.</param>
     /// <param name="canLaunch">Whether AIM knows where a manager's executable is.</param>
     public static NxmRouteDecision Decide(
-        IEnumerable<NxmRunningManager> running, string? lastManager, Func<string, bool> canLaunch)
+        string? game, IEnumerable<NxmRunningManager> running, string? lastManager, Func<string, bool> canLaunch)
     {
+        // Only AIM installs Fields of Mistria mods, and this very process can handle the link, so
+        // there is nothing to weigh: a Stardrop or Vortex that happens to be open cannot use it.
+        if (game is not null && Supports(AimName, game))
+            return new NxmRouteDecision(null, $"{game} is a Fields of Mistria link, so AIM keeps it");
+
+        bool CanUse(string name) => Supports(name, game) && (IsAim(name) || canLaunch(name));
+
         var mostRecent = running
-            .Where(m => IsAim(m.Name) || canLaunch(m.Name))
+            .Where(m => CanUse(m.Name))
             .OrderByDescending(m => m.StartedAt)
             .FirstOrDefault();
 
@@ -71,10 +107,19 @@ public static class NxmLinkRouter
                 : new NxmRouteDecision(mostRecent.Name, $"{mostRecent.Name} was opened most recently");
         }
 
-        if (!string.IsNullOrEmpty(lastManager) && !IsAim(lastManager) && canLaunch(lastManager))
-            return new NxmRouteDecision(lastManager, $"no mod manager is open; {lastManager} received the last link");
+        if (!string.IsNullOrEmpty(lastManager) && !IsAim(lastManager) && CanUse(lastManager))
+            return new NxmRouteDecision(lastManager, $"no suitable mod manager is open; {lastManager} received the last link");
 
-        return new NxmRouteDecision(null, "no other mod manager is open");
+        // Nothing suitable is open and nothing received a link before: a manager built for this game
+        // comes first, then a general one such as Vortex.
+        var installed = KnownManagers
+            .Where(m => CanUse(m.Name))
+            .OrderBy(m => m.Games is null)
+            .FirstOrDefault();
+
+        return installed is not null
+            ? new NxmRouteDecision(installed.Name, $"no suitable mod manager is open; {installed.Name} is installed for {game ?? "this game"}")
+            : new NxmRouteDecision(null, "no other mod manager can take this link");
     }
 
     /// <summary>
@@ -103,16 +148,12 @@ public static class NxmLinkRouter
             LearnFromProtocolRegistration(settings);
             var running = FindRunningManagers(settings);
 
-            var decision = Decide(running, settings.LastLinkManager,
+            var decision = Decide(GetGameDomain(link), running, settings.LastLinkManager,
                 name => FindExecutable(name, settings) is not null);
 
             Logger.Log($"nxm link sharing: {decision.Reason}");
 
-            if (decision.HandleHere)
-            {
-                settings.LastLinkManager = AimName;
-                return false;
-            }
+            if (decision.HandleHere) return false;
 
             var manager = KnownManagers.First(m => m.Name == decision.ManagerName);
             var executable = FindExecutable(manager.Name, settings)!;

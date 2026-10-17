@@ -251,7 +251,8 @@
   <data name="GUINexusHandlerDisableMenuItem" xml:space="preserve"><value>停止使用 AIM 处理 NMD</value></data>
   <data name="GUINexusPasteLinkMenuItem" xml:space="preserve"><value>从复制的 nxm:// 链接安装</value></data>
   <data name="GUINexusShareLinksMenuItem" xml:space="preserve"><value>与其他模组管理器共享 NMD 链接</value></data>
-  <data name="GUINexusShareLinksEnabled" xml:space="preserve"><value>现在 AIM 会将“Vortex”链接交给你最近打开的模组管理器：AIM、Vortex 或 Stardrop。如果都没有打开，则交给上一次接收链接的管理器。&#xD;&#xA;&#xD;&#xA;AIM 需要保持为 Windows 处理这些链接的程序。</value></data>
+  <data name="GUINexusShareLinksEnabled" xml:space="preserve"><value>现在 AIM 会将下载链接交给能够使用它的模组管理器：Stardew Valley 交给 Stardrop，其他游戏交给 Vortex。Fields of Mistria 的链接始终由 AIM 处理。&#xD;&#xA;&#xD;&#xA;AIM 需要保持为 Windows 处理这些链接的程序。</value></data>
+  <data name="GUINexusDefaultAppGuide" xml:space="preserve"><value>还剩最后一步，只有你自己能完成，因为 Windows 不允许程序替你选择。&#xD;&#xA;&#xD;&#xA;点击 OK 后，Windows 设置会在 AIM 页面打开。找到“NXM”，选择 AIM，然后点击“设为默认值”。&#xD;&#xA;&#xD;&#xA;如果以后 Windows 询问用哪个应用打开 nxm 链接，请选择 AIM 并点击“始终”。AIM 仍会自动把 Stardew Valley 和其他游戏的链接交给 Stardrop 和 Vortex。</value></data>
   <data name="GUINexusDownloadsHeader" xml:space="preserve"><value>正在从 Nexus 下载</value></data>
   <data name="GUINexusClearFinished" xml:space="preserve"><value>清除已完成项</value></data>
   <data name="GUINexusDownloadTitle" xml:space="preserve"><value>Nexus 模组 {0}</value></data>

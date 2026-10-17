@@ -100,10 +100,6 @@ public partial class NexusDownloadsViewModel : ViewModelBase
     /// </summary>
     public void Initialise()
     {
-        // Opening AIM makes it the manager that receives links, until another manager is opened.
-        if (_nexusSettings.ShareLinksWithOtherManagers)
-            _nexusSettings.LastLinkManager = NxmLinkRouter.AimName;
-
         RefreshHandlerStatus();
         _ = OfferToHandleLinksAsync();
     }
@@ -120,7 +116,17 @@ public partial class NexusDownloadsViewModel : ViewModelBase
     {
         if (!NxmProtocolHandler.IsSupported()) return;
         var status = NxmProtocolHandler.GetStatus();
-        if (status is { IsRegistered: true, IsThisExecutable: true }) return;
+        if (status is { IsRegistered: true, IsThisExecutable: true, IsChosenDefault: true }) return;
+
+        // AIM already answers nxm:// links, but on Windows that is not enough: until the user picks
+        // AIM in Default apps, Windows asks which app to use at every click. Walk them through it once.
+        if (status is { IsRegistered: true, IsThisExecutable: true })
+        {
+            if (!_nexusSettings.DefaultAppGuided && await GuideToDefaultAppIfNeededAsync())
+                RefreshHandlerStatus();
+            return;
+        }
+
         var claimant = status.IsClaimedByAnother ? status.HandlerName ?? status.CurrentHandler : null;
         if (_nexusSettings.HandlerPromptAnswered && string.Equals(_nexusSettings.HandlerPromptedFor, claimant, StringComparison.OrdinalIgnoreCase)) return;
 
@@ -656,7 +662,11 @@ public partial class NexusDownloadsViewModel : ViewModelBase
         if (NxmProtocolHandler.Register(out var error))
         {
             _nexusSettings.HandlerRegistered = true;
-            await ShowMessage(Localization["GUINexusHandlerTitle"], Localization["GUINexusHandlerRegistered"]);
+
+            // On Windows the registration alone leaves Windows asking which app to use. The
+            // walkthrough replaces the plain confirmation, since it says what to do next.
+            if (!await GuideToDefaultAppIfNeededAsync())
+                await ShowMessage(Localization["GUINexusHandlerTitle"], Localization["GUINexusHandlerRegistered"]);
             return;
         }
 
@@ -679,14 +689,29 @@ public partial class NexusDownloadsViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// On Windows, explains the one step only the user can do (choosing AIM in Default apps) and
+    /// opens that page. Returns false, showing nothing, when Windows already uses AIM without asking
+    /// or this is not Windows.
+    /// </summary>
+    private async Task<bool> GuideToDefaultAppIfNeededAsync()
+    {
+        if (!OperatingSystem.IsWindows() || NxmProtocolHandler.GetStatus().IsChosenDefault) return false;
+
+        _nexusSettings.DefaultAppGuided = true;
+        await ShowMessage(Localization["GUINexusHandlerTitle"], Localization["GUINexusDefaultAppGuide"]);
+        NxmProtocolHandler.OpenWindowsDefaultApps();
+        return true;
+    }
+
     // ── Link sharing ─────────────────────────────────────────────────────────────
 
     /// <summary>Link sharing forwards links to other Windows mod managers, so it is offered on Windows only.</summary>
     public bool CanShareLinks => OperatingSystem.IsWindows();
 
     /// <summary>
-    /// Whether AIM passes download links on to whichever mod manager was opened most recently
-    /// (see <see cref="NxmLinkRouter"/>). Bound to a checkable item in the Nexus menu.
+    /// Whether AIM passes download links for other games on to the mod manager that can use them
+    /// (see <see cref="NxmLinkRouter"/>). On by default. Bound to a checkable item in the Nexus menu.
     /// </summary>
     public bool ShareLinksWithOtherManagers
     {
@@ -704,13 +729,10 @@ public partial class NexusDownloadsViewModel : ViewModelBase
 
     private async Task OnLinkSharingEnabledAsync()
     {
-        // AIM is open right now, so until another manager is opened the links are AIM's.
-        _nexusSettings.LastLinkManager = NxmLinkRouter.AimName;
-
         await ShowMessage(Localization["GUINexusHandlerTitle"], Localization["GUINexusShareLinksEnabled"]);
 
-        // Sharing works only while Windows hands the links to AIM in the first place.
-        if (!_handlerIsActive && NxmProtocolHandler.IsSupported())
+        // Sharing works only while Windows hands the links to AIM in the first place, without asking.
+        if (NxmProtocolHandler.IsSupported() && !NxmProtocolHandler.GetStatus().IsChosenDefault)
         {
             await RegisterHandlerAsync();
             RefreshHandlerStatus();
