@@ -85,8 +85,15 @@ $sourceRoots = @(
     (Join-Path $PSScriptRoot '..\ModsOfMistriaInstallerLib'),
     (Join-Path $PSScriptRoot '..\ModsOfMistriaCommandLine')
 )
+# Only hand-written sources are checked. Build output under bin/ and obj/ (for example a ReadyToRun
+# AIM.r2r.dll left by an earlier publish) is binary, and reading it as text produces false matches.
+# The extension is compared directly because Windows PowerShell's -Include can match such files.
 $sourceEmDashFiles = foreach ($sourceRoot in $sourceRoots) {
-    Get-ChildItem -LiteralPath $sourceRoot -Recurse -File -Include '*.cs', '*.axaml' |
+    Get-ChildItem -LiteralPath $sourceRoot -Recurse -File |
+        Where-Object {
+            $_.Extension -in '.cs', '.axaml' -and
+            $_.FullName -notmatch '[\\/](bin|obj)[\\/]'
+        } |
         Where-Object { Test-EmDashInStringLiteral $_.FullName }
 }
 foreach ($file in $sourceEmDashFiles) {
