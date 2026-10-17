@@ -32,6 +32,14 @@
   be built, the install carries on and portraits install the usual way (last mod wins).
 - **Check issues** lists portrait overlaps Wardrobe handles under **Handled automatically**
   instead of as problems, and they no longer light a mod's warning triangle.
+### Mods can replace the game's music and sound effects
+
+- A mod can now ship FMOD sound banks in an `audio/` folder. `audio/Fall.bank` replaces the game's
+  `assets/audio/Fall.bank` whole, the same way `images/replace/` swaps a sprite.
+- AIM only replaces banks the game already has (matching the name in any letter case), and only
+  files that really are FMOD banks, so a typo or a stray file can't silence the game.
+- Audio mods load in the file-replacement layer, and two mods replacing the same bank are reported
+  as a replacement conflict: the one installed last wins.
 
 ## 0.2.2 - 2026-09-18
 

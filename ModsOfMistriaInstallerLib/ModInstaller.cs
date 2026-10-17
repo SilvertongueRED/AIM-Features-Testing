@@ -444,6 +444,11 @@ public class ModInstaller
         new FontInstaller(_fileModifier)
             .Install(effectiveMod, reportStatus);
 
+        // FMOD sound banks are whole-file replacements of assets/audio/*.bank.
+        reportPhase(modName, LocalizedPhase("GUIPhaseInstallingAudio"));
+        new AudioInstaller(_fileModifier)
+            .Install(effectiveMod, reportStatus);
+
         // 3. Install JSON files
         reportPhase(modName, LocalizedPhase("GUIPhaseInstallingJson"));
         new JSONInstaller(fileNameUIDMapping, _fileModifier)

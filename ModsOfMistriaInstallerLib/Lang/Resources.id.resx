@@ -32,6 +32,7 @@
   <data name="GUIPhaseInstallingImages" xml:space="preserve"><value>Memasang gambar</value></data>
   <data name="GUIPhaseInstallingToml" xml:space="preserve"><value>Memasang TOML</value></data>
   <data name="GUIPhaseInstallingFonts" xml:space="preserve"><value>Memasang font</value></data>
+  <data name="GUIPhaseInstallingAudio" xml:space="preserve"><value>Memasang audio</value></data>
   <data name="GUIPhaseInstallingJson" xml:space="preserve"><value>Memasang JSON</value></data>
   <data name="GUIPhaseInstallingXml" xml:space="preserve"><value>Memasang XML</value></data>
   <data name="GUIPhaseInstallingMist" xml:space="preserve"><value>Memasang MIST</value></data>

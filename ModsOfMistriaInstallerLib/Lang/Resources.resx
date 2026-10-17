@@ -630,6 +630,7 @@ Open download page(s) in browser?</value></data>
   <data name="GUIPhaseInstallingImages" xml:space="preserve"><value>Installing Images</value></data>
   <data name="GUIPhaseInstallingToml" xml:space="preserve"><value>Installing TOML</value></data>
   <data name="GUIPhaseInstallingFonts" xml:space="preserve"><value>Installing Fonts</value></data>
+  <data name="GUIPhaseInstallingAudio" xml:space="preserve"><value>Installing Audio</value></data>
   <data name="GUIPhaseInstallingJson" xml:space="preserve"><value>Installing JSON</value></data>
   <data name="GUIPhaseInstallingXml" xml:space="preserve"><value>Installing XML</value></data>
   <data name="GUIPhaseInstallingMist" xml:space="preserve"><value>Installing Mist</value></data>

@@ -32,6 +32,7 @@
   <data name="GUIPhaseInstallingImages" xml:space="preserve"><value>Установка изображений</value></data>
   <data name="GUIPhaseInstallingToml" xml:space="preserve"><value>Установка TOML</value></data>
   <data name="GUIPhaseInstallingFonts" xml:space="preserve"><value>Установка шрифтов</value></data>
+  <data name="GUIPhaseInstallingAudio" xml:space="preserve"><value>Установка аудио</value></data>
   <data name="GUIPhaseInstallingJson" xml:space="preserve"><value>Установка JSON</value></data>
   <data name="GUIPhaseInstallingXml" xml:space="preserve"><value>Установка XML</value></data>
   <data name="GUIPhaseInstallingMist" xml:space="preserve"><value>Установка MIST</value></data>
