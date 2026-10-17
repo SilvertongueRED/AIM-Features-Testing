@@ -28,6 +28,9 @@ public class NexusSettings
     private const string HandlerPromptField = "nxmHandlerPromptAnswered";
     private const string HandlerAlwaysClaimField = "nxmHandlerAlwaysClaim";
     private const string HandlerPromptedForField = "nxmHandlerPromptedFor";
+    private const string ShareLinksField = "nxmShareWithOtherManagers";
+    private const string LastLinkManagerField = "nxmLastLinkManager";
+    private const string LinkManagerPathsField = "nxmLinkManagerPaths";
 
     private readonly string _path;
     private JObject _data;
@@ -153,6 +156,47 @@ public class NexusSettings
             else _data[HandlerPromptedForField] = value;
             Save();
         }
+    }
+
+    // ── Link sharing ─────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Whether AIM passes nxm:// links on to whichever mod manager was opened most recently.
+    /// See <see cref="NxmLinkRouter"/>. Off unless the user turns it on.
+    /// </summary>
+    public bool ShareLinksWithOtherManagers
+    {
+        get => _data.Value<bool?>(ShareLinksField) ?? false;
+        set { _data[ShareLinksField] = value; Save(); }
+    }
+
+    /// <summary>The manager that received the most recent link; it gets the next one when none is open.</summary>
+    public string? LastLinkManager
+    {
+        get => _data.Value<string>(LastLinkManagerField);
+        set
+        {
+            if (value is null) _data.Remove(LastLinkManagerField);
+            else if (_data.Value<string>(LastLinkManagerField) == value) return;
+            else _data[LastLinkManagerField] = value;
+            Save();
+        }
+    }
+
+    /// <summary>Where another manager's executable was last seen, so links can reach it when it is closed.</summary>
+    public string? GetLinkManagerPath(string manager) =>
+        (_data[LinkManagerPathsField] as JObject)?.Value<string>(manager);
+
+    public void SetLinkManagerPath(string manager, string path)
+    {
+        if (_data[LinkManagerPathsField] is not JObject paths)
+        {
+            paths = new JObject();
+            _data[LinkManagerPathsField] = paths;
+        }
+
+        paths[manager] = path;
+        Save();
     }
 
     // ── Storage ──────────────────────────────────────────────────────────────────

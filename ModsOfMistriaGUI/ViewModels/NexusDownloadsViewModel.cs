@@ -100,6 +100,10 @@ public partial class NexusDownloadsViewModel : ViewModelBase
     /// </summary>
     public void Initialise()
     {
+        // Opening AIM makes it the manager that receives links, until another manager is opened.
+        if (_nexusSettings.ShareLinksWithOtherManagers)
+            _nexusSettings.LastLinkManager = NxmLinkRouter.AimName;
+
         RefreshHandlerStatus();
         _ = OfferToHandleLinksAsync();
     }
@@ -132,32 +136,7 @@ public partial class NexusDownloadsViewModel : ViewModelBase
         _nexusSettings.HandlerPromptedFor = claimant;
         if (answer != ButtonResult.Yes) return;
 
-        if (NxmProtocolHandler.Register(out var error))
-        {
-            _nexusSettings.HandlerRegistered = true;
-            await ShowMessage(Localization["GUINexusHandlerTitle"], Localization["GUINexusHandlerRegistered"]);
-        }
-        else
-        {
-            var registrationStatus = NxmProtocolHandler.GetStatus();
-            if (registrationStatus.IsThisApplicationRegistered && registrationStatus.IsClaimedByAnother)
-            {
-                var openDefaults = await ShowBoxAsync(
-                    Localization["GUINexusHandlerTitle"],
-                    string.Format(Localization["GUINexusHandlerRegisteredNotDefault"],
-                        registrationStatus.HandlerName ?? registrationStatus.CurrentHandler ?? "another program"),
-                    ButtonEnum.YesNo);
-
-                if (openDefaults == ButtonResult.Yes)
-                    NxmProtocolHandler.OpenWindowsDefaultApps();
-            }
-            else
-            {
-                await ShowMessage(Localization["GUINexusHandlerTitle"],
-                    string.Format(Localization["GUINexusHandlerFailed"], error ?? ""));
-            }
-        }
-
+        await RegisterHandlerAsync();
         RefreshHandlerStatus();
     }
 
@@ -664,33 +643,78 @@ public partial class NexusDownloadsViewModel : ViewModelBase
 
         }
 
+        await RegisterHandlerAsync();
+        RefreshHandlerStatus();
+    }
+
+    /// <summary>
+    /// Registers AIM for nxm:// links and tells the user how it went. When Windows still sends the
+    /// links to another program, offers to open Default apps, where only the user can change it.
+    /// </summary>
+    private async Task RegisterHandlerAsync()
+    {
         if (NxmProtocolHandler.Register(out var error))
         {
             _nexusSettings.HandlerRegistered = true;
             await ShowMessage(Localization["GUINexusHandlerTitle"], Localization["GUINexusHandlerRegistered"]);
+            return;
+        }
+
+        var registrationStatus = NxmProtocolHandler.GetStatus();
+        if (registrationStatus.IsThisApplicationRegistered && registrationStatus.IsClaimedByAnother)
+        {
+            var openDefaults = await ShowBoxAsync(
+                Localization["GUINexusHandlerTitle"],
+                string.Format(Localization["GUINexusHandlerRegisteredNotDefault"],
+                    registrationStatus.HandlerName ?? registrationStatus.CurrentHandler ?? "another program"),
+                ButtonEnum.YesNo);
+
+            if (openDefaults == ButtonResult.Yes)
+                NxmProtocolHandler.OpenWindowsDefaultApps();
         }
         else
         {
-            var registrationStatus = NxmProtocolHandler.GetStatus();
-            if (registrationStatus.IsThisApplicationRegistered && registrationStatus.IsClaimedByAnother)
-            {
-                var openDefaults = await ShowBoxAsync(
-                    Localization["GUINexusHandlerTitle"],
-                    string.Format(Localization["GUINexusHandlerRegisteredNotDefault"],
-                        registrationStatus.HandlerName ?? registrationStatus.CurrentHandler ?? "another program"),
-                    ButtonEnum.YesNo);
-
-                if (openDefaults == ButtonResult.Yes)
-                    NxmProtocolHandler.OpenWindowsDefaultApps();
-            }
-            else
-            {
-                await ShowMessage(Localization["GUINexusHandlerTitle"],
-                    string.Format(Localization["GUINexusHandlerFailed"], error ?? ""));
-            }
+            await ShowMessage(Localization["GUINexusHandlerTitle"],
+                string.Format(Localization["GUINexusHandlerFailed"], error ?? ""));
         }
+    }
 
-        RefreshHandlerStatus();
+    // ── Link sharing ─────────────────────────────────────────────────────────────
+
+    /// <summary>Link sharing forwards links to other Windows mod managers, so it is offered on Windows only.</summary>
+    public bool CanShareLinks => OperatingSystem.IsWindows();
+
+    /// <summary>
+    /// Whether AIM passes download links on to whichever mod manager was opened most recently
+    /// (see <see cref="NxmLinkRouter"/>). Bound to a checkable item in the Nexus menu.
+    /// </summary>
+    public bool ShareLinksWithOtherManagers
+    {
+        get => _nexusSettings.ShareLinksWithOtherManagers;
+        set
+        {
+            if (value == _nexusSettings.ShareLinksWithOtherManagers) return;
+
+            _nexusSettings.ShareLinksWithOtherManagers = value;
+            OnPropertyChanged();
+
+            if (value) _ = OnLinkSharingEnabledAsync();
+        }
+    }
+
+    private async Task OnLinkSharingEnabledAsync()
+    {
+        // AIM is open right now, so until another manager is opened the links are AIM's.
+        _nexusSettings.LastLinkManager = NxmLinkRouter.AimName;
+
+        await ShowMessage(Localization["GUINexusHandlerTitle"], Localization["GUINexusShareLinksEnabled"]);
+
+        // Sharing works only while Windows hands the links to AIM in the first place.
+        if (!_handlerIsActive && NxmProtocolHandler.IsSupported())
+        {
+            await RegisterHandlerAsync();
+            RefreshHandlerStatus();
+        }
     }
 
     [RelayCommand]

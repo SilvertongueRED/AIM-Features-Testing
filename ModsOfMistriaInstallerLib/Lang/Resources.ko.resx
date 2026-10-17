@@ -250,6 +250,8 @@
   <data name="GUINexusHandlerEnableMenuItem" xml:space="preserve"><value>AIM으로 NMD 사용</value></data>
   <data name="GUINexusHandlerDisableMenuItem" xml:space="preserve"><value>AIM의 NMD 처리 중지</value></data>
   <data name="GUINexusPasteLinkMenuItem" xml:space="preserve"><value>복사한 nxm:// 링크에서 설치</value></data>
+  <data name="GUINexusShareLinksMenuItem" xml:space="preserve"><value>다른 모드 관리자와 NMD 링크 공유</value></data>
+  <data name="GUINexusShareLinksEnabled" xml:space="preserve"><value>이제 AIM은 “Vortex” 링크를 가장 최근에 연 모드 관리자(AIM, Vortex 또는 Stardrop)에 전달합니다. 열려 있는 관리자가 없으면 마지막 링크를 받은 관리자가 받습니다.&#xD;&#xA;&#xD;&#xA;이 링크에 Windows가 사용하는 프로그램은 AIM으로 유지해야 합니다.</value></data>
   <data name="GUINexusDownloadsHeader" xml:space="preserve"><value>Nexus에서 다운로드 중</value></data>
   <data name="GUINexusClearFinished" xml:space="preserve"><value>완료된 항목 지우기</value></data>
   <data name="GUINexusDownloadTitle" xml:space="preserve"><value>Nexus 모드 {0}</value></data>

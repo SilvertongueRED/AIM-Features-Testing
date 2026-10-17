@@ -23,6 +23,11 @@ public static class Program
         // window is already open it should take the download, so the link is handed over and this
         // process exits without ever building a UI.
         var nxmLink = args.FirstOrDefault(NxmLink.IsNxmUri);
+
+        // With link sharing on, a link meant for Vortex or Stardrop (whichever was opened most
+        // recently) is passed straight to it, and this process exits without AIM ever appearing.
+        if (nxmLink is not null && NxmLinkRouter.TryForwardToOtherManager(nxmLink)) return;
+
         if (nxmLink is not null && NxmLinkListener.TrySend(nxmLink)) return;
 
         App.StartupNxmLink = nxmLink;

@@ -165,6 +165,7 @@ public sealed class LocalizedTexts : ObservableObject
     public string GUINexusHandlerMenuItem => T("GUINexusHandlerMenuItem");
     public string GUINexusHandlerDisableMenuItem => T("GUINexusHandlerDisableMenuItem");
     public string GUINexusPasteLinkMenuItem => T("GUINexusPasteLinkMenuItem");
+    public string GUINexusShareLinksMenuItem => T("GUINexusShareLinksMenuItem");
     public string GUINexusDownloadsHeader => T("GUINexusDownloadsHeader");
     public string GUINexusClearFinished => T("GUINexusClearFinished");
 

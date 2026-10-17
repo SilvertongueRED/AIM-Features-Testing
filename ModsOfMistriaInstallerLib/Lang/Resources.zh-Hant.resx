@@ -250,6 +250,8 @@
   <data name="GUINexusHandlerEnableMenuItem" xml:space="preserve"><value>使用 AIM 處理 NMD</value></data>
   <data name="GUINexusHandlerDisableMenuItem" xml:space="preserve"><value>停止使用 AIM 處理 NMD</value></data>
   <data name="GUINexusPasteLinkMenuItem" xml:space="preserve"><value>從複製的 nxm:// 連結安裝</value></data>
+  <data name="GUINexusShareLinksMenuItem" xml:space="preserve"><value>與其他模組管理器共用 NMD 連結</value></data>
+  <data name="GUINexusShareLinksEnabled" xml:space="preserve"><value>現在 AIM 會將「Vortex」連結交給你最近開啟的模組管理器：AIM、Vortex 或 Stardrop。如果都沒有開啟，則交給上一次接收連結的管理器。&#xD;&#xA;&#xD;&#xA;AIM 需要維持為 Windows 處理這些連結的程式。</value></data>
   <data name="GUINexusDownloadsHeader" xml:space="preserve"><value>正在從 Nexus 下載</value></data>
   <data name="GUINexusClearFinished" xml:space="preserve"><value>清除已完成項目</value></data>
   <data name="GUINexusDownloadTitle" xml:space="preserve"><value>Nexus 模組 {0}</value></data>

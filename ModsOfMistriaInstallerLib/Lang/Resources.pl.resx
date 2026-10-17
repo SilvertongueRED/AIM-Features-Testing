@@ -250,6 +250,8 @@ Otworzyć strony pobierania w przeglądarce?</value></data>
   <data name="GUINexusHandlerEnableMenuItem" xml:space="preserve"><value>Używaj AIM dla NMD</value></data>
   <data name="GUINexusHandlerDisableMenuItem" xml:space="preserve"><value>Przestań używać AIM dla NMD</value></data>
   <data name="GUINexusPasteLinkMenuItem" xml:space="preserve"><value>Zainstaluj ze skopiowanego linku nxm://</value></data>
+  <data name="GUINexusShareLinksMenuItem" xml:space="preserve"><value>Udostępniaj linki NMD innym menedżerom modów</value></data>
+  <data name="GUINexusShareLinksEnabled" xml:space="preserve"><value>AIM będzie teraz przekazywać linki „Vortex” do menedżera modów otwartego jako ostatni: AIM, Vortex lub Stardrop. Jeśli żaden nie jest otwarty, trafią do menedżera, który otrzymał poprzedni link.&#xD;&#xA;&#xD;&#xA;AIM musi pozostać programem, którego Windows używa dla tych linków.</value></data>
   <data name="GUINexusDownloadsHeader" xml:space="preserve"><value>Pobieranie z Nexus</value></data>
   <data name="GUINexusClearFinished" xml:space="preserve"><value>Wyczyść zakończone</value></data>
   <data name="GUINexusDownloadTitle" xml:space="preserve"><value>Mod Nexus {0}</value></data>

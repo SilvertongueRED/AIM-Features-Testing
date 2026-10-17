@@ -652,6 +652,8 @@ Open download page(s) in browser?</value></data>
   <data name="GUINexusHandlerEnableMenuItem" xml:space="preserve"><value>Use AIM for NMD</value></data>
   <data name="GUINexusHandlerDisableMenuItem" xml:space="preserve"><value>Stop using AIM for NMD</value></data>
   <data name="GUINexusPasteLinkMenuItem" xml:space="preserve"><value>Install from a copied nxm:// link</value></data>
+  <data name="GUINexusShareLinksMenuItem" xml:space="preserve"><value>Share NMD links with other mod managers</value></data>
+  <data name="GUINexusShareLinksEnabled" xml:space="preserve"><value>AIM will now pass "Vortex" links to whichever mod manager you opened most recently: AIM, Vortex or Stardrop. If none is open, the manager that received the last link gets it.&#xD;&#xA;&#xD;&#xA;AIM needs to stay the program Windows uses for these links.</value></data>
   <data name="GUINexusDownloadsHeader" xml:space="preserve"><value>Downloading from Nexus</value></data>
   <data name="GUINexusClearFinished" xml:space="preserve"><value>Clear finished</value></data>
   <data name="GUINexusDownloadTitle" xml:space="preserve"><value>Nexus mod {0}</value></data>

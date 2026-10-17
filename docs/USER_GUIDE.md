@@ -78,6 +78,22 @@ default and can open that picker for you. The browser may ask once for permissio
 - Downloading does not install mods into the game. The new mod appears in the list, and you still
   choose when to press **Install**.
 
+### Sharing links with Vortex and Stardrop (Windows)
+
+Windows lets only one program receive `nxm://` links, and once you pick one in Default Apps, other
+mod managers can no longer take them over by turning on their own "handle links" option. If you
+also use Vortex or Stardrop, turn on gear menu → **Nexus downloads** → **Share NMD links with
+other mod managers**. AIM then stays the program Windows uses and passes each link on:
+
+- to whichever of AIM, Vortex and Stardrop you **opened most recently**;
+- if none of them is open, to the manager that **received the last link**;
+- otherwise to AIM itself.
+
+A link meant for another manager is passed on before AIM opens a window, so AIM never appears.
+AIM finds Vortex in its default install folder, and finds any manager once it has been open while
+you clicked a link, or once that manager's own "handle links" option has been turned on. If AIM
+cannot find the manager a link is meant for, AIM keeps the link rather than lose it.
+
 ### Notes and limits
 
 - OAuth account access uses AIM's public Nexus client registration. No personal API key is
