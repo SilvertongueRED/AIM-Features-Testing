@@ -78,6 +78,34 @@ default and can open that picker for you. The browser may ask once for permissio
 - Downloading does not install mods into the game. The new mod appears in the list, and you still
   choose when to press **Install**.
 
+### Sharing links with Vortex and Stardrop (Windows)
+
+Windows lets only one program receive `nxm://` links, and once you pick one in Default Apps, other
+mod managers can no longer take them over by turning on their own "handle links" option. AIM works
+around this by staying the program Windows uses and passing on the links it cannot install itself.
+This is **on by default**; it is the gear menu → **Nexus downloads** → **Share NMD links with other
+mod managers** option.
+
+Which manager receives a link depends on the game in it:
+
+- **Fields of Mistria** links always stay in AIM, even when Stardrop or Vortex was opened later.
+- **Stardew Valley** links go to Stardrop or Vortex, whichever you opened most recently.
+- **Every other game** goes to Vortex.
+
+If nothing suitable is open, a link goes to the suitable manager that received the last link, then
+to one that is installed for that game. If AIM cannot find a manager, AIM keeps the link rather than
+lose it. A link meant for another manager is passed on before AIM opens a window, so AIM never
+appears. AIM finds Vortex in its default install folder, and finds any manager once it has been open
+while you clicked a link, or once that manager's own "handle links" option has been turned on.
+
+#### The one step Windows keeps for you
+
+Windows does not let a program pick itself as the default for links, so the first time AIM
+registers it opens Windows Settings on AIM's page. Find **NXM**, choose **AIM** and click **Set
+default**. If you click a link first and Windows asks which app to open it with, choose **AIM** and
+click **Always**. You only do this once, and AIM still sends other games' links to Stardrop and
+Vortex for you.
+
 ### Notes and limits
 
 - OAuth account access uses AIM's public Nexus client registration. No personal API key is

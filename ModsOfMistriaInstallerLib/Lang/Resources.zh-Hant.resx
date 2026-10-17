@@ -252,6 +252,9 @@
   <data name="GUINexusHandlerEnableMenuItem" xml:space="preserve"><value>使用 AIM 處理 NMD</value></data>
   <data name="GUINexusHandlerDisableMenuItem" xml:space="preserve"><value>停止使用 AIM 處理 NMD</value></data>
   <data name="GUINexusPasteLinkMenuItem" xml:space="preserve"><value>從複製的 nxm:// 連結安裝</value></data>
+  <data name="GUINexusShareLinksMenuItem" xml:space="preserve"><value>與其他模組管理器共用 NMD 連結</value></data>
+  <data name="GUINexusShareLinksEnabled" xml:space="preserve"><value>現在 AIM 會將下載連結交給能夠使用它的模組管理器：Stardew Valley 交給 Stardrop，其他遊戲交給 Vortex。Fields of Mistria 的連結一律由 AIM 處理。&#xD;&#xA;&#xD;&#xA;AIM 需要維持為 Windows 處理這些連結的程式。</value></data>
+  <data name="GUINexusDefaultAppGuide" xml:space="preserve"><value>還剩最後一步，只有你自己能完成，因為 Windows 不允許程式替你選擇。&#xD;&#xA;&#xD;&#xA;按一下 OK 後，Windows 設定會在 AIM 頁面開啟。找到「NXM」，選擇 AIM，然後按一下「設定預設值」。&#xD;&#xA;&#xD;&#xA;如果日後 Windows 詢問要用哪個應用程式開啟 nxm 連結，請選擇 AIM 並按一下「一律」。AIM 仍會自動把 Stardew Valley 和其他遊戲的連結交給 Stardrop 和 Vortex。</value></data>
   <data name="GUINexusDownloadsHeader" xml:space="preserve"><value>正在從 Nexus 下載</value></data>
   <data name="GUINexusClearFinished" xml:space="preserve"><value>清除已完成項目</value></data>
   <data name="GUINexusDownloadTitle" xml:space="preserve"><value>Nexus 模組 {0}</value></data>

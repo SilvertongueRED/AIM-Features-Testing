@@ -578,6 +578,9 @@ Abrir as páginas de download no navegador?</value></data>
   <data name="GUINexusHandlerEnableMenuItem" xml:space="preserve"><value>Usar AIM para NMD</value></data>
   <data name="GUINexusHandlerDisableMenuItem" xml:space="preserve"><value>Parar de usar AIM para NMD</value></data>
   <data name="GUINexusPasteLinkMenuItem" xml:space="preserve"><value>Instalar de um link nxm:// copiado</value></data>
+  <data name="GUINexusShareLinksMenuItem" xml:space="preserve"><value>Compartilhar links NMD com outros gerenciadores de mods</value></data>
+  <data name="GUINexusShareLinksEnabled" xml:space="preserve"><value>O AIM agora passará os links de download para o gerenciador de mods que puder usá-los: Stardrop para Stardew Valley e Vortex para outros jogos. Os links de Fields of Mistria sempre ficam no AIM.&#xD;&#xA;&#xD;&#xA;O AIM precisa continuar sendo o programa que o Windows usa para esses links.</value></data>
+  <data name="GUINexusDefaultAppGuide" xml:space="preserve"><value>Falta um último passo, e só você pode fazê-lo, porque o Windows não deixa os programas escolherem por você.&#xD;&#xA;&#xD;&#xA;Clique em OK e as Configurações do Windows abrirão no AIM. Encontre “NXM”, escolha o AIM e clique em Definir padrão.&#xD;&#xA;&#xD;&#xA;Se o Windows perguntar algum dia qual aplicativo deve abrir um link nxm, escolha o AIM e clique em Sempre. O AIM continuará enviando os links de Stardew Valley e de outros jogos para o Stardrop e o Vortex por você.</value></data>
   <data name="GUINexusDownloadsHeader" xml:space="preserve"><value>Baixando do Nexus</value></data>
   <data name="GUINexusClearFinished" xml:space="preserve"><value>Limpar concluídos</value></data>
   <data name="GUINexusDownloadTitle" xml:space="preserve"><value>Mod do Nexus {0}</value></data>

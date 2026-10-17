@@ -105,4 +105,57 @@ public class NexusSettingsTest
         new NexusSettings(_directory).HandlerRegistered = true;
         Assert.That(new NexusSettings(_directory).HandlerRegistered, Is.True);
     }
+
+    [Test]
+    public void ShouldShareLinksUnlessTheUserTurnsItOff()
+    {
+        Assert.That(new NexusSettings(_directory).ShareLinksWithOtherManagers, Is.True);
+    }
+
+    [Test]
+    public void ShouldRememberThatLinkSharingWasTurnedOff()
+    {
+        new NexusSettings(_directory).ShareLinksWithOtherManagers = false;
+
+        Assert.That(new NexusSettings(_directory).ShareLinksWithOtherManagers, Is.False);
+    }
+
+    [Test]
+    public void ShouldWalkTheUserThroughDefaultAppsOnlyOnce()
+    {
+        Assert.That(new NexusSettings(_directory).DefaultAppGuided, Is.False);
+
+        new NexusSettings(_directory).DefaultAppGuided = true;
+
+        Assert.That(new NexusSettings(_directory).DefaultAppGuided, Is.True);
+    }
+
+    [Test]
+    public void ShouldPersistLinkSharingState()
+    {
+        var settings = new NexusSettings(_directory)
+        {
+            ShareLinksWithOtherManagers = true,
+            LastLinkManager = "Vortex"
+        };
+        settings.SetLinkManagerPath("Stardrop", @"D:\Games\Stardrop\Stardrop.exe");
+
+        var reloaded = new NexusSettings(_directory);
+        Assert.Multiple(() =>
+        {
+            Assert.That(reloaded.ShareLinksWithOtherManagers, Is.True);
+            Assert.That(reloaded.LastLinkManager, Is.EqualTo("Vortex"));
+            Assert.That(reloaded.GetLinkManagerPath("Stardrop"), Is.EqualTo(@"D:\Games\Stardrop\Stardrop.exe"));
+            Assert.That(reloaded.GetLinkManagerPath("Vortex"), Is.Null);
+        });
+    }
+
+    [Test]
+    public void ShouldForgetTheLastLinkManagerWhenCleared()
+    {
+        new NexusSettings(_directory) { LastLinkManager = "Stardrop" };
+        new NexusSettings(_directory) { LastLinkManager = null };
+
+        Assert.That(new NexusSettings(_directory).LastLinkManager, Is.Null);
+    }
 }

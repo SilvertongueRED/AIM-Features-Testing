@@ -252,6 +252,9 @@
   <data name="GUINexusHandlerEnableMenuItem" xml:space="preserve"><value>Използвай AIM за NMD</value></data>
   <data name="GUINexusHandlerDisableMenuItem" xml:space="preserve"><value>Спри AIM за NMD</value></data>
   <data name="GUINexusPasteLinkMenuItem" xml:space="preserve"><value>Инсталиране от копирана nxm:// връзка</value></data>
+  <data name="GUINexusShareLinksMenuItem" xml:space="preserve"><value>Споделяне на NMD връзките с други мод мениджъри</value></data>
+  <data name="GUINexusShareLinksEnabled" xml:space="preserve"><value>AIM вече ще предава връзките за изтегляне на мод мениджъра, който може да ги използва: Stardrop за Stardew Valley, Vortex за други игри. Връзките за Fields of Mistria винаги остават в AIM.&#xD;&#xA;&#xD;&#xA;AIM трябва да остане програмата, която Windows използва за тези връзки.</value></data>
+  <data name="GUINexusDefaultAppGuide" xml:space="preserve"><value>Остава една последна стъпка и само вие можете да я направите, защото Windows не позволява на програмите да избират вместо вас.&#xD;&#xA;&#xD;&#xA;Натиснете OK и Настройките на Windows ще се отворят на AIM. Намерете „NXM“, изберете AIM и натиснете „Задаване по подразбиране“.&#xD;&#xA;&#xD;&#xA;Ако Windows някога попита кое приложение да отваря връзка nxm, изберете AIM и натиснете „Винаги“. AIM пак ще изпраща връзките за Stardew Valley и други игри на Stardrop и Vortex вместо вас.</value></data>
   <data name="GUINexusDownloadsHeader" xml:space="preserve"><value>Изтегляне от Nexus</value></data>
   <data name="GUINexusClearFinished" xml:space="preserve"><value>Изчистване на завършените</value></data>
   <data name="GUINexusDownloadTitle" xml:space="preserve"><value>Nexus мод {0}</value></data>

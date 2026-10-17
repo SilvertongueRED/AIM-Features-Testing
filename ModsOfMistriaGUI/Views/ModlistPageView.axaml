@@ -82,6 +82,10 @@
                               IsEnabled="{Binding !IsInstalling}">
                         <MenuItem Header="{Binding Nexus.HandlerActionText}"
                                   Command="{Binding Nexus.ToggleHandlerCommand}" />
+                        <MenuItem Header="{Binding Texts.GUINexusShareLinksMenuItem}"
+                                  ToggleType="CheckBox"
+                                  IsChecked="{Binding Nexus.ShareLinksWithOtherManagers, Mode=TwoWay}"
+                                  IsVisible="{Binding Nexus.CanShareLinks}" />
                         <MenuItem Header="{Binding Nexus.NexusAccountActionText}"
                                   Command="{Binding Nexus.ManageNexusAccountCommand}" />
                         <MenuItem Header="{Binding Texts.GUINexusPasteLinkMenuItem}"

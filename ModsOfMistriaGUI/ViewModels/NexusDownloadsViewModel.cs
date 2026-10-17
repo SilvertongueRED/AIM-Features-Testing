@@ -116,7 +116,17 @@ public partial class NexusDownloadsViewModel : ViewModelBase
     {
         if (!NxmProtocolHandler.IsSupported()) return;
         var status = NxmProtocolHandler.GetStatus();
-        if (status is { IsRegistered: true, IsThisExecutable: true }) return;
+        if (status is { IsRegistered: true, IsThisExecutable: true, IsChosenDefault: true }) return;
+
+        // AIM already answers nxm:// links, but on Windows that is not enough: until the user picks
+        // AIM in Default apps, Windows asks which app to use at every click. Walk them through it once.
+        if (status is { IsRegistered: true, IsThisExecutable: true })
+        {
+            if (!_nexusSettings.DefaultAppGuided && await GuideToDefaultAppIfNeededAsync())
+                RefreshHandlerStatus();
+            return;
+        }
+
         var claimant = status.IsClaimedByAnother ? status.HandlerName ?? status.CurrentHandler : null;
         if (_nexusSettings.HandlerPromptAnswered && string.Equals(_nexusSettings.HandlerPromptedFor, claimant, StringComparison.OrdinalIgnoreCase)) return;
 
@@ -132,32 +142,7 @@ public partial class NexusDownloadsViewModel : ViewModelBase
         _nexusSettings.HandlerPromptedFor = claimant;
         if (answer != ButtonResult.Yes) return;
 
-        if (NxmProtocolHandler.Register(out var error))
-        {
-            _nexusSettings.HandlerRegistered = true;
-            await ShowMessage(Localization["GUINexusHandlerTitle"], Localization["GUINexusHandlerRegistered"]);
-        }
-        else
-        {
-            var registrationStatus = NxmProtocolHandler.GetStatus();
-            if (registrationStatus.IsThisApplicationRegistered && registrationStatus.IsClaimedByAnother)
-            {
-                var openDefaults = await ShowBoxAsync(
-                    Localization["GUINexusHandlerTitle"],
-                    string.Format(Localization["GUINexusHandlerRegisteredNotDefault"],
-                        registrationStatus.HandlerName ?? registrationStatus.CurrentHandler ?? "another program"),
-                    ButtonEnum.YesNo);
-
-                if (openDefaults == ButtonResult.Yes)
-                    NxmProtocolHandler.OpenWindowsDefaultApps();
-            }
-            else
-            {
-                await ShowMessage(Localization["GUINexusHandlerTitle"],
-                    string.Format(Localization["GUINexusHandlerFailed"], error ?? ""));
-            }
-        }
-
+        await RegisterHandlerAsync();
         RefreshHandlerStatus();
     }
 
@@ -664,33 +649,94 @@ public partial class NexusDownloadsViewModel : ViewModelBase
 
         }
 
+        await RegisterHandlerAsync();
+        RefreshHandlerStatus();
+    }
+
+    /// <summary>
+    /// Registers AIM for nxm:// links and tells the user how it went. When Windows still sends the
+    /// links to another program, offers to open Default apps, where only the user can change it.
+    /// </summary>
+    private async Task RegisterHandlerAsync()
+    {
         if (NxmProtocolHandler.Register(out var error))
         {
             _nexusSettings.HandlerRegistered = true;
-            await ShowMessage(Localization["GUINexusHandlerTitle"], Localization["GUINexusHandlerRegistered"]);
+
+            // On Windows the registration alone leaves Windows asking which app to use. The
+            // walkthrough replaces the plain confirmation, since it says what to do next.
+            if (!await GuideToDefaultAppIfNeededAsync())
+                await ShowMessage(Localization["GUINexusHandlerTitle"], Localization["GUINexusHandlerRegistered"]);
+            return;
+        }
+
+        var registrationStatus = NxmProtocolHandler.GetStatus();
+        if (registrationStatus.IsThisApplicationRegistered && registrationStatus.IsClaimedByAnother)
+        {
+            var openDefaults = await ShowBoxAsync(
+                Localization["GUINexusHandlerTitle"],
+                string.Format(Localization["GUINexusHandlerRegisteredNotDefault"],
+                    registrationStatus.HandlerName ?? registrationStatus.CurrentHandler ?? "another program"),
+                ButtonEnum.YesNo);
+
+            if (openDefaults == ButtonResult.Yes)
+                NxmProtocolHandler.OpenWindowsDefaultApps();
         }
         else
         {
-            var registrationStatus = NxmProtocolHandler.GetStatus();
-            if (registrationStatus.IsThisApplicationRegistered && registrationStatus.IsClaimedByAnother)
-            {
-                var openDefaults = await ShowBoxAsync(
-                    Localization["GUINexusHandlerTitle"],
-                    string.Format(Localization["GUINexusHandlerRegisteredNotDefault"],
-                        registrationStatus.HandlerName ?? registrationStatus.CurrentHandler ?? "another program"),
-                    ButtonEnum.YesNo);
-
-                if (openDefaults == ButtonResult.Yes)
-                    NxmProtocolHandler.OpenWindowsDefaultApps();
-            }
-            else
-            {
-                await ShowMessage(Localization["GUINexusHandlerTitle"],
-                    string.Format(Localization["GUINexusHandlerFailed"], error ?? ""));
-            }
+            await ShowMessage(Localization["GUINexusHandlerTitle"],
+                string.Format(Localization["GUINexusHandlerFailed"], error ?? ""));
         }
+    }
 
-        RefreshHandlerStatus();
+    /// <summary>
+    /// On Windows, explains the one step only the user can do (choosing AIM in Default apps) and
+    /// opens that page. Returns false, showing nothing, when Windows already uses AIM without asking
+    /// or this is not Windows.
+    /// </summary>
+    private async Task<bool> GuideToDefaultAppIfNeededAsync()
+    {
+        if (!OperatingSystem.IsWindows() || NxmProtocolHandler.GetStatus().IsChosenDefault) return false;
+
+        _nexusSettings.DefaultAppGuided = true;
+        await ShowMessage(Localization["GUINexusHandlerTitle"], Localization["GUINexusDefaultAppGuide"]);
+        NxmProtocolHandler.OpenWindowsDefaultApps();
+        return true;
+    }
+
+    // ── Link sharing ─────────────────────────────────────────────────────────────
+
+    /// <summary>Link sharing forwards links to other Windows mod managers, so it is offered on Windows only.</summary>
+    public bool CanShareLinks => OperatingSystem.IsWindows();
+
+    /// <summary>
+    /// Whether AIM passes download links for other games on to the mod manager that can use them
+    /// (see <see cref="NxmLinkRouter"/>). On by default. Bound to a checkable item in the Nexus menu.
+    /// </summary>
+    public bool ShareLinksWithOtherManagers
+    {
+        get => _nexusSettings.ShareLinksWithOtherManagers;
+        set
+        {
+            if (value == _nexusSettings.ShareLinksWithOtherManagers) return;
+
+            _nexusSettings.ShareLinksWithOtherManagers = value;
+            OnPropertyChanged();
+
+            if (value) _ = OnLinkSharingEnabledAsync();
+        }
+    }
+
+    private async Task OnLinkSharingEnabledAsync()
+    {
+        await ShowMessage(Localization["GUINexusHandlerTitle"], Localization["GUINexusShareLinksEnabled"]);
+
+        // Sharing works only while Windows hands the links to AIM in the first place, without asking.
+        if (NxmProtocolHandler.IsSupported() && !NxmProtocolHandler.GetStatus().IsChosenDefault)
+        {
+            await RegisterHandlerAsync();
+            RefreshHandlerStatus();
+        }
     }
 
     [RelayCommand]

@@ -28,6 +28,10 @@ public class NexusSettings
     private const string HandlerPromptField = "nxmHandlerPromptAnswered";
     private const string HandlerAlwaysClaimField = "nxmHandlerAlwaysClaim";
     private const string HandlerPromptedForField = "nxmHandlerPromptedFor";
+    private const string DefaultAppGuidedField = "nxmDefaultAppGuided";
+    private const string ShareLinksField = "nxmShareWithOtherManagers";
+    private const string LastLinkManagerField = "nxmLastLinkManager";
+    private const string LinkManagerPathsField = "nxmLinkManagerPaths";
 
     private readonly string _path;
     private JObject _data;
@@ -153,6 +157,58 @@ public class NexusSettings
             else _data[HandlerPromptedForField] = value;
             Save();
         }
+    }
+
+    /// <summary>
+    /// Whether the user has already been walked through choosing AIM in Windows Default apps. Shown
+    /// once on its own, so a user who picks something else afterwards is not nagged at every launch.
+    /// </summary>
+    public bool DefaultAppGuided
+    {
+        get => _data.Value<bool?>(DefaultAppGuidedField) ?? false;
+        set { _data[DefaultAppGuidedField] = value; Save(); }
+    }
+
+    // ── Link sharing ─────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Whether AIM passes nxm:// links on to the mod manager that can use them (Stardrop for Stardew
+    /// Valley, Vortex for other games). See <see cref="NxmLinkRouter"/>. On unless the user turns it
+    /// off: it only has an effect on Windows, and only for links AIM cannot install itself.
+    /// </summary>
+    public bool ShareLinksWithOtherManagers
+    {
+        get => _data.Value<bool?>(ShareLinksField) ?? true;
+        set { _data[ShareLinksField] = value; Save(); }
+    }
+
+    /// <summary>The manager that received the most recent link; it gets the next one when none is open.</summary>
+    public string? LastLinkManager
+    {
+        get => _data.Value<string>(LastLinkManagerField);
+        set
+        {
+            if (value is null) _data.Remove(LastLinkManagerField);
+            else if (_data.Value<string>(LastLinkManagerField) == value) return;
+            else _data[LastLinkManagerField] = value;
+            Save();
+        }
+    }
+
+    /// <summary>Where another manager's executable was last seen, so links can reach it when it is closed.</summary>
+    public string? GetLinkManagerPath(string manager) =>
+        (_data[LinkManagerPathsField] as JObject)?.Value<string>(manager);
+
+    public void SetLinkManagerPath(string manager, string path)
+    {
+        if (_data[LinkManagerPathsField] is not JObject paths)
+        {
+            paths = new JObject();
+            _data[LinkManagerPathsField] = paths;
+        }
+
+        paths[manager] = path;
+        Save();
     }
 
     // ── Storage ──────────────────────────────────────────────────────────────────
