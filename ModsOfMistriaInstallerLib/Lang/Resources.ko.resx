@@ -35,6 +35,7 @@
   <data name="GUIPhaseInstallingImages" xml:space="preserve"><value>이미지 설치 중</value></data>
   <data name="GUIPhaseInstallingToml" xml:space="preserve"><value>TOML 설치 중</value></data>
   <data name="GUIPhaseInstallingFonts" xml:space="preserve"><value>글꼴 설치 중</value></data>
+  <data name="GUIPhaseInstallingAudio" xml:space="preserve"><value>오디오 설치 중</value></data>
   <data name="GUIPhaseInstallingJson" xml:space="preserve"><value>JSON 설치 중</value></data>
   <data name="GUIPhaseInstallingXml" xml:space="preserve"><value>XML 설치 중</value></data>
   <data name="GUIPhaseInstallingMist" xml:space="preserve"><value>MIST 설치 중</value></data>

@@ -492,6 +492,7 @@ Download-Seite(n) im Browser öffnen?</value></data>
   <data name="GUIPhaseInstallingImages" xml:space="preserve"><value>Bilder werden installiert</value></data>
   <data name="GUIPhaseInstallingToml" xml:space="preserve"><value>TOML wird installiert</value></data>
   <data name="GUIPhaseInstallingFonts" xml:space="preserve"><value>Schriftarten werden installiert</value></data>
+  <data name="GUIPhaseInstallingAudio" xml:space="preserve"><value>Audio wird installiert</value></data>
   <data name="GUIPhaseInstallingJson" xml:space="preserve"><value>JSON wird installiert</value></data>
   <data name="GUIPhaseInstallingXml" xml:space="preserve"><value>XML wird installiert</value></data>
   <data name="GUIPhaseInstallingMist" xml:space="preserve"><value>MIST wird installiert</value></data>

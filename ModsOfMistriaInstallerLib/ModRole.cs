@@ -50,7 +50,7 @@ public enum ModRole
     DataOverride,
 
     /// <summary>
-    /// Replaces files wholesale: sprites under <c>images/replace/</c>, fonts.
+    /// Replaces files wholesale: sprites under <c>images/replace/</c>, fonts, FMOD sound banks under <c>audio/</c>.
     ///
     /// Last, and for the bluntest reason: these are unconditional writes. A replacement removes the
     /// previous one's frames from the atlas and puts its own in. Whoever is read last wins outright,
@@ -67,7 +67,8 @@ public enum ModRole
 /// load order matters:
 ///
 ///   • <c>gml/</c> is picked up by the GML collector, which resolves name collisions first-wins.
-///   • <c>images/replace/</c> is the image installer's hard-replacement path, which is last-wins.
+///   • <c>images/replace/</c> is the image installer's hard-replacement path, which is last-wins;
+///     <c>audio/*.bank</c> replaces a whole game sound bank the same way.
 ///   • <c>momi/</c>, <c>tiled/</c>, <c>points/</c>, <c>animations/</c> and <c>shapes/</c> are where
 ///     new content lives; the installers merge or append these.
 ///   • <c>fiddle/</c>, <c>data_files/</c> and <c>localization/</c> are merged table by table, where
@@ -126,7 +127,8 @@ public static class ModRoleClassifier
         // Everything below is "how late does this mod need to be", answered by taking the latest
         // layer any of its contributions calls for.
         if (Has(mod, () => mod.HasFilesInFolder("images/replace", ".png")) ||
-            Has(mod, () => mod.HasFilesInFolder("fonts", ".ttf")))
+            Has(mod, () => mod.HasFilesInFolder("fonts", ".ttf")) ||
+            Has(mod, () => mod.HasFilesInFolder("audio", ".bank")))
             return ModRole.Replacement;
 
         var addsContent =

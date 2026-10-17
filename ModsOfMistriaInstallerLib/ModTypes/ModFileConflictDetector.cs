@@ -102,6 +102,10 @@ public static class ModFileConflictDetector
     {
         var normalized = path.Replace('\\', '/');
 
+        if (normalized.StartsWith("audio/", StringComparison.OrdinalIgnoreCase) &&
+            normalized.EndsWith(".bank", StringComparison.OrdinalIgnoreCase))
+            return ModFileConflictKind.HardReplacement;
+
         if (normalized.StartsWith("images/replace/", StringComparison.OrdinalIgnoreCase) ||
             (normalized.StartsWith("animations/ui new/loading screen/", StringComparison.OrdinalIgnoreCase) &&
              normalized.EndsWith(".png", StringComparison.OrdinalIgnoreCase)))

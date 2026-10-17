@@ -34,6 +34,7 @@
   <data name="GUIPhaseInstallingImages" xml:space="preserve"><value>正在安装图像</value></data>
   <data name="GUIPhaseInstallingToml" xml:space="preserve"><value>正在安装 TOML</value></data>
   <data name="GUIPhaseInstallingFonts" xml:space="preserve"><value>正在安装字体</value></data>
+  <data name="GUIPhaseInstallingAudio" xml:space="preserve"><value>正在安装音频</value></data>
   <data name="GUIPhaseInstallingJson" xml:space="preserve"><value>正在安装 JSON</value></data>
   <data name="GUIPhaseInstallingXml" xml:space="preserve"><value>正在安装 XML</value></data>
   <data name="GUIPhaseInstallingMist" xml:space="preserve"><value>正在安装 MIST</value></data>

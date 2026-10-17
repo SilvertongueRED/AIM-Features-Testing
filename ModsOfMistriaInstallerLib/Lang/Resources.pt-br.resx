@@ -492,6 +492,7 @@ Abrir as páginas de download no navegador?</value></data>
   <data name="GUIPhaseInstallingImages" xml:space="preserve"><value>Instalando imagens</value></data>
   <data name="GUIPhaseInstallingToml" xml:space="preserve"><value>Instalando TOML</value></data>
   <data name="GUIPhaseInstallingFonts" xml:space="preserve"><value>Instalando fontes</value></data>
+  <data name="GUIPhaseInstallingAudio" xml:space="preserve"><value>Instalando áudio</value></data>
   <data name="GUIPhaseInstallingJson" xml:space="preserve"><value>Instalando JSON</value></data>
   <data name="GUIPhaseInstallingXml" xml:space="preserve"><value>Instalando XML</value></data>
   <data name="GUIPhaseInstallingMist" xml:space="preserve"><value>Instalando MIST</value></data>

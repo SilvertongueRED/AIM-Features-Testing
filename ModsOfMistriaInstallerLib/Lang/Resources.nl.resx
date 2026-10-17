@@ -489,6 +489,7 @@ Downloadpagina's openen in de browser?</value></data>
   <data name="GUIPhaseInstallingImages" xml:space="preserve"><value>Afbeeldingen installeren</value></data>
   <data name="GUIPhaseInstallingToml" xml:space="preserve"><value>TOML installeren</value></data>
   <data name="GUIPhaseInstallingFonts" xml:space="preserve"><value>Lettertypen installeren</value></data>
+  <data name="GUIPhaseInstallingAudio" xml:space="preserve"><value>Audio installeren</value></data>
   <data name="GUIPhaseInstallingJson" xml:space="preserve"><value>JSON installeren</value></data>
   <data name="GUIPhaseInstallingXml" xml:space="preserve"><value>XML installeren</value></data>
   <data name="GUIPhaseInstallingMist" xml:space="preserve"><value>MIST installeren</value></data>

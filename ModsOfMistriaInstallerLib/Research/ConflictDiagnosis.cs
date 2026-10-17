@@ -196,6 +196,11 @@ public static class ConflictDiagnoser
                 "Files under images/replace are copied over the game's own, not merged, " +
                 "so only the last one installed survives.") { WinnerModId = winner };
 
+        if (normalized.StartsWith("audio/", StringComparison.OrdinalIgnoreCase) && extension is ".bank")
+            return new FileVerdict(path, FileOutcome.LastWins,
+                "Sound banks under audio/ replace the game's whole bank, not merged, " +
+                "so only the last one installed survives.") { WinnerModId = winner };
+
         if (extension is ".toml") return ExamineStructured(path, bytes, mods, ReadTomlKeys);
         if (extension is ".json") return ExamineStructured(path, bytes, mods, ReadJsonKeys);
 
@@ -372,5 +377,5 @@ public static class ConflictDiagnoser
 
     private static bool IsBinary(string extension) => extension is
         ".png" or ".jpg" or ".jpeg" or ".gif" or ".bmp" or ".webp" or
-        ".ogg" or ".wav" or ".mp3" or ".ttf" or ".otf" or ".fnt";
+        ".ogg" or ".wav" or ".mp3" or ".ttf" or ".otf" or ".fnt" or ".bank";
 }

@@ -86,6 +86,7 @@
   <data name="GUIPhaseInstallingImages" xml:space="preserve"><value>Instalowanie obrazów</value></data>
   <data name="GUIPhaseInstallingToml" xml:space="preserve"><value>Instalowanie TOML</value></data>
   <data name="GUIPhaseInstallingFonts" xml:space="preserve"><value>Instalowanie czcionek</value></data>
+  <data name="GUIPhaseInstallingAudio" xml:space="preserve"><value>Instalowanie dźwięku</value></data>
   <data name="GUIPhaseInstallingJson" xml:space="preserve"><value>Instalowanie JSON</value></data>
   <data name="GUIPhaseInstallingXml" xml:space="preserve"><value>Instalowanie XML</value></data>
   <data name="GUIPhaseInstallingMist" xml:space="preserve"><value>Instalowanie Mist</value></data>

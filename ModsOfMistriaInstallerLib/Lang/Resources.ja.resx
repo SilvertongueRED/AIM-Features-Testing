@@ -36,6 +36,7 @@
   <data name="GUIPhaseInstallingImages" xml:space="preserve"><value>画像をインストール中</value></data>
   <data name="GUIPhaseInstallingToml" xml:space="preserve"><value>TOMLをインストール中</value></data>
   <data name="GUIPhaseInstallingFonts" xml:space="preserve"><value>フォントをインストール中</value></data>
+  <data name="GUIPhaseInstallingAudio" xml:space="preserve"><value>オーディオをインストール中</value></data>
   <data name="GUIPhaseInstallingJson" xml:space="preserve"><value>JSONをインストール中</value></data>
   <data name="GUIPhaseInstallingXml" xml:space="preserve"><value>XMLをインストール中</value></data>
   <data name="GUIPhaseInstallingMist" xml:space="preserve"><value>MISTをインストール中</value></data>

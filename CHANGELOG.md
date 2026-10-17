@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Mods can replace the game's music and sound effects
+
+- A mod can now ship FMOD sound banks in an `audio/` folder. `audio/Fall.bank` replaces the game's
+  `assets/audio/Fall.bank` whole, the same way `images/replace/` swaps a sprite.
+- AIM only replaces banks the game already has (matching the name in any letter case), and only
+  files that really are FMOD banks, so a typo or a stray file can't silence the game.
+- Audio mods load in the file-replacement layer, and two mods replacing the same bank are reported
+  as a replacement conflict: the one installed last wins.
+
 ## 0.2.2 - 2026-09-18
 
 ### Fields of Mistria 1.0.5 support

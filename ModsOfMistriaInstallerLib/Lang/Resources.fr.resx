@@ -492,6 +492,7 @@ Ouvrir les pages de téléchargement dans le navigateur ?</value></data>
   <data name="GUIPhaseInstallingImages" xml:space="preserve"><value>Installation des images</value></data>
   <data name="GUIPhaseInstallingToml" xml:space="preserve"><value>Installation du TOML</value></data>
   <data name="GUIPhaseInstallingFonts" xml:space="preserve"><value>Installation des polices</value></data>
+  <data name="GUIPhaseInstallingAudio" xml:space="preserve"><value>Installation de l'audio</value></data>
   <data name="GUIPhaseInstallingJson" xml:space="preserve"><value>Installation du JSON</value></data>
   <data name="GUIPhaseInstallingXml" xml:space="preserve"><value>Installation du XML</value></data>
   <data name="GUIPhaseInstallingMist" xml:space="preserve"><value>Installation de MIST</value></data>

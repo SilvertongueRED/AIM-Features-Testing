@@ -96,6 +96,7 @@
   <data name="GUIPhaseInstallingImages" xml:space="preserve"><value>Встановлення зображень</value></data>
   <data name="GUIPhaseInstallingToml" xml:space="preserve"><value>Встановлення TOML</value></data>
   <data name="GUIPhaseInstallingFonts" xml:space="preserve"><value>Встановлення шрифтів</value></data>
+  <data name="GUIPhaseInstallingAudio" xml:space="preserve"><value>Встановлення аудіо</value></data>
   <data name="GUIPhaseInstallingJson" xml:space="preserve"><value>Встановлення JSON</value></data>
   <data name="GUIPhaseInstallingXml" xml:space="preserve"><value>Встановлення XML</value></data>
   <data name="GUIPhaseInstallingMist" xml:space="preserve"><value>Встановлення MIST</value></data>
