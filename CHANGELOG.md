@@ -32,6 +32,7 @@
   be built, the install carries on and portraits install the usual way (last mod wins).
 - **Check issues** lists portrait overlaps Wardrobe handles under **Handled automatically**
   instead of as problems, and they no longer light a mod's warning triangle.
+
 ### Mods can replace the game's music and sound effects
 
 - A mod can now ship FMOD sound banks in an `audio/` folder. `audio/Fall.bank` replaces the game's
@@ -40,6 +41,7 @@
   files that really are FMOD banks, so a typo or a stray file can't silence the game.
 - Audio mods load in the file-replacement layer, and two mods replacing the same bank are reported
   as a replacement conflict: the one installed last wins.
+
 ### Mods can say where they belong among their own kind
 
 - A manifest can now set `load_position` to `"early"` or `"late"`. **Suggest order** keeps its
@@ -48,12 +50,14 @@
   recolours that share its files load after it and win. A `late` mod goes last among its kind.
 - A declared requirement still wins over the hint, an unrecognised value is ignored, and MOMI
   ignores the field entirely. The note explaining a move says when it came from the mod's own hint.
+
 ### Colour recolours can overwrite a palette LUT
 
 - A LUT replacement (`images/replace/*_lut.png`) can now ask to **overwrite** the installed palettes
   instead of being appended after them, with `lut_mode = "overwrite"` in its `.meta.toml`. Appending
   is still the default, for mods that add colour variants; overwriting is what lets a recolour change
   LUT-drawn UI such as the HUD's day/night palette and the font colours.
+
 ### Crash research reads the bug tracker and the comments for this crash
 
 - **Check Crashes** now asks the suspects' Nexus pages about *this* crash instead of borrowing the
