@@ -700,6 +700,8 @@ Passá-los para o AIM?</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>Mostrar problemas marcados como resolvidos ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>Marcado como resolvido</value></data>
   <data name="GUIIssueHandledHeader" xml:space="preserve"><value>Resolvido automaticamente</value></data>
+  <data name="GUIIssueAndMore" xml:space="preserve"><value>{0} e mais {1}</value></data>
+  <data name="GUIIssueAllModsHeader" xml:space="preserve"><value>Todos os {0} mods deste problema</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[marcado como resolvido]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>Arquivos que ambos modificam</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>vence agora</value></data>

@@ -374,6 +374,8 @@ Przekazać je do AIM?</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>Pokaż problemy oznaczone jako prawidłowe ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>Oznaczone jako prawidłowe</value></data>
   <data name="GUIIssueHandledHeader" xml:space="preserve"><value>Obsłużone automatycznie</value></data>
+  <data name="GUIIssueAndMore" xml:space="preserve"><value>{0} i {1} innych</value></data>
+  <data name="GUIIssueAllModsHeader" xml:space="preserve"><value>Wszystkie mody ({0}) w tym problemie</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[oznaczone jako prawidłowe]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>Pliki zapisywane przez oba mody</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>obecnie wygrywa</value></data>

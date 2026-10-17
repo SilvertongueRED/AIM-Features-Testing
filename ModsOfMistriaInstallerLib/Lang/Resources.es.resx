@@ -374,6 +374,8 @@ Es posible que el navegador pida permiso la primera vez que hagas clic.</value><
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>Mostrar problemas marcados como correctos ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>Marcado como correcto</value></data>
   <data name="GUIIssueHandledHeader" xml:space="preserve"><value>Resuelto automáticamente</value></data>
+  <data name="GUIIssueAndMore" xml:space="preserve"><value>{0} y {1} más</value></data>
+  <data name="GUIIssueAllModsHeader" xml:space="preserve"><value>Los {0} mods de este problema</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[marcado como correcto]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>Archivos que ambos escriben</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>gana ahora</value></data>

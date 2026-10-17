@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Check issues: easier to read
+
+- "Handled automatically" is a collapsed section with a count; it stays as you leave it.
+- A file conflict lists its mods with the one that wins now first; the files they write come after.
+- An issue naming more than six mods gets a short headline ("A", "B", "C" and N more); every mod
+  still has its own row. "Find a fix" shows the same short headline with the full sentence in a
+  closed, scrollable section.
+- The jump-to-top and jump-to-bottom buttons no longer sit on top of the expander arrows or text.
+
 ### Portrait Wardrobe: keep every portrait pack and pick in game
 
 - With the **Portrait Wardrobe** mod ticked, portrait packs that replace the same villager portrait

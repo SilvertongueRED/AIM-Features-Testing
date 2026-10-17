@@ -700,6 +700,8 @@ An AIM übergeben?</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>Als erledigt markierte Probleme anzeigen ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>Als erledigt markiert</value></data>
   <data name="GUIIssueHandledHeader" xml:space="preserve"><value>Automatisch erledigt</value></data>
+  <data name="GUIIssueAndMore" xml:space="preserve"><value>{0} und {1} weitere</value></data>
+  <data name="GUIIssueAllModsHeader" xml:space="preserve"><value>Alle {0} Mods in diesem Problem</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[als erledigt markiert]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>Dateien, die beide Mods schreiben</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>gewinnt jetzt</value></data>

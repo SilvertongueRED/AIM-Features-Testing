@@ -69,6 +69,15 @@ public partial class ConflictResearchWindow : Window
         var texts = LocalizedTexts.Instance;
         Title = texts.GUIResearchTitle;
         IssueText.Text = issue;
+
+        var condensed = IssueSummary.Condense(issue, subjects.Select(s => s.Name).ToList(), texts.GUIIssueAndMore);
+        if (condensed != issue)
+        {
+            IssueText.Text = condensed;
+            IssueFullText.Text = issue;
+            IssueFullExpander.Header = string.Format(texts.GUIIssueAllModsHeader, subjects.Count);
+            IssueFullExpander.IsVisible = true;
+        }
         // The evidence headers carry a count, so they are written when there is something to count.
         DiagnosisHeader.Text = texts.GUIResearchDiagnosisHeader;
         FixesHeader.Text = texts.GUIResearchFixesHeader;

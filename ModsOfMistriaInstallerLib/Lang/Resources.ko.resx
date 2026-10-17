@@ -374,6 +374,8 @@ AIM이 처리하도록 할까요?</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>문제없다고 표시한 문제 표시 ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>문제없음으로 표시됨</value></data>
   <data name="GUIIssueHandledHeader" xml:space="preserve"><value>자동으로 처리됨</value></data>
+  <data name="GUIIssueAndMore" xml:space="preserve"><value>{0} 외 {1}개</value></data>
+  <data name="GUIIssueAllModsHeader" xml:space="preserve"><value>이 문제에 포함된 모드 {0}개 전체</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[문제없음으로 표시됨]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>두 모드가 모두 변경하는 파일</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>현재 우선 적용됨</value></data>
