@@ -95,6 +95,47 @@ public static class NexusBugReader
     }
 
     /// <summary>
+    /// One page of the bug list, and what the request came back with - so a caller can tell "this
+    /// mod has no bug reports" from "Nexus would not show AIM the bug reports".
+    /// </summary>
+    public static async Task<(List<NexusBugSummary> Bugs, NexusFetch Fetch)> ReadBugListWithStatusAsync(
+        HttpClient http,
+        int gameId,
+        int modId,
+        int page,
+        NexusSession session,
+        CancellationToken ct = default)
+    {
+        var parameters = $"id:{modId},game_id:{gameId},page_size:{BugPageSize},page:{page}";
+        var url = $"{Widgets}/ModBugsTab?RH_ModBugsTab={Uri.EscapeDataString(parameters)}";
+
+        var fetch = await NexusPageReader.FetchWithStatusAsync(http, url, session, ct, asXhr: true);
+
+        return (fetch.Html is null ? [] : ExtractBugs(fetch.Html), fetch);
+    }
+
+    /// <summary>
+    /// One bug report's whole conversation with who wrote each part - the report first, then the
+    /// replies in order.
+    ///
+    /// The tracker does not mark the mod author's replies the way the comment thread does, so
+    /// <see cref="NexusComment.ByModAuthor"/> is always false here; the caller knows the author's
+    /// name from the mod itself and decides.
+    /// </summary>
+    public static async Task<(List<NexusComment> Posts, NexusFetch Fetch)> ReadBugThreadAsync(
+        HttpClient http,
+        int issueId,
+        NexusSession session,
+        CancellationToken ct = default)
+    {
+        var fetch = await NexusPageReader.FetchWithStatusAsync(
+            http, $"{Widgets}/ModBugReplyList", session, ct, asXhr: true,
+            form: new Dictionary<string, string> { ["issue_id"] = issueId.ToString() });
+
+        return (fetch.Html is null ? [] : NexusPageReader.ExtractComments(fetch.Html, "bugs"), fetch);
+    }
+
+    /// <summary>
     /// Pulls the rows out of a bug tab's HTML.
     ///
     /// Split from the fetch so it can be tested against saved markup, for the same reason the

@@ -24,6 +24,39 @@ public sealed record ResearchFinding(
     public bool NamesTheOtherMod { get; init; }
 
     /// <summary>
+    /// The mod whose page this came from, without the commenter's name that <see cref="ModName"/>
+    /// carries. Lets a window group what one mod's page says about the others.
+    /// </summary>
+    public string PageMod { get; init; } = "";
+
+    /// <summary>
+    /// Another installed mod this quote talks about, when it names one - "is this compatible with
+    /// March Expanded?" on the page of a mod that is not March Expanded.
+    /// </summary>
+    public string? MentionedMod { get; init; }
+
+    /// <summary>True when the mod's own author wrote it. Nexus marks the author's posts.</summary>
+    public bool ByModAuthor { get; init; }
+
+    /// <summary>
+    /// The mod author's reply to this post, when the post was a question and the author answered
+    /// it. The question is rarely worth much on its own; the answer is the finding.
+    /// </summary>
+    public string? Answer { get; init; }
+
+    /// <summary>Who wrote <see cref="Answer"/> - the author's account name, as Nexus shows it.</summary>
+    public string AnsweredBy { get; init; } = "";
+
+    /// <summary>
+    /// What to do about it, when the quote says - "update to 2.0.11", "load it after March
+    /// Expanded", "delete the old folder first". Null when the quote is evidence, not a remedy.
+    /// </summary>
+    public string? Treatment { get; init; }
+
+    /// <summary>True when the quote names the very function, field or asset this crash names.</summary>
+    public bool MatchesThisCrash { get; init; }
+
+    /// <summary>
     /// The whole sentence or post, before <see cref="Quote"/> was cut down to fit a window.
     ///
     /// Kept because the cut is a display decision and a wrong one often enough to matter: a
@@ -109,11 +142,81 @@ public enum PatchConfidence
     OptionalFile
 }
 
+/// <summary>How far AIM got with one part of one mod's page.</summary>
+public enum CoverageStatus
+{
+    /// <summary>Read, and something was found.</summary>
+    Read,
+
+    /// <summary>Read, and there was nothing relevant in it.</summary>
+    Empty,
+
+    /// <summary>Nexus refused to serve it - usually its bot check answering instead of the page.</summary>
+    Blocked,
+
+    /// <summary>The request failed for some other reason: offline, a timeout, a server error.</summary>
+    Failed,
+
+    /// <summary>Not attempted - see <see cref="ResearchCoverage.Skipped"/> for why.</summary>
+    Skipped
+}
+
+/// <summary>The parts of a mod's Nexus presence the researcher reads.</summary>
+public enum ResearchSource
+{
+    Description,
+    Changelog,
+    Readme,
+    Comments,
+    BugReports
+}
+
+/// <summary>Why a part of a page was not read at all.</summary>
+public enum SkipReason
+{
+    None,
+
+    /// <summary>AIM does not know which Nexus mod this is.</summary>
+    NoNexusPage,
+
+    /// <summary>The part comes through the API, and the user is not signed in to Nexus.</summary>
+    NotSignedIn,
+
+    /// <summary>
+    /// Nexus's bot check answered an earlier page, so AIM stopped asking rather than collect the
+    /// same refusal from every mod in turn.
+    /// </summary>
+    BlockedEarlier
+}
+
+/// <summary>
+/// One line of "what AIM actually read". Without it an empty result looked identical whether the
+/// pages said nothing or were never read at all, and the second is by far the more common reason
+/// a crash window comes back with no quotes.
+/// </summary>
+/// <param name="Read">How many items were read: comments, bug reports, changelog versions.</param>
+public sealed record ResearchCoverage(string ModName, ResearchSource Source, CoverageStatus Status, int Read = 0)
+{
+    /// <summary>Searches run in a comment thread, or reports opened on a bug tracker.</summary>
+    public int Searched { get; init; }
+
+    /// <summary>How many of what was read turned into findings.</summary>
+    public int Kept { get; init; }
+
+    public SkipReason Skipped { get; init; }
+
+    /// <summary>The HTTP status when a request failed, for the log and the curious.</summary>
+    public int StatusCode { get; init; }
+}
+
 public sealed record ResearchResult(
     IReadOnlyList<ResearchFinding> Findings,
     IReadOnlyList<ResearchLink> Links)
 {
     public IReadOnlyList<PatchCandidate> Patches { get; init; } = [];
+
+    /// <summary>What was read for each mod, and what could not be.</summary>
+    public IReadOnlyList<ResearchCoverage> Coverage { get; init; } = [];
 
     /// <summary>True when nothing was read and only the links are left.</summary>
     public bool FoundNothing => Findings.Count == 0 && Patches.Count == 0;
@@ -234,6 +337,7 @@ public static class ConflictResearch
             if (pageReader is not null)
             {
                 findings.AddRange(await ScanDiscussionAsync(mod, others, pageReader, session, ct));
+
                 findings.AddRange(await ReadTheReadmeAsync(mod, others, page, pageReader, session, ct));
                 linkedFromEachPage.Add(await ReadLinkedModsAsync(mod, page, pageReader, session, ct));
             }
@@ -251,7 +355,7 @@ public static class ConflictResearch
         };
     }
 
-    private static string PageOf(ResearchSubject mod) =>
+    internal static string PageOf(ResearchSubject mod) =>
         mod.PageUrl ?? $"https://www.nexusmods.com/{Game}/mods/{mod.ModId}";
 
     /// <summary>
@@ -517,7 +621,7 @@ public static class ConflictResearch
     /// one least likely to be a coincidence, and whatever it turns up is judged afterwards by
     /// <see cref="ModNameMatcher"/> anyway.
     /// </summary>
-    private static IEnumerable<string> SearchTermsFor(IReadOnlyList<string> names) =>
+    internal static IEnumerable<string> SearchTermsFor(IReadOnlyList<string> names) =>
         names
             .Select(name => ModNameMatcher.DistinctiveWords(name)
                 .OrderByDescending(word => word.Length)
@@ -645,11 +749,12 @@ public static class ConflictResearch
             Polarity = polarity,
             Where = $"bug report \"{Trim(bug.Title, 60)}\"",
             NamesTheOtherMod = named is not null,
-            FullQuote = text
+            FullQuote = text,
+            PageMod = mod.Name
         };
     }
 
-    private static string Describe(BugState state) => state switch
+    internal static string Describe(BugState state) => state switch
     {
         BugState.New => "new issue",
         BugState.Known => "known issue",
@@ -696,7 +801,8 @@ public static class ConflictResearch
                 Polarity = signal.Polarity,
                 Where = where,
                 NamesTheOtherMod = named is not null,
-                FullQuote = post.Text
+                FullQuote = post.Text,
+                PageMod = mod.Name
             });
 
             if (++kept >= MaxDiscussionQuotes) break;
@@ -799,7 +905,7 @@ public static class ConflictResearch
     /// is not the author writing about compatibility - a changelog, a readme - where the loose bar
     /// produces far more noise than signal.
     /// </param>
-    private static IEnumerable<ResearchFinding> Scan(
+    internal static IEnumerable<ResearchFinding> Scan(
         ResearchSubject mod,
         string text,
         IReadOnlyList<string> otherNames,
@@ -807,18 +913,72 @@ public static class ConflictResearch
         string where,
         bool strict = false)
     {
-        var plain = PlainText(text);
+        var plain = PlainTextKeepingBreaks(text);
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var sentence in Sentences(plain))
+        // Every piece, short ones included: a list item can be a two-word mod name, and it is only
+        // ever read as part of the lead-in above it - see ListUnder.
+        var pieces = Pieces(plain).ToList();
+
+        for (var index = 0; index < pieces.Count; index++)
         {
+            var whole = pieces[index];
+            if (whole.Length < 12 && !whole.EndsWith(':')) continue;
+
             // A sentence naming one of the other mods is the strongest signal there is, whatever
             // words surround it - the author is talking about exactly this pairing.
-            var named = ModNameMatcher.FirstMentioned(sentence, otherNames);
+            var namedAnywhere = ModNameMatcher.FirstMentioned(whole, otherNames);
+
+            // Cut down to the clause that says it, unless that would cut the other mod's name off.
+            var focused = Focus(whole);
+            var sentence = namedAnywhere is not null && ModNameMatcher.FirstMentioned(focused, otherNames) is null
+                ? whole
+                : focused;
+            var named = namedAnywhere;
 
             var signal = strict && named is null
                 ? CompatibilityLanguage.ClassifyDiscussion(sentence)
                 : CompatibilityLanguage.Classify(sentence);
+
+            // "Incompatible with:" and then one mod per line. Keeping line breaks - which is what
+            // stops a bulleted list running into one enormous quote - separates the verdict from
+            // the names it is about, so the two are put back together here: each item that names
+            // one of the other mods is quoted with its lead-in, and the lead-in on its own is not
+            // a finding at all.
+            if (named is null && LeadInVerdict(whole, signal) is { } listVerdict)
+            {
+                var namedAny = false;
+
+                foreach (var item in ListUnder(pieces, index))
+                {
+                    var itemNamed = ModNameMatcher.FirstMentioned(item, otherNames);
+                    if (itemNamed is null) continue;
+
+                    namedAny = true;
+
+                    var quote = $"{whole.TrimEnd()} {item.TrimStart('-', '–', '•', '*', '·', ' ')}";
+                    if (!seen.Add(quote)) continue;
+
+                    yield return new ResearchFinding(mod.Name, Trim(quote),
+                        $"names \"{itemNamed}\" and {listVerdict.Reason}", sourceUrl)
+                    {
+                        Polarity = listVerdict.Polarity,
+                        Where = where,
+                        NamesTheOtherMod = true,
+                        FullQuote = quote,
+                        PageMod = mod.Name
+                    };
+
+                    if (seen.Count >= MaxDescriptionQuotes) yield break;
+                }
+
+                // A lead-in whose list names none of the other mods may still say something on its
+                // own - "not compatible with any mod that edits the bakery, because:" - so it is
+                // read like any other sentence.
+                if (namedAny) continue;
+            }
+
+            if (whole.Length < 12) continue;
 
             // A sentence with no verdict is not a finding, however sure we are that it is about the
             // other mod. A description mentioning another mod in passing - "also includes a darker
@@ -837,10 +997,51 @@ public static class ConflictResearch
                 Polarity = signal!.Polarity,
                 Where = where,
                 NamesTheOtherMod = named is not null,
-                FullQuote = sentence
+                FullQuote = sentence,
+                PageMod = mod.Name
             };
 
             if (seen.Count >= MaxDescriptionQuotes) yield break;
+        }
+    }
+
+    private static readonly Regex ConflictListHeading = new(
+        @"\b(?:known\s+)?(?:conflicts?|incompatibilit(?:y|ies)|incompatible\s+mods)\s*:\s*$",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly Regex CompatibleListHeading = new(
+        @"^(?!.*\b(?:not|in)compatib).*\bcompatible\s+(?:with|mods)\b[^:]*:\s*$",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    /// <summary>
+    /// The verdict a line ending in a colon gives the list beneath it, or null when it is not a
+    /// lead-in or says nothing either way. A heading on its own - "Known conflicts:", "Compatible
+    /// with:" - carries a verdict here that it would not as a sentence.
+    /// </summary>
+    private static CompatibilitySignal? LeadInVerdict(string line, CompatibilitySignal? signal)
+    {
+        if (!line.TrimEnd().EndsWith(':')) return null;
+        if (signal is { Polarity: not Polarity.Context }) return signal;
+        if (ConflictListHeading.IsMatch(line)) return new CompatibilitySignal(Polarity.Blocker, "lists it as a known conflict");
+        if (CompatibleListHeading.IsMatch(line)) return new CompatibilitySignal(Polarity.Clearance, "lists it as compatible");
+        return null;
+    }
+
+    /// <summary>
+    /// The items of a list straight after a lead-in: the short lines that follow, up to the next
+    /// heading, the first line long enough to be prose again, or the first line that gives a
+    /// verdict of its own. That last one is where a list has ended - "Compatible with: Better
+    /// Dialogue" then "Not compatible with March Expanded" - and reading it as one more item would
+    /// file March Expanded under the wrong heading. It is read as its own sentence instead.
+    /// </summary>
+    private static IEnumerable<string> ListUnder(List<string> pieces, int leadIn)
+    {
+        for (var index = leadIn + 1; index < pieces.Count && index <= leadIn + 25; index++)
+        {
+            var item = pieces[index];
+            if (item.EndsWith(':') || item.Length > 100) yield break;
+            if (CompatibilityLanguage.Classify(item) is { Polarity: not Polarity.Context }) yield break;
+            yield return item;
         }
     }
 
@@ -858,8 +1059,76 @@ public static class ConflictResearch
         "list|img|youtube|video|table|tr|td|th|heading|line|hr|indent|sup|sub";
 
     private static readonly Regex BbCode = new(
-        $@"\[/?(?:{BbCodeTags})(?:[=\s][^\]]{{0,300}})?\]|\[\*\]",
+        $@"\[/?(?:{BbCodeTags})(?:[=\s][^\]]{{0,300}})?\]|\[/?\*\]",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    /// <summary>
+    /// The markup that ends a line on the rendered page: list items, line breaks, paragraphs and
+    /// headings, in both their HTML and their BBCode spelling.
+    ///
+    /// Turning these into spaces - which is what stripping them used to do - ran a whole bulleted
+    /// list together into one "sentence". March Expanded's description came back as a single
+    /// paragraph of dialogue lines, heart-event triggers and an image link, with the one sentence
+    /// about compatibility patches at the very end of it, and the crash window showed all of it.
+    /// </summary>
+    private static readonly Regex BlockBreak = new(
+        @"<br\s*/?>|</?(?:p|div|li|ul|ol|h[1-6]|tr|table|blockquote|hr)\b[^>]*>" +
+        @"|\[/?(?:\*|list|li|hr|line|heading|h[1-6]|quote|spoiler|center|centre|table|tr)(?:[=\s][^\]]{0,300})?\]",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    /// <summary>A bare link in prose, which is never the sentence and always a boundary.</summary>
+    private static readonly Regex BareUrl = new(@"\bhttps?://\S+", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    /// <summary>Where a long sentence can be cut into clauses: after a colon or a semicolon, or at a dash.</summary>
+    private static readonly Regex ClauseBreak = new(@"(?<=[:;])\s+|\s+[-–]\s+|\s+•\s+", RegexOptions.Compiled);
+
+    /// <summary>
+    /// Like <see cref="PlainText"/>, but a line that ended on the page still ends here, so the
+    /// sentence splitter can tell a list item from the prose around it.
+    /// </summary>
+    public static string PlainTextKeepingBreaks(string value)
+    {
+        var text = BlockBreak.Replace(value, "\n");
+        text = Regex.Replace(text, "<[^>]+>", " ");
+        text = BbCode.Replace(text, " ");
+        text = WebUtility.HtmlDecode(text);
+        text = BareUrl.Replace(text, "\n");
+        text = Regex.Replace(text, @"[^\S\n]+", " ");
+        text = Regex.Replace(text, @" *\n[\s]*", "\n");
+        return text.Trim();
+    }
+
+    /// <summary>
+    /// The part of an over-long sentence that actually carries its verdict.
+    ///
+    /// Authors write descriptions as run-ons - "Dialogue: I can only guarantee compatibility with
+    /// mods that..." after forty words of something else - and the whole run-on used to be the
+    /// quote. Cut at its clauses, the one that classifies the same way the whole does is the one
+    /// worth reading; the rest is what the user asked AIM to read so they would not have to.
+    /// </summary>
+    public static string Focus(string sentence)
+    {
+        if (sentence.Length <= 200) return sentence;
+
+        var verdict = CompatibilityLanguage.Classify(sentence);
+        if (verdict is null) return sentence;
+
+        var clauses = ClauseBreak.Split(sentence)
+            .Select(clause => clause.Trim())
+            .Where(clause => clause.Length >= 12)
+            .ToList();
+
+        if (clauses.Count < 2) return sentence;
+
+        // The clause with the same verdict first; any clause with a verdict at all second. The
+        // second only happens when the rule that matched the whole needed words from two clauses.
+        var same = clauses.FirstOrDefault(clause =>
+            CompatibilityLanguage.Classify(clause) is { } signal &&
+            signal.Polarity == verdict.Polarity && signal.Reason == verdict.Reason);
+
+        return same ?? clauses.FirstOrDefault(clause => CompatibilityLanguage.Classify(clause) is not null)
+                    ?? sentence;
+    }
 
     /// <summary>Nexus descriptions are BBCode rendered to HTML. Neither is worth showing raw.</summary>
     public static string PlainText(string value)
@@ -869,13 +1138,17 @@ public static class ConflictResearch
         return Regex.Replace(WebUtility.HtmlDecode(withoutBbCode), @"\s+", " ").Trim();
     }
 
-    private static IEnumerable<string> Sentences(string text) =>
+    public static IEnumerable<string> Sentences(string text) =>
+        Pieces(text).Where(sentence => sentence.Length >= 12);
+
+    /// <summary>Every sentence and line, however short - list items included.</summary>
+    internal static IEnumerable<string> Pieces(string text) =>
         Regex.Split(text, @"(?<=[.!?])\s+|\s*[\r\n]+\s*")
             .Select(sentence => sentence.Trim())
-            .Where(sentence => sentence.Length >= 12);
+            .Where(sentence => sentence.Length > 0);
 
     /// <summary>Shortens to a given length, for a label rather than a quote.</summary>
-    private static string Trim(string text, int limit) =>
+    internal static string Trim(string text, int limit) =>
         text.Length <= limit ? text : text[..limit] + "…";
 
     /// <summary>
@@ -883,12 +1156,12 @@ public static class ConflictResearch
     /// read before the user learns whether it mattered, and the sentence that mattered is at the
     /// front of it far more often than not.
     /// </summary>
-    private static string Trim(string sentence) =>
+    internal static string Trim(string sentence) =>
         sentence.Length <= 180 ? sentence : sentence[..180] + "…";
 
     // ── Where to look next ───────────────────────────────────────────────────────
 
-    private static List<ResearchLink> BuildLinks(IReadOnlyList<ResearchSubject> mods)
+    internal static List<ResearchLink> BuildLinks(IReadOnlyList<ResearchSubject> mods)
     {
         var links = new List<ResearchLink>();
 
@@ -926,4 +1199,11 @@ public static class ConflictResearch
 }
 
 /// <summary>One mod as the researcher needs to see it.</summary>
-public sealed record ResearchSubject(string Name, int? ModId, string? PageUrl);
+public sealed record ResearchSubject(string Name, int? ModId, string? PageUrl)
+{
+    /// <summary>
+    /// The version the user has installed, when known. Lets a "fixed in 2.0.11" be told apart from
+    /// a fix the user already has.
+    /// </summary>
+    public string? Version { get; init; }
+}

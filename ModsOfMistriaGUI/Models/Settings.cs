@@ -43,6 +43,13 @@ public partial class Settings : ObservableObject
     // deliberately published for testing before a stable AIM release.
     [ObservableProperty] private bool _includePrereleaseUpdates;
 
+    public const string ModListSortAlphabetical = "az";
+    public const string ModListSortRecent = "recent";
+
+    // How the mod list was last sorted - empty for load order. A sort is a view preference, so it
+    // stays on until the user turns it off rather than resetting every launch.
+    [ObservableProperty] private string _modListSort = "";
+
     /// <summary>
     /// Folders AIM watches for mods downloaded by hand - normally the browser's downloads folder.
     ///
@@ -92,15 +99,30 @@ public partial class Settings : ObservableObject
     partial void OnIncludePrereleaseUpdatesChanged(bool value)
         => SavePreferences();
 
+    partial void OnModListSortChanged(string value)
+        => SavePreferences();
+
+    /// <summary>
+    /// True while <see cref="LoadPreferences"/> is copying the file into these properties.
+    ///
+    /// Every property saves itself when it changes, so loading them one by one used to write the
+    /// file back after each - with every property not yet loaded still at its default. The drop
+    /// folders are loaded last, so a saved preference earlier in the list wrote them out empty, and
+    /// the next launch read back an empty list.
+    /// </summary>
+    private bool _loading;
+
     private void SavePreferences()
     {
+        if (_loading) return;
+
         try
         {
             var directory = Path.GetDirectoryName(PreferencesPath);
             if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
             File.WriteAllText(PreferencesPath, JsonSerializer.Serialize(
                 new LaunchPreferences(LaunchGameDirectly, UiLanguage, DismissedUpdateVersion, DropFolders, UiTheme, UiFontSize,
-                    IncludePrereleaseUpdates)));
+                    IncludePrereleaseUpdates, ModListSort)));
         }
         catch
         {
@@ -110,6 +132,7 @@ public partial class Settings : ObservableObject
 
     public void LoadPreferences()
     {
+        _loading = true;
         try
         {
             var path = File.Exists(PreferencesPath) ? PreferencesPath : LegacyPreferencesPath;
@@ -123,12 +146,17 @@ public partial class Settings : ObservableObject
                 UiFontSize = NormalizeUiFontSize(preferences.UiFontSize);
                 DismissedUpdateVersion = preferences.DismissedUpdateVersion;
                 IncludePrereleaseUpdates = preferences.IncludePrereleaseUpdates;
+                ModListSort = NormalizeModListSort(preferences.ModListSort);
                 DropFolders = preferences.DropFolders ?? [];
             }
         }
         catch
         {
             LaunchGameDirectly = false;
+        }
+        finally
+        {
+            _loading = false;
         }
     }
 
@@ -182,6 +210,13 @@ public partial class Settings : ObservableObject
         _ => "system"
     };
 
+    public static string NormalizeModListSort(string? value) => value switch
+    {
+        ModListSortAlphabetical => ModListSortAlphabetical,
+        ModListSortRecent => ModListSortRecent,
+        _ => ""
+    };
+
     public static double NormalizeUiFontSize(double value)
     {
         if (double.IsNaN(value) || double.IsInfinity(value)) return DefaultUiFontSize;
@@ -195,7 +230,8 @@ public partial class Settings : ObservableObject
         List<string>? DropFolders = null,
         string UiTheme = "system",
         double UiFontSize = DefaultUiFontSize,
-        bool IncludePrereleaseUpdates = false);
+        bool IncludePrereleaseUpdates = false,
+        string? ModListSort = null);
 
     public bool ValidMistriaLocation() => !string.IsNullOrEmpty(MistriaLocation) &&
                                           Directory.Exists(MistriaLocation) &&

@@ -54,6 +54,45 @@
   instead of being appended after them, with `lut_mode = "overwrite"` in its `.meta.toml`. Appending
   is still the default, for mods that add colour variants; overwriting is what lets a recolour change
   LUT-drawn UI such as the HUD's day/night palette and the font colours.
+### Crash research reads the bug tracker and the comments for this crash
+
+- **Check Crashes** now asks the suspects' Nexus pages about *this* crash instead of borrowing the
+  conflict researcher's question. Each suspect's comment thread is searched for the crash's own
+  identifiers (the missing field, the script it died in), for crash reports and for compatibility
+  talk; the bug tracker's crash reports are opened and read with the author's replies.
+- **What to try**: fixes the pages describe become instructions at the top of the results - a
+  release newer than the one installed that fixed a crash, a bug report the author marked fixed, a
+  folder to delete, a patch to install - each with where it came from.
+- **What the comments say about your other mods**: comments on a suspect's page that name another
+  mod you have switched on ("does this work with March Expanded?") get their own section, paired
+  with the author's answer when there was one. The answer is fetched from the thread itself, since
+  a search returns replies without the question they answer.
+- **What AIM read**: a per-mod list of what was read, what was empty and what could not be. Nexus
+  has no API for comments or bug reports, so those are read from the public pages; when Nexus
+  answers with its bot check instead of the page, AIM now says so rather than reporting "nothing
+  found". Descriptions and release notes still come through your Nexus sign-in.
+- A changelog line about a mod keeping up with game patches ("no longer breaks with game
+  patches") is no longer reported as a known problem, and description quotes are cut to the
+  sentence that says something - bulleted lists, image links and raw `[/*]` tags no longer run into
+  one quote. A list under "Incompatible with:" is still read as naming each mod in it.
+
+### Issues window
+
+- **Find a fix…** is always the first thing in an opened issue.
+- Mod names in an issue link to their Nexus page when AIM knows it.
+- **Make this one win** now marks the issue as fine, recording which mod you chose.
+- The issues marked fine can be searched, are sorted by when they were marked (newest first, or
+  oldest first, or A-Z), and each says when it was marked and why.
+
+### Mod list
+
+- The **Versions** dropdown shows each restore point's version as well as its date, with a
+  release-notes icon that opens the changelog at that version. Restore points saved without a
+  version now read it from the mod's own manifest.
+- **Recent** (and A-Z) sorting stays applied after a mod is removed or the list reloads, and is
+  remembered between launches.
+- Loading settings no longer rewrites the settings file part-way through, which could empty the
+  saved drop folders.
 
 ## 0.2.2 - 2026-09-18
 

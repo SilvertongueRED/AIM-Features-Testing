@@ -720,7 +720,7 @@
   <data name="GUICrashNoModList" xml:space="preserve"><value>AIM не видит список модов и не может назвать виновника.</value></data>
   <data name="GUICrashFailed" xml:space="preserve"><value>AIM не смог прочитать этот сбой: {0}</value></data>
   <data name="GUICrashStale" xml:space="preserve"><value>Этот сбой старше нынешних модов. Сыграйте один раз до изменений.</value></data>
-  <data name="GUICrashNoApiKey" xml:space="preserve"><value>Войдите в Nexus, чтобы AIM мог читать трекеры ошибок модов.</value></data>
+  <data name="GUICrashNoApiKey" xml:space="preserve"><value>Вы не вошли в Nexus, поэтому AIM прочитал только публичные комментарии и отчёты об ошибках модов, без описаний и списков изменений. Всё выше определено по вашим собственным файлам.</value></data>
   <data name="GUICrashWorking" xml:space="preserve"><value>Читаю трекеры ошибок и комментарии…</value></data>
   <data name="GUICrashNothingToResearch" xml:space="preserve"><value>Ни один мод не указан достаточно ясно для исследования.</value></data>
   <data name="GUICrashResearchFailed" xml:space="preserve"><value>AIM не смог прочитать страницы модов: {0}</value></data>
@@ -851,4 +851,53 @@
   <data name="GUISettingsUpToDate" xml:space="preserve"><value>AIM обновлён.</value></data>
   <data name="GUISettingsUpdateAvailable" xml:space="preserve"><value>Доступно обновление AIM. Используйте уведомление ниже, чтобы открыть страницу выпуска.</value></data>
   <data name="GUISettingsUpdateCheckFailed" xml:space="preserve"><value>Не удалось проверить обновления AIM.</value></data>
+  <data name="GUIIssueSearchDismissed" xml:space="preserve"><value>Поиск среди проблем, отмеченных как нормальные…</value></data>
+  <data name="GUIIssueSortNewest" xml:space="preserve"><value>Сначала недавно отмеченные</value></data>
+  <data name="GUIIssueSortOldest" xml:space="preserve"><value>Сначала давно отмеченные</value></data>
+  <data name="GUIIssueSortName" xml:space="preserve"><value>От А до Я</value></data>
+  <data name="GUIIssueDismissedMatches" xml:space="preserve"><value>Отмечены как нормальные - совпадает {0} из {1}</value></data>
+  <data name="GUIIssueDismissedNoMatch" xml:space="preserve"><value>Среди отмеченных как нормальные проблем нет совпадений с "{0}".</value></data>
+  <data name="GUIIssueMarkedFineOn" xml:space="preserve"><value>Отмечено как нормальное {0}</value></data>
+  <data name="GUIIssueOpenModPage" xml:space="preserve"><value>Открыть {0} на Nexus</value></data>
+  <data name="GUIVerdictWinnerChosen" xml:space="preserve"><value>Вы выбрали победителем {0}.</value></data>
+  <data name="GUIVersionsUnknownVersion" xml:space="preserve"><value>Неизвестная версия</value></data>
+  <data name="GUIVersionsChangelogTooltip" xml:space="preserve"><value>Список изменений, открытый на версии {0}</value></data>
+  <data name="GUIVersionsChangelogTooltipNoVersion" xml:space="preserve"><value>Список изменений</value></data>
+  <data name="GUIChangelogVersionNotListed" xml:space="preserve"><value>Автор не писал заметок к версии {0}. Ниже все версии, к которым заметки есть.</value></data>
+  <data name="GUIChangelogShowingVersion" xml:space="preserve"><value>Открыто на версии {0}, она выделена ниже.</value></data>
+  <data name="GUICrashResearchProgress" xml:space="preserve"><value>Чтение страниц Nexus для {0} ({1} из {2})…</value></data>
+  <data name="GUICrashTreatmentsHeader" xml:space="preserve"><value>Что попробовать - по страницам модов</value></data>
+  <data name="GUICrashTreatmentsHint" xml:space="preserve"><value>Решения, которые авторы и другие игроки описывают для подобных вылетов. Попробуйте первое подходящее, затем проверьте кнопкой выше.</value></data>
+  <data name="GUICrashMentionsHeader" xml:space="preserve"><value>Что пишут в комментариях о других ваших модах</value></data>
+  <data name="GUICrashMentionsHint" xml:space="preserve"><value>Комментарии на страницах подозреваемых модов, где упоминается другой ваш включённый мод - обычно вопрос, работают ли они вместе, - с ответом автора, если он был.</value></data>
+  <data name="GUICrashMentionsGroup" xml:space="preserve"><value>На странице {0}, о {1}</value></data>
+  <data name="GUICrashNothingReadable" xml:space="preserve"><value>Ничего не найдено, но Nexus не дал AIM прочитать часть страниц. См. "Что прочитал AIM" ниже.</value></data>
+  <data name="GUICrashFoundSummary" xml:space="preserve"><value>Найдено {0} на страницах подозреваемых: {1} - что попробовать, {2} - о других ваших модах.</value></data>
+  <data name="GUICrashCoverageHeader" xml:space="preserve"><value>Что прочитал AIM ({0} из {1} частей страниц)</value></data>
+  <data name="GUICrashResearchBlocked" xml:space="preserve"><value>Nexus ответил на часть запросов AIM проверкой на бота вместо страницы, поэтому эти комментарии или отчёты об ошибках прочитать не удалось. У Nexus нет API для комментариев и отчётов об ошибках - вход в Nexus даёт доступ только к описаниям, спискам изменений и файлам. Откройте заблокированные страницы в браузере кнопками внизу.</value></data>
+  <data name="GUICrashResearchSignedOut" xml:space="preserve"><value>Вы не вошли в Nexus, поэтому AIM пропустил описания и списки изменений модов. Войдите через меню шестерёнки → Загрузки Nexus, чтобы их учитывать.</value></data>
+  <data name="GUICrashSourceDescription" xml:space="preserve"><value>описание</value></data>
+  <data name="GUICrashSourceChangelog" xml:space="preserve"><value>список изменений</value></data>
+  <data name="GUICrashSourceReadme" xml:space="preserve"><value>readme</value></data>
+  <data name="GUICrashSourceComments" xml:space="preserve"><value>комментарии</value></data>
+  <data name="GUICrashSourceBugs" xml:space="preserve"><value>отчёты об ошибках</value></data>
+  <data name="GUICrashCoverageBlocked" xml:space="preserve"><value>заблокировано проверкой Nexus на бота</value></data>
+  <data name="GUICrashCoverageFailed" xml:space="preserve"><value>не удалось прочитать (Nexus ответил {0})</value></data>
+  <data name="GUICrashCoverageOffline" xml:space="preserve"><value>не удалось прочитать (нет ответа - нет сети или истекло время)</value></data>
+  <data name="GUICrashCoverageNoPage" xml:space="preserve"><value>пропущено - AIM не знает страницу этого мода на Nexus</value></data>
+  <data name="GUICrashCoverageNotSignedIn" xml:space="preserve"><value>пропущено - войдите в Nexus, чтобы учитывать</value></data>
+  <data name="GUICrashCoverageStopped" xml:space="preserve"><value>пропущено - Nexus заблокировал предыдущую страницу</value></data>
+  <data name="GUICrashCoverageComments" xml:space="preserve"><value>прочитано {0} комментариев за {1} поисков, оставлено {2}</value></data>
+  <data name="GUICrashCoverageBugs" xml:space="preserve"><value>прочитано {0} отчётов, открыто {1}, оставлено {2}</value></data>
+  <data name="GUICrashCoverageChangelog" xml:space="preserve"><value>прочитано версий: {0}, оставлено {1}</value></data>
+  <data name="GUICrashCoverageKept" xml:space="preserve"><value>прочитано, оставлено {0}</value></data>
+  <data name="GUICrashTreatmentBasis" xml:space="preserve"><value>Из {0} · {1} · {2}</value></data>
+  <data name="GUICrashOpenSource" xml:space="preserve"><value>Открыть страницу ↗</value></data>
+  <data name="GUICrashChipSameCrash" xml:space="preserve"><value>Тот же вылет</value></data>
+  <data name="GUICrashChipMentions" xml:space="preserve"><value>Упоминает {0}</value></data>
+  <data name="GUICrashChipAuthor" xml:space="preserve"><value>Автор мода</value></data>
+  <data name="GUICrashChipAuthorAnswered" xml:space="preserve"><value>Автор ответил</value></data>
+  <data name="GUICrashAuthorAnswered" xml:space="preserve"><value>↳ {0} ответил(а): «{1}»</value></data>
+  <data name="GUICrashTheAuthor" xml:space="preserve"><value>Автор</value></data>
+  <data name="GUICrashWhatToDo" xml:space="preserve"><value>Что делать: {0}</value></data>
 </root>
