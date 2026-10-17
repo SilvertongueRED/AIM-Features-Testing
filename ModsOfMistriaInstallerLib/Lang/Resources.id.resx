@@ -250,6 +250,8 @@ Buka halaman unduhan di browser?</value></data>
   <data name="GUINexusHandlerEnableMenuItem" xml:space="preserve"><value>Gunakan AIM untuk NMD</value></data>
   <data name="GUINexusHandlerDisableMenuItem" xml:space="preserve"><value>Hentikan AIM untuk NMD</value></data>
   <data name="GUINexusPasteLinkMenuItem" xml:space="preserve"><value>Instal dari tautan nxm:// yang disalin</value></data>
+  <data name="GUINexusShareLinksMenuItem" xml:space="preserve"><value>Bagikan tautan NMD dengan pengelola mod lain</value></data>
+  <data name="GUINexusShareLinksEnabled" xml:space="preserve"><value>AIM sekarang akan meneruskan tautan “Vortex” ke pengelola mod yang terakhir Anda buka: AIM, Vortex, atau Stardrop. Jika tidak ada yang terbuka, tautan diberikan ke pengelola yang menerima tautan terakhir.&#xD;&#xA;&#xD;&#xA;AIM harus tetap menjadi program yang digunakan Windows untuk tautan ini.</value></data>
   <data name="GUINexusDownloadsHeader" xml:space="preserve"><value>Mengunduh dari Nexus</value></data>
   <data name="GUINexusClearFinished" xml:space="preserve"><value>Hapus yang selesai</value></data>
   <data name="GUINexusDownloadTitle" xml:space="preserve"><value>Mod Nexus {0}</value></data>

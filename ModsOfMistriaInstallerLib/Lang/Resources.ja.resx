@@ -250,6 +250,8 @@
   <data name="GUINexusHandlerEnableMenuItem" xml:space="preserve"><value>NMDにAIMを使用</value></data>
   <data name="GUINexusHandlerDisableMenuItem" xml:space="preserve"><value>AIMによるNMDを停止</value></data>
   <data name="GUINexusPasteLinkMenuItem" xml:space="preserve"><value>コピーしたnxm://リンクからインストール</value></data>
+  <data name="GUINexusShareLinksMenuItem" xml:space="preserve"><value>NMDリンクを他のMODマネージャーと共有</value></data>
+  <data name="GUINexusShareLinksEnabled" xml:space="preserve"><value>これからAIMは「Vortex」リンクを、最後に開いたMODマネージャー（AIM、Vortex、Stardrop）に渡します。どれも開いていない場合は、前回リンクを受け取ったマネージャーに渡します。&#xD;&#xA;&#xD;&#xA;これらのリンクにWindowsが使うプログラムは、AIMのままにしておく必要があります。</value></data>
   <data name="GUINexusDownloadsHeader" xml:space="preserve"><value>Nexusからダウンロード中</value></data>
   <data name="GUINexusClearFinished" xml:space="preserve"><value>完了した項目を消去</value></data>
   <data name="GUINexusDownloadTitle" xml:space="preserve"><value>Nexus MOD {0}</value></data>

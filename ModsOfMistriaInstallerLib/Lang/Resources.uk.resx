@@ -242,6 +242,8 @@
   <data name="GUINexusHandlerEnableMenuItem" xml:space="preserve"><value>Використовувати AIM для NMD</value></data>
   <data name="GUINexusHandlerDisableMenuItem" xml:space="preserve"><value>Зупинити AIM для NMD</value></data>
   <data name="GUINexusPasteLinkMenuItem" xml:space="preserve"><value>Встановити зі скопійованого посилання nxm://</value></data>
+  <data name="GUINexusShareLinksMenuItem" xml:space="preserve"><value>Ділитися посиланнями NMD з іншими менеджерами модів</value></data>
+  <data name="GUINexusShareLinksEnabled" xml:space="preserve"><value>Тепер AIM передаватиме посилання «Vortex» менеджеру модів, який ви відкрили останнім: AIM, Vortex або Stardrop. Якщо жоден не відкритий, їх отримає менеджер, який отримав попереднє посилання.&#xD;&#xA;&#xD;&#xA;AIM має залишатися програмою, яку Windows використовує для цих посилань.</value></data>
   <data name="GUINexusDownloadsHeader" xml:space="preserve"><value>Завантаження з Nexus</value></data>
   <data name="GUINexusClearFinished" xml:space="preserve"><value>Очистити завершені</value></data>
   <data name="GUINexusDownloadTitle" xml:space="preserve"><value>Мод Nexus {0}</value></data>

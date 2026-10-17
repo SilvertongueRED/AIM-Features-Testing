@@ -576,6 +576,8 @@ Ouvrir les pages de téléchargement dans le navigateur ?</value></data>
   <data name="GUINexusHandlerEnableMenuItem" xml:space="preserve"><value>Utiliser AIM pour NMD</value></data>
   <data name="GUINexusHandlerDisableMenuItem" xml:space="preserve"><value>Arrêter AIM pour NMD</value></data>
   <data name="GUINexusPasteLinkMenuItem" xml:space="preserve"><value>Installer depuis un lien nxm:// copié</value></data>
+  <data name="GUINexusShareLinksMenuItem" xml:space="preserve"><value>Partager les liens NMD avec d'autres gestionnaires de mods</value></data>
+  <data name="GUINexusShareLinksEnabled" xml:space="preserve"><value>AIM transmettra désormais les liens « Vortex » au gestionnaire de mods que vous avez ouvert le plus récemment : AIM, Vortex ou Stardrop. Si aucun n'est ouvert, ils vont au gestionnaire qui a reçu le dernier lien.&#xD;&#xA;&#xD;&#xA;AIM doit rester le programme que Windows utilise pour ces liens.</value></data>
   <data name="GUINexusDownloadsHeader" xml:space="preserve"><value>Téléchargement depuis Nexus</value></data>
   <data name="GUINexusClearFinished" xml:space="preserve"><value>Effacer les téléchargements terminés</value></data>
   <data name="GUINexusDownloadTitle" xml:space="preserve"><value>Mod Nexus {0}</value></data>
