@@ -6,6 +6,9 @@ using Garethp.ModsOfMistriaInstallerLib.GmlMods;
 using Garethp.ModsOfMistriaInstallerLib.Installer;
 using Garethp.ModsOfMistriaInstallerLib.Lang;
 using Garethp.ModsOfMistriaInstallerLib.ModTypes;
+using Garethp.ModsOfMistriaInstallerLib.Nexus;
+using Garethp.ModsOfMistriaInstallerLib.PortraitWardrobe;
+using Garethp.ModsOfMistriaInstallerLib.Security;
 using Garethp.ModsOfMistriaInstallerLib.Seam;
 using Garethp.ModsOfMistriaInstallerLib.Store;
 using Garethp.ModsOfMistriaInstallerLib.Tools;
@@ -32,6 +35,7 @@ public class ModInstaller
     private readonly string _fomLocation;
     private readonly string _assetsLocation;
     private readonly string _atlasDirectory;
+    private readonly string _modsLocation;
     // Assigned when an archive rebuild transaction begins, before any installer uses it.
     private IFileModifier _fileModifier = null!;
 
@@ -40,6 +44,7 @@ public class ModInstaller
         _fomLocation    = fomLocation;
         _assetsLocation = Path.Combine(fomLocation, "assets");
         _atlasDirectory = Path.Combine(_assetsLocation, "atlases");
+        _modsLocation   = modsLocation;
     }
 
     public static IEnumerable<IGenerator> GetGenerators()
@@ -185,6 +190,15 @@ public class ModInstaller
             reportStatus($"Finished {mod.GetName()}", modTimer.Elapsed.ToString());
         }
 
+        // Portrait Wardrobe: when its in-game half is part of this install, keep every installed
+        // pack's portraits side by side and write the registry its menu reads. Runs after every
+        // mod so the game's own sprites already hold exactly what they would without it.
+        if (PortraitWardrobeBuilder.IsFrameworkInstalled(installMods))
+        {
+            phase("", LocalizedPhase("GUIPhaseInstallingImages"));
+            BuildPortraitLibrary(store, installMods, fileNameUIDMapping, atlasUtils, reportStatus, phase);
+        }
+
         phase("", LocalizedPhase("GUISavingAtlases"));
         atlasUtils.Flush();
 
@@ -215,6 +229,53 @@ public class ModInstaller
         {
             store.Abort();
             throw;
+        }
+    }
+
+    // Never fails the install: without the library, portraits simply install the usual way
+    // (last mod in load order wins) and the in-game menu says the library isn't built.
+    private void BuildPortraitLibrary(
+        AssetsStore store,
+        List<IMod> installMods,
+        Dictionary<string, string> fileNameUIDMapping,
+        AtlasUtilities atlasUtils,
+        Action<string, string> reportStatus,
+        Action<string, string> phase)
+    {
+        try
+        {
+            using var vanilla = new ZipPortraitVanillaSource(store.BackupPath);
+            var nexus = string.IsNullOrEmpty(_modsLocation) ? null : new NexusInstallIndex(_modsLocation);
+
+            PortraitPackSource? SourceOf(IMod mod)
+            {
+                var record = nexus?.Get(mod.GetSourcePath());
+                return record is null ? null : new PortraitPackSource(record.ModId, record.PageUrl);
+            }
+
+            var offline = IsTruthy(Environment.GetEnvironmentVariable("AIM_PORTRAIT_WARDROBE_OFFLINE"));
+            var builder = new PortraitWardrobeBuilder(
+                vanilla,
+                SourceOf,
+                new PortraitRequirementsCache(_modsLocation),
+                offline ? null : new HttpNexusRequirementsFetcher());
+
+            var version = typeof(ModInstaller).Assembly.GetName().Version?.ToString() ?? "";
+            var library = builder.Build(installMods, $"AIM {version}".Trim(), DateTimeOffset.UtcNow);
+            foreach (var note in library.Notes) reportStatus(note, "");
+
+            if (library.VariantMod.SpriteCount > 0)
+                RunInstallers(library.VariantMod, fileNameUIDMapping, atlasUtils, reportStatus, phase);
+
+            // Written last, so a library that failed halfway never claims to be built.
+            _fileModifier.Write(InputSafety.AssetPath(PortraitWardrobeBuilder.RegistryRelativePath), library.RegistryToml);
+            reportStatus($"Portrait library: {library.PackCount} pack(s), {library.SpriteCount} portrait(s), "
+                         + $"{library.VariantMod.SpriteCount} kept side by side", "");
+        }
+        catch (Exception exception)
+        {
+            Logger.Log($"Portrait Wardrobe library not built: {exception}");
+            reportStatus($"Portrait library could not be built ({exception.Message}). Portraits install as usual.", "");
         }
     }
 

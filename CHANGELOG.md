@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+### Portrait Wardrobe: keep every portrait pack and pick in game
+
+- With the **Portrait Wardrobe** mod ticked, portrait packs that replace the same villager portrait
+  no longer overwrite each other. AIM keeps every pack's version (and the game's original art) as
+  its own sprite next to the game's, and writes the registry the in-game menu reads. Portrait mods
+  need no changes.
+- The normal install is untouched: the game's own sprite still ends up with exactly what it would
+  have without Wardrobe, so removing the framework leaves nothing behind. Copies are only made
+  where a portrait is contested.
+- Nexus requirements of each pack are read once (cached for three days) so the menu can say a pack
+  needs another mod. Set `AIM_PORTRAIT_WARDROBE_OFFLINE=1` to skip the lookup. If the library cannot
+  be built, the install carries on and portraits install the usual way (last mod wins).
+- **Check issues** lists portrait overlaps Wardrobe handles under **Handled automatically**
+  instead of as problems, and they no longer light a mod's warning triangle.
+
 ## 0.2.2 - 2026-09-18
 
 ### Fields of Mistria 1.0.5 support

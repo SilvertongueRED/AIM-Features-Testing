@@ -233,6 +233,7 @@ Otworzyć strony pobierania w przeglądarce?</value></data>
   <data name="GUIFileConflictMerge" xml:space="preserve"><value>Scalane metadane; zduplikowane wpisy nadal mogą być nadpisywane zgodnie z kolejnością ładowania.</value></data>
   <data name="GUIFileConflictLocalization" xml:space="preserve"><value>Współdzielone metadane lokalizacji; te mody mogą działać razem, ale zduplikowane wpisy mogą być nadpisywane zgodnie z kolejnością ładowania.</value></data>
   <data name="GUIFileConflictShared" xml:space="preserve"><value>Współdzielone miejsce docelowe; sposób obsługi zależy od typu pliku.</value></data>
+  <data name="GUIFileConflictVariants" xml:space="preserve"><value>Zachowane przez Variants Framework jako przełączane wyglądy; kolejność ładowania nie wyłania zwycięzcy.</value></data>
   <data name="GUIModAlreadyInstalled" xml:space="preserve"><value>Już zainstalowano.</value></data>
  <data name="GUIModLegacyGamePatch" xml:space="preserve"><value>Ten mod zawiera znany znacznik zgodności sprzed wersji 1.0.3. Mod może być nieaktualny, uniemożliwić uruchomienie gry lub spowodować jej awarię. AIM nie zablokuje go automatycznie.</value></data>
   <data name="GUIModLegacyGamePatchError" xml:space="preserve"><value>Installation blocked: this mod contains a known pre-1.0.3 compatibility signature. It may break the game on the current version. Update the mod or use a version compatible with the current game.</value></data>
@@ -372,6 +373,7 @@ Przekazać je do AIM?</value></data>
   <data name="GUIIssueDismissTooltip" xml:space="preserve"><value>Oznacz jako sprawdzone i prawidłowe. AIM ukryje problem, dopóki jeden z powiązanych modów nie zmieni wersji, a następnie zapyta ponownie.</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>Pokaż problemy oznaczone jako prawidłowe ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>Oznaczone jako prawidłowe</value></data>
+  <data name="GUIIssueHandledHeader" xml:space="preserve"><value>Obsłużone automatycznie</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[oznaczone jako prawidłowe]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>Pliki zapisywane przez oba mody</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>obecnie wygrywa</value></data>

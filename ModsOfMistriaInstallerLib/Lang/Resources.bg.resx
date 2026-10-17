@@ -113,6 +113,7 @@
   <data name="GUIFileConflictMerge" xml:space="preserve"><value>Сливащи се метаданни; еднакви записи все пак може да бъдат заменени според реда на модовете.</value></data>
   <data name="GUIFileConflictLocalization" xml:space="preserve"><value>Споделени локализационни метаданни; тези модове може да работят заедно, но еднаквите записи могат да се заменят според реда на модовете.</value></data>
   <data name="GUIFileConflictShared" xml:space="preserve"><value>Споделен файл; обработката зависи от типа му.</value></data>
+  <data name="GUIFileConflictVariants" xml:space="preserve"><value>Запазени като превключваеми облици от Variants Framework; редът на модовете не определя победител.</value></data>
   <data name="GUIModHasErrors" xml:space="preserve"><value>Този мод има грешки</value></data>
   <data name="GUILanguageRussian" xml:space="preserve"><value>Руски</value></data>
   <data name="GUILanguageIndonesian" xml:space="preserve"><value>Индонезийски</value></data>
@@ -377,6 +378,7 @@
   <data name="GUIIssueDismissTooltip" xml:space="preserve"><value>Маркира това като проверено и приемливо. AIM ще го скрие, докато някой от засегнатите модове не промени версията си, след което ще попита отново.</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>Покажи проблемите, които съм маркирал като приемливи ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>Маркирано като приемливо</value></data>
+  <data name="GUIIssueHandledHeader" xml:space="preserve"><value>Обработено автоматично</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[маркирано като приемливо]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>Файлове, които и двата мода променят</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>печели в момента</value></data>

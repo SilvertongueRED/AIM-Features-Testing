@@ -182,6 +182,35 @@ public class LoadOrderPlannerTest
         });
     }
 
+    // Portrait Wardrobe keeps every pack's portraits to pick in game: with it selected (alone),
+    // two portrait packs are information, not a winner question.
+    [Test]
+    public void ShouldReportPortraitsPortraitWardrobeKeepsAsInformationOnly()
+    {
+        MockMod Pack(string id, string name, byte colour) => new(new Dictionary<string, object>
+        {
+            ["images/replace/spr_portrait_march_beach_neutral.png"] = new byte[] { colour },
+            ["manifest.toml"] = name
+        }) { Id = id, Name = name };
+
+        var wardrobe = new MockMod(new Dictionary<string, object>
+        {
+            ["fiddle/mods/portrait_wardrobe/registry.toml"] = "format = 1",
+            ["manifest.toml"] = "wardrobe"
+        }) { Id = "a.wardrobe", Name = "Portrait Wardrobe" };
+        var first = Pack("a.first", "First", 1);
+        var second = Pack("a.second", "Second", 2);
+
+        var plan = LoadOrderPlanner.Plan([wardrobe, first, second]);
+        var note = plan.Notes.Single(n => n.Kind == LoadOrderNoteKind.HandledByVariants);
+        Assert.Multiple(() =>
+        {
+            Assert.That(note.IsInformational, Is.True);
+            Assert.That(note.Message, Does.Contain("Kept side by side to pick in game (Portrait Wardrobe)"));
+            Assert.That(plan.Notes.Any(n => n.Message.Contains("overrides")), Is.False);
+        });
+    }
+
     [Test]
     public void ShouldIgnoreConflictsBetweenModsThatAreNotSelected()
     {

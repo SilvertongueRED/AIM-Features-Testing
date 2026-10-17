@@ -133,6 +133,24 @@ three most recent. Right-click → **Restore the previous version** puts the new
 keeps the copy it replaces, so a rollback can itself be undone. The backup folder starts with a dot
 so the installer's own scan of the mods folder ignores it.
 
+## Keeping every portrait pack (Portrait Wardrobe)
+
+Portrait packs that change the same villager normally overwrite each other, and only the last one in
+load order shows in game. Tick the **Portrait Wardrobe** mod and press **Install**, and AIM keeps
+them all instead:
+
+- Every pack's version of a portrait is installed next to the game's own, along with the original
+  art, and AIM writes the list the in-game menu reads. Nothing changes on screen until you choose:
+  the default is still whatever load order picked.
+- In game, Portrait Wardrobe's menu (**F4**, or the **Portraits** button in the journal) lets you pick,
+  per villager, outfit, scene and expression, which pack to show.
+- **Check issues** lists these overlaps under **Handled automatically** instead of as problems, and
+  they never light a mod's warning triangle.
+- Packs need no changes. AIM reads each pack's Nexus requirements once and caches them for three
+  days, so the menu can say a pack needs another mod; set `AIM_PORTRAIT_WARDROBE_OFFLINE=1` to skip
+  that lookup.
+- If the library cannot be built, the install carries on and portraits install the usual way.
+
 ## Mod list tools
 
 - **Select all.** The checkbox above the list selects everything, or clears the selection when

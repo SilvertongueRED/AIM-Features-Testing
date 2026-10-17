@@ -379,6 +379,7 @@
   <data name="GUIFileConflictMerge" xml:space="preserve"><value>Mergeable metadata; duplicate entries may still be overridden by load order.</value></data>
   <data name="GUIFileConflictLocalization" xml:space="preserve"><value>Shared localization metadata; these mods may work together, but duplicate entries can be overridden according to load order.</value></data>
   <data name="GUIFileConflictShared" xml:space="preserve"><value>Shared destination; handling depends on this file type.</value></data>
+  <data name="GUIFileConflictVariants" xml:space="preserve"><value>Kept side by side by the Variants Framework or Portrait Wardrobe; load order does not decide a winner.</value></data>
   <data name="GUIModHasErrors" xml:space="preserve">
     <value>This mod has errors and will not install</value>
   </data>
@@ -773,6 +774,7 @@ Open download page(s) in browser?</value></data>
   <data name="GUIIssueDismissTooltip" xml:space="preserve"><value>Mark this as something you have checked and are happy with. AIM keeps it out of the way until one of the mods involved changes version, then asks again.</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>Show issues I have marked as fine ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>Marked as fine</value></data>
+  <data name="GUIIssueHandledHeader" xml:space="preserve"><value>Handled automatically</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[marked as fine]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>Files they both write</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>wins now</value></data>

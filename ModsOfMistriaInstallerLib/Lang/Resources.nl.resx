@@ -556,6 +556,7 @@ Downloadpagina's openen in de browser?</value></data>
   <data name="GUIFileConflictMerge" xml:space="preserve"><value>Samenvoegbare metadata; dubbele vermeldingen kunnen nog steeds worden overschreven door de laadvolgorde.</value></data>
   <data name="GUIFileConflictLocalization" xml:space="preserve"><value>Gedeelde lokalisatiemetadata; deze mods kunnen samen werken, maar dubbele vermeldingen kunnen worden overschreven door de laadvolgorde.</value></data>
   <data name="GUIFileConflictShared" xml:space="preserve"><value>Gedeelde bestemming; de verwerking hangt af van het bestandstype.</value></data>
+  <data name="GUIFileConflictVariants" xml:space="preserve"><value>Door Variants Framework bewaard als wisselbare looks; de laadvolgorde bepaalt geen winnaar.</value></data>
   <data name="GUIModAlreadyInstalled" xml:space="preserve"><value>Al geïnstalleerd.</value></data>
  <data name="GUIModLegacyGamePatch" xml:space="preserve"><value>Deze mod bevat een bekende compatibiliteitssignatuur van vóór versie 1.0.3. De mod is mogelijk verouderd en kan voorkomen dat de game start of een crash veroorzaken. AIM blokkeert de mod niet automatisch.</value></data>
   <data name="GUIModLegacyGamePatchError" xml:space="preserve"><value>Installation blocked: this mod contains a known pre-1.0.3 compatibility signature. It may break the game on the current version. Update the mod or use a version compatible with the current game.</value></data>
@@ -695,6 +696,7 @@ De links aan AIM overdragen?</value></data>
   <data name="GUIIssueDismissTooltip" xml:space="preserve"><value>Markeer dit als gecontroleerd en in orde. AIM houdt het uit beeld tot een betrokken mod van versie verandert en vraagt het daarna opnieuw.</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>Problemen tonen die ik als in orde heb gemarkeerd ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>Gemarkeerd als in orde</value></data>
+  <data name="GUIIssueHandledHeader" xml:space="preserve"><value>Automatisch afgehandeld</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[gemarkeerd als in orde]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>Bestanden die beide schrijven</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>wint nu</value></data>

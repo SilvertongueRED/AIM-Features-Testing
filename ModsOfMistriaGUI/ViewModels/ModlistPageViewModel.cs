@@ -1251,8 +1251,14 @@ public partial class ModlistPageViewModel : PageViewBase
             IReadOnlyList<ModFileConflict> fileConflicts;
             try
             {
+                // Portraits Portrait Wardrobe keeps side by side are not a problem with the
+                // selection, so they never light a row's warning triangle. The report still
+                // lists them, as information.
                 fileConflicts = FilterSettledFileConflicts(
-                    ModFileConflictDetector.Find(selected), selected, dismissed);
+                    ModFileConflictDetector.Find(selected)
+                        .Where(conflict => conflict.Kind != ModFileConflictKind.HandledByVariants)
+                        .ToList(),
+                    selected, dismissed);
             }
             catch (Exception exception)
             {
@@ -1345,6 +1351,7 @@ public partial class ModlistPageViewModel : PageViewBase
             ModFileConflictKind.HardReplacement => Texts.GUIFileConflictReplacement,
             ModFileConflictKind.MergeableMetadata => Texts.GUIFileConflictMerge,
             ModFileConflictKind.SharedLocalization => Texts.GUIFileConflictLocalization,
+            ModFileConflictKind.HandledByVariants => Texts.GUIFileConflictVariants,
             _ => Texts.GUIFileConflictShared
         };
         var owners = selected
@@ -2797,10 +2804,11 @@ public partial class ModlistPageViewModel : PageViewBase
         var dismissed = await GetDismissedIssuesAsync();
 
         // "Nothing to report" has to mean nothing the user still cares about, or dismissing
-        // the last issue would leave an empty window with no explanation in it.
+        // the last issue would leave an empty window with no explanation in it. Informational
+        // notes (overlaps AIM already resolves) are never something to care about.
         var outstanding = dismissed is null
-            ? notes.Count
-            : notes.Count(note => !dismissed.IsDismissed(note.StableKey));
+            ? notes.Count(note => !note.IsInformational)
+            : notes.Count(note => !note.IsInformational && !dismissed.IsDismissed(note.StableKey));
         var summary = outstanding == 0 ? Texts.GUIConflictReportNothing : string.Empty;
 
         // Everything the report's buttons need to answer instantly. The mod list is snapshotted

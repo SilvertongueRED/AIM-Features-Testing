@@ -559,6 +559,7 @@ Download-Seite(n) im Browser öffnen?</value></data>
   <data name="GUIFileConflictMerge" xml:space="preserve"><value>Zusammenführbare Metadaten; doppelte Einträge können weiterhin durch die Ladereihenfolge überschrieben werden.</value></data>
   <data name="GUIFileConflictLocalization" xml:space="preserve"><value>Gemeinsame Lokalisierungsmetadaten; diese Mods können zusammen funktionieren, aber doppelte Einträge können je nach Ladereihenfolge überschrieben werden.</value></data>
   <data name="GUIFileConflictShared" xml:space="preserve"><value>Gemeinsames Ziel; die Verarbeitung hängt vom Dateityp ab.</value></data>
+  <data name="GUIFileConflictVariants" xml:space="preserve"><value>Vom Variants Framework als umschaltbare Looks behalten; die Ladereihenfolge bestimmt keinen Gewinner.</value></data>
   <data name="GUIModAlreadyInstalled" xml:space="preserve"><value>Bereits installiert.</value></data>
  <data name="GUIModLegacyGamePatch" xml:space="preserve"><value>Dieser Mod enthält ein bekanntes Kompatibilitätsmerkmal aus der Zeit vor Version 1.0.3. Er ist möglicherweise veraltet und kann den Spielstart verhindern oder einen Absturz verursachen. AIM blockiert ihn nicht automatisch.</value></data>
   <data name="GUIModLegacyGamePatchError" xml:space="preserve"><value>Installation blocked: this mod contains a known pre-1.0.3 compatibility signature. It may break the game on the current version. Update the mod or use a version compatible with the current game.</value></data>
@@ -698,6 +699,7 @@ An AIM übergeben?</value></data>
   <data name="GUIIssueDismissTooltip" xml:space="preserve"><value>Markiert dieses Problem als geprüft und akzeptiert. AIM hält es aus dem Weg, bis sich die Version eines beteiligten Mods ändert. Danach wird erneut gefragt.</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>Als erledigt markierte Probleme anzeigen ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>Als erledigt markiert</value></data>
+  <data name="GUIIssueHandledHeader" xml:space="preserve"><value>Automatisch erledigt</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[als erledigt markiert]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>Dateien, die beide Mods schreiben</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>gewinnt jetzt</value></data>

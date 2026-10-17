@@ -106,6 +106,50 @@ public class ModFileConflictDetectorTest
         Assert.That(conflict.ModIds, Is.EquivalentTo(new[] { "alpha", "beta" }));
     }
 
+    // ── Portrait Wardrobe ────────────────────────────────────────────────────────
+
+    private static Dictionary<string, ModFileConflictKind> Kinds(IReadOnlyList<ModFileConflict> conflicts) =>
+        conflicts.ToDictionary(conflict => conflict.Path, conflict => conflict.Kind);
+
+    private static MockMod PortraitWardrobeMod() =>
+        new(new Dictionary<string, object> { ["fiddle/mods/portrait_wardrobe/registry.toml"] = "format = 1" })
+            { Id = "silvertonguered.portrait_wardrobe" };
+
+    private static MockMod PortraitPack(string id, byte colour) => new(new Dictionary<string, object>
+    {
+        ["images/replace/spr_portrait_march_beach_neutral.png"] = new byte[] { colour },
+        ["images/replace/spr_portrait_effects_sweat.png"] = new byte[] { colour },
+        ["images/replace/spr_ui_item_lamp.png"] = new byte[] { colour },
+        ["animations/Mod/spr_portrait_march_bath_happy.png"] = new byte[] { colour },
+        ["animations/Mod/spr_portrait_march_bath_happy.meta.toml"] = "meta",
+    }) { Id = id };
+
+    [Test]
+    public void ShouldReportSharedPortraitsAsHandledWhenPortraitWardrobeIsSelected()
+    {
+        var kinds = Kinds(ModFileConflictDetector.Find(
+            [PortraitWardrobeMod(), PortraitPack("alpha", 1), PortraitPack("beta", 2)]));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(kinds["images/replace/spr_portrait_march_beach_neutral.png"], Is.EqualTo(ModFileConflictKind.HandledByVariants));
+            // a portrait only a mod adds (its own outfit) is kept side by side too
+            Assert.That(kinds["animations/Mod/spr_portrait_march_bath_happy.png"], Is.EqualTo(ModFileConflictKind.HandledByVariants));
+            Assert.That(kinds["animations/Mod/spr_portrait_march_bath_happy.meta.toml"], Is.EqualTo(ModFileConflictKind.HandledByVariants));
+            // nothing else is handled: effect overlays and other art still overwrite
+            Assert.That(kinds["images/replace/spr_portrait_effects_sweat.png"], Is.EqualTo(ModFileConflictKind.HardReplacement));
+            Assert.That(kinds["images/replace/spr_ui_item_lamp.png"], Is.EqualTo(ModFileConflictKind.HardReplacement));
+        });
+    }
+
+    [Test]
+    public void ShouldClassifyPortraitsAsBeforeWithoutPortraitWardrobe()
+    {
+        var kinds = Kinds(ModFileConflictDetector.Find([PortraitPack("alpha", 1), PortraitPack("beta", 2)]));
+
+        Assert.That(kinds["images/replace/spr_portrait_march_beach_neutral.png"], Is.EqualTo(ModFileConflictKind.HardReplacement));
+    }
+
     private static string FontMetadata(string id) =>
         $"[meta_properties]\nasset_kind = \"Font\"\nid = \"{id}\"\n";
 }

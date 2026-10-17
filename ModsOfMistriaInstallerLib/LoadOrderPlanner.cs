@@ -86,6 +86,12 @@ public sealed record LoadOrderNote(LoadOrderNoteKind Kind, string Message)
         string.Join(",", modIds
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(id => id, StringComparer.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// True for a note that reports something AIM already handles. The report lists these apart
+    /// from the issues and leaves them out of every count, so "nothing to report" stays true.
+    /// </summary>
+    public bool IsInformational => Kind == LoadOrderNoteKind.HandledByVariants;
 }
 
 public enum LoadOrderNoteKind
@@ -119,7 +125,14 @@ public enum LoadOrderNoteKind
     HotkeyConflict,
 
     /// <summary>A selected mod has a known or generic compatibility warning.</summary>
-    CompatibilityWarning
+    CompatibilityWarning,
+
+    /// <summary>
+    /// Mods replace the same portraits, and the selected Portrait Wardrobe keeps every pack's version
+    /// to pick in game. Informational: AIM already resolves it, so it needs no action, no
+    /// dismissal, and no warning triangle.
+    /// </summary>
+    HandledByVariants
 }
 
 public sealed record LoadOrderPlan(List<IMod> Order, List<LoadOrderNote> Notes)
@@ -518,7 +531,45 @@ public static class LoadOrderPlanner
                 conflict.Kind is ModFileConflictKind.MergeableMetadata or ModFileConflictKind.SharedLocalization),
             combining: true);
 
-        return overrides.Concat(merges).ToList();
+        // Overlaps Portrait Wardrobe keeps side by side. Still listed, so the user can see which
+        // mods share portraits, but as information: there is no winner to choose and nothing to dismiss.
+        var looks = DescribeLooks(conflicts.Where(conflict => conflict.Kind == ModFileConflictKind.HandledByVariants));
+
+        return overrides.Concat(merges).Concat(looks).ToList();
+
+        List<LoadOrderNote> DescribeLooks(IEnumerable<ModFileConflict> subset) => subset
+            .Select(conflict => new
+            {
+                Conflict = conflict,
+                ModIds = conflict.ModIds.Where(position.ContainsKey).ToList()
+            })
+            .Where(item => item.ModIds.Count > 1)
+            .GroupBy(item => string.Join("|", item.ModIds.OrderBy(id => id, StringComparer.OrdinalIgnoreCase)),
+                StringComparer.OrdinalIgnoreCase)
+            .Select(group =>
+            {
+                var ids = group.First().ModIds.OrderBy(id => position[id]).ToList();
+                var paths = group
+                    .Select(item => item.Conflict.Path)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Order(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+                var images = paths.Count(path => path.EndsWith(".png", StringComparison.OrdinalIgnoreCase));
+                var plural = images == 1 ? "" : "s";
+
+                return new LoadOrderNote(LoadOrderNoteKind.HandledByVariants,
+                    $"{string.Join(", ", ids.Select(id => $"\"{names[id]}\""))} replace the same " +
+                    $"{images} image{plural}. Kept side by side to pick in game (Portrait Wardrobe), " +
+                    "so load order does not decide a winner and nothing needs to change.")
+                {
+                    Details = paths,
+                    IssueKey = LoadOrderNote.DescribeMods(ids) + "|variants",
+                    Participants = ids
+                        .Select(id => new IssueParticipant(id, names[id], versions[id], sources[id]))
+                        .ToList()
+                };
+            })
+            .ToList();
 
         List<LoadOrderNote> Describe(IEnumerable<ModFileConflict> subset, bool combining) => subset
             .Select(conflict => new

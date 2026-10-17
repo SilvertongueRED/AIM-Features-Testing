@@ -233,6 +233,7 @@
   <data name="GUIFileConflictMerge" xml:space="preserve"><value>可合并的元数据；重复条目仍可能根据加载顺序被覆盖。</value></data>
   <data name="GUIFileConflictLocalization" xml:space="preserve"><value>共享的本地化元数据；这些模组可能可以一起运行，但重复条目可能根据加载顺序被覆盖。</value></data>
   <data name="GUIFileConflictShared" xml:space="preserve"><value>共享目标；处理方式取决于文件类型。</value></data>
+  <data name="GUIFileConflictVariants" xml:space="preserve"><value>由 Variants Framework 保留为可切换的外观；加载顺序不决定哪个生效。</value></data>
   <data name="GUIModAlreadyInstalled" xml:space="preserve"><value>已安装。</value></data>
  <data name="GUIModLegacyGamePatch" xml:space="preserve"><value>此模组包含已知的 1.0.3 之前版本兼容性特征。它可能已经过时，可能导致游戏无法启动或崩溃。AIM 不会自动阻止它。</value></data>
   <data name="GUIModLegacyGamePatchError" xml:space="preserve"><value>Installation blocked: this mod contains a known pre-1.0.3 compatibility signature. It may break the game on the current version. Update the mod or use a version compatible with the current game.</value></data>
@@ -372,6 +373,7 @@
   <data name="GUIIssueDismissTooltip" xml:space="preserve"><value>将其标记为已检查且没有问题。AIM 会将其隐藏，直到相关模组之一更改版本，然后再次询问。</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>显示我标记为正常的问题（{0}）</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>已标记为正常</value></data>
+  <data name="GUIIssueHandledHeader" xml:space="preserve"><value>已自动处理</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[已标记为正常]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>两个模组都写入的文件</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>当前生效</value></data>

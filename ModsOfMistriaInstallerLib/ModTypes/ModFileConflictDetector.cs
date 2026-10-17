@@ -1,3 +1,4 @@
+using Garethp.ModsOfMistriaInstallerLib.PortraitWardrobe;
 using Garethp.ModsOfMistriaInstallerLib.Utils;
 using Tomlyn.Model;
 
@@ -9,7 +10,14 @@ public enum ModFileConflictKind
     FontAsset,
     MergeableMetadata,
     SharedLocalization,
-    SharedDestination
+    SharedDestination,
+
+    /// <summary>
+    /// A portrait two or more mods replace while Portrait Wardrobe is selected. Wardrobe keeps every
+    /// pack's version side by side (and the game's original) to pick in game, so load order no
+    /// longer picks a winner and there is nothing for the user to do. Informational only.
+    /// </summary>
+    HandledByVariants
 }
 
 public sealed record ModFileConflict(
@@ -93,9 +101,94 @@ public static class ModFileConflictDetector
                 ModFileConflictKind.FontAsset));
         }
 
-        return conflicts
+        var ordered = conflicts
             .OrderBy(conflict => conflict.Path, StringComparer.OrdinalIgnoreCase)
             .ToList();
+
+        // Without Portrait Wardrobe every overlap keeps exactly the classification it always had.
+        return PortraitWardrobeBuilder.IsFrameworkInstalled(selectedMods)
+            ? ClassifyForPortraitWardrobe(ordered, selectedMods)
+            : ordered;
+    }
+
+    // ── Portrait Wardrobe ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Marks the portrait overlaps Portrait Wardrobe resolves at install time: a shared
+    /// <c>images/replace/&lt;portrait&gt;.png</c>, a shared full-path <c>animations/**/spr_*.png</c>
+    /// portrait (whether the game has it or a pack adds it), and the metadata that travels with
+    /// them. LUT palettes and every other kind of art keep their old kind.
+    /// </summary>
+    private static List<ModFileConflict> ClassifyForPortraitWardrobe(
+        List<ModFileConflict> conflicts, List<IMod> selectedMods)
+    {
+        var byId = selectedMods
+            .GroupBy(mod => mod.GetId(), StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.ToList(), StringComparer.OrdinalIgnoreCase);
+
+        var images = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var conflict in conflicts)
+            if (IsPortraitImage(conflict, byId))
+                images.Add(conflict.Path.Replace('\\', '/'));
+
+        if (images.Count == 0) return conflicts;
+
+        return conflicts
+            .Select(conflict => images.Contains(conflict.Path.Replace('\\', '/')) ||
+                                PortraitImageFor(conflict.Path) is { } image && images.Contains(image)
+                ? conflict with { Kind = ModFileConflictKind.HandledByVariants }
+                : conflict)
+            .ToList();
+    }
+
+    private static bool IsPortraitImage(ModFileConflict conflict, Dictionary<string, List<IMod>> byId)
+    {
+        var path = conflict.Path.Replace('\\', '/');
+        if (!path.EndsWith(".png", StringComparison.OrdinalIgnoreCase)) return false;
+        var sprite = Path.GetFileNameWithoutExtension(path);
+        if (sprite.Contains("_lut", StringComparison.OrdinalIgnoreCase)) return false;
+        if (!PortraitSpriteNames.IsPortrait(sprite)) return false;
+
+        const string replaceFolder = "images/replace/";
+        if (path.StartsWith(replaceFolder, StringComparison.OrdinalIgnoreCase))
+        {
+            // images/replace is read non-recursively by the installer; a nested file is never
+            // installed, so it is not Wardrobe's to claim either.
+            return !path[replaceFolder.Length..].Contains('/');
+        }
+
+        if (!path.StartsWith("animations/", StringComparison.OrdinalIgnoreCase)) return false;
+        if (!sprite.StartsWith("spr_", StringComparison.Ordinal)) return false;
+
+        // A full-path sprite is only installed (and only kept) with its own metadata.
+        var meta = path[..^".png".Length] + ".meta.toml";
+        return conflict.ModIds.All(id =>
+            byId.TryGetValue(id, out var owners) && owners.Any(owner => SafeFileExists(owner, meta)));
+    }
+
+    /// <summary>The portrait image a metadata file belongs to, if it is one.</summary>
+    private static string? PortraitImageFor(string path)
+    {
+        path = path.Replace('\\', '/');
+        const string meta = ".meta.toml";
+        if (!path.EndsWith(meta, StringComparison.OrdinalIgnoreCase)) return null;
+
+        return path.StartsWith("images/replace/", StringComparison.OrdinalIgnoreCase) ||
+               path.StartsWith("animations/", StringComparison.OrdinalIgnoreCase)
+            ? path[..^meta.Length] + ".png"
+            : null;
+    }
+
+    private static bool SafeFileExists(IMod mod, string path)
+    {
+        try
+        {
+            return mod.FileExists(path);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static ModFileConflictKind Classify(string path)

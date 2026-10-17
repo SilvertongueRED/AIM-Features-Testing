@@ -100,6 +100,7 @@ public sealed class LocalizedTexts : ObservableObject
     public string GUIModHotkeyConflicts => T("GUIModHotkeyConflicts");
     public string GUIHotkeyRebindable => T("GUIHotkeyRebindable");
     public string GUIFileConflictReplacement => T("GUIFileConflictReplacement");
+    public string GUIFileConflictVariants => T("GUIFileConflictVariants");
     public string GUIFileConflictMerge => T("GUIFileConflictMerge");
     public string GUIFileConflictLocalization => T("GUIFileConflictLocalization");
     public string GUIFileConflictShared => T("GUIFileConflictShared");
@@ -218,6 +219,7 @@ public sealed class LocalizedTexts : ObservableObject
     public string GUIIssueDismissTooltip => T("GUIIssueDismissTooltip");
     public string GUIIssueShowDismissed => T("GUIIssueShowDismissed");
     public string GUIIssueDismissedHeader => T("GUIIssueDismissedHeader");
+    public string GUIIssueHandledHeader => T("GUIIssueHandledHeader");
     public string GUIIssueDismissedMarker => T("GUIIssueDismissedMarker");
 
     // Conflict report: deciding which mod wins a shared-file conflict

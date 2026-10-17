@@ -233,6 +233,7 @@ Buka halaman unduhan di browser?</value></data>
   <data name="GUIFileConflictMerge" xml:space="preserve"><value>Metadata dapat digabungkan; entri duplikat tetap dapat ditimpa berdasarkan urutan pemuatan.</value></data>
   <data name="GUIFileConflictLocalization" xml:space="preserve"><value>Metadata pelokalan bersama; mod ini mungkin dapat bekerja bersama, tetapi entri duplikat dapat ditimpa berdasarkan urutan pemuatan.</value></data>
   <data name="GUIFileConflictShared" xml:space="preserve"><value>Tujuan bersama; penanganannya bergantung pada jenis file.</value></data>
+  <data name="GUIFileConflictVariants" xml:space="preserve"><value>Disimpan sebagai tampilan yang dapat diganti oleh Variants Framework; urutan pemuatan tidak menentukan pemenang.</value></data>
   <data name="GUIModAlreadyInstalled" xml:space="preserve"><value>Sudah terpasang.</value></data>
  <data name="GUIModLegacyGamePatch" xml:space="preserve"><value>Mod ini berisi tanda kompatibilitas yang diketahui berasal dari sebelum versi 1.0.3. Mod ini mungkin sudah usang dan dapat mencegah game dimulai atau menyebabkan crash. AIM tidak akan memblokirnya secara otomatis.</value></data>
   <data name="GUIModLegacyGamePatchError" xml:space="preserve"><value>Installation blocked: this mod contains a known pre-1.0.3 compatibility signature. It may break the game on the current version. Update the mod or use a version compatible with the current game.</value></data>
@@ -372,6 +373,7 @@ Alihkan ke AIM?</value></data>
   <data name="GUIIssueDismissTooltip" xml:space="preserve"><value>Menandai masalah ini sebagai sudah diperiksa dan tidak bermasalah. AIM akan menyembunyikannya sampai versi salah satu mod yang terlibat berubah, lalu akan bertanya lagi.</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>Tampilkan masalah yang ditandai baik-baik saja ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>Ditandai baik-baik saja</value></data>
+  <data name="GUIIssueHandledHeader" xml:space="preserve"><value>Ditangani otomatis</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[ditandai baik-baik saja]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>File yang ditulis oleh keduanya</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>menang sekarang</value></data>

@@ -228,11 +228,32 @@ public partial class LoadOrderResultWindow : Window
 
         var live = new List<LoadOrderNote>();
         var dismissed = new List<LoadOrderNote>();
+        var informational = new List<LoadOrderNote>();
         foreach (var note in _notes)
-            (_dismissedIssues.IsDismissed(note.StableKey) ? dismissed : live).Add(note);
+        {
+            if (note.IsInformational) informational.Add(note);
+            else (_dismissedIssues.IsDismissed(note.StableKey) ? dismissed : live).Add(note);
+        }
 
         foreach (var note in live)
             NotesPanel.Children.Add(CreateDismissableRow(note, isDismissed: false));
+
+        // Things AIM already resolves (portraits Portrait Wardrobe keeps side by side). Shown so the
+        // user can see which mods share art, but with no checkbox: there is nothing to judge, and a
+        // tick here would only clutter the dismissal store.
+        if (informational.Count > 0)
+        {
+            NotesPanel.Children.Add(new TextBlock
+            {
+                Text = Texts.GUIIssueHandledHeader,
+                FontWeight = FontWeight.SemiBold,
+                Opacity = 0.7,
+                Margin = new Avalonia.Thickness(0, live.Count > 0 ? 12 : 0, 0, 0)
+            });
+
+            foreach (var note in informational)
+                NotesPanel.Children.Add(CreateNoteControl(note));
+        }
 
         ShowDismissedToggle.IsVisible = dismissed.Count > 0;
         ShowDismissedToggle.Content = string.Format(Texts.GUIIssueShowDismissed, dismissed.Count);

@@ -233,6 +233,7 @@
   <data name="GUIFileConflictMerge" xml:space="preserve"><value>統合可能なメタデータです。重複する項目は読み込み順によって上書きされる場合があります。</value></data>
   <data name="GUIFileConflictLocalization" xml:space="preserve"><value>共有ローカライズメタデータです。これらのMODは同時に動作する可能性がありますが、重複する項目は読み込み順によって上書きされる場合があります。</value></data>
   <data name="GUIFileConflictShared" xml:space="preserve"><value>共有された保存先です。処理方法はファイルの種類によって異なります。</value></data>
+  <data name="GUIFileConflictVariants" xml:space="preserve"><value>Variants Framework により切り替え可能な見た目として保持されます。読み込み順で勝者は決まりません。</value></data>
   <data name="GUIModAlreadyInstalled" xml:space="preserve"><value>インストール済み。</value></data>
  <data name="GUIModLegacyGamePatch" xml:space="preserve"><value>このMODにはバージョン1.0.3以前の既知の互換性シグネチャが含まれています。古いMODである可能性があり、ゲームが起動しなかったりクラッシュしたりする場合があります。AIMは自動的にはブロックしません。</value></data>
   <data name="GUIModLegacyGamePatchError" xml:space="preserve"><value>Installation blocked: this mod contains a known pre-1.0.3 compatibility signature. It may break the game on the current version. Update the mod or use a version compatible with the current game.</value></data>
@@ -372,6 +373,7 @@ AIMに引き継ぎますか？</value></data>
   <data name="GUIIssueDismissTooltip" xml:space="preserve"><value>確認済みで問題ないものとして記録します。関係する Mod のバージョンが変わるまで AIM は表示を控え、その後もう一度確認します。</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>問題なしとして記録した項目を表示（{0}）</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>問題なしとして記録済み</value></data>
+  <data name="GUIIssueHandledHeader" xml:space="preserve"><value>自動で処理済み</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>［問題なしとして記録済み］</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>両方が書き込むファイル</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>現在の優先 Mod</value></data>

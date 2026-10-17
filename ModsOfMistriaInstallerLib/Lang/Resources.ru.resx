@@ -233,6 +233,7 @@
   <data name="GUIFileConflictMerge" xml:space="preserve"><value>Объединяемые метаданные; дублирующиеся записи всё равно могут быть перезаписаны в соответствии с порядком загрузки.</value></data>
   <data name="GUIFileConflictLocalization" xml:space="preserve"><value>Общие метаданные локализации; эти моды могут работать вместе, но дублирующиеся записи могут быть перезаписаны в соответствии с порядком загрузки.</value></data>
   <data name="GUIFileConflictShared" xml:space="preserve"><value>Общее назначение; способ обработки зависит от типа файла.</value></data>
+  <data name="GUIFileConflictVariants" xml:space="preserve"><value>Сохраняются Variants Framework как переключаемые облики; порядок загрузки не определяет победителя.</value></data>
   <data name="GUIModAlreadyInstalled" xml:space="preserve"><value>Уже установлено.</value></data>
  <data name="GUIModLegacyGamePatch" xml:space="preserve"><value>Этот мод содержит известный признак совместимости, относящийся к версии до 1.0.3. Мод может быть устаревшим, помешать запуску игры или вызвать сбой. AIM не будет блокировать его автоматически.</value></data>
  <data name="GUIModLegacyGamePatchError" xml:space="preserve"><value>Installation blocked: this mod contains a known pre-1.0.3 compatibility signature. It may break the game on the current version. Update the mod or use a version compatible with the current game.</value></data>
@@ -372,6 +373,7 @@
   <data name="GUIIssueDismissTooltip" xml:space="preserve"><value>Отметить как проверенное и не требующее внимания. AIM скроет это, пока один из связанных модов не изменит версию, после чего спросит снова.</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>Показывать проблемы, отмеченные как исправные ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>Отмечено как исправное</value></data>
+  <data name="GUIIssueHandledHeader" xml:space="preserve"><value>Решено автоматически</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[отмечено как исправное]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>Файлы, которые изменяют оба мода</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>сейчас побеждает</value></data>
