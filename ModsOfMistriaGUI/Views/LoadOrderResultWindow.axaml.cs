@@ -39,6 +39,9 @@ public partial class LoadOrderResultWindow : Window
 
     private bool _showDismissed;
 
+    /// <summary>Whether the "Handled automatically" section is open. Closed until the user opens it.</summary>
+    private bool _handledExpanded;
+
     /// <summary>The issues currently marked fine, as of the last rebuild. The search filters these.</summary>
     private List<LoadOrderNote> _dismissedNotes = [];
 
@@ -278,16 +281,31 @@ public partial class LoadOrderResultWindow : Window
         // and a tick here would only clutter the dismissal store.
         if (informational.Count > 0)
         {
-            NotesPanel.Children.Add(new TextBlock
-            {
-                Text = Texts.GUIIssueHandledHeader,
-                FontWeight = FontWeight.SemiBold,
-                Opacity = 0.7,
-                Margin = new Avalonia.Thickness(0, live.Count > 0 ? 12 : 0, 0, 0)
-            });
-
+            // Collapsed unless the user opened it: there can be dozens of these and none needs
+            // action. Which way it was left survives a rebuild.
+            var handled = new StackPanel { Spacing = 10 };
             foreach (var note in informational)
-                NotesPanel.Children.Add(CreateNoteControl(note));
+                handled.Children.Add(CreateNoteControl(note));
+
+            var section = new Expander
+            {
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                HorizontalContentAlignment = HorizontalAlignment.Stretch,
+                Margin = new Avalonia.Thickness(0, live.Count > 0 ? 12 : 0, 0, 0),
+                Header = new TextBlock
+                {
+                    Text = $"{Texts.GUIIssueHandledHeader} ({informational.Count})",
+                    FontWeight = FontWeight.SemiBold,
+                    Opacity = 0.7
+                },
+                Content = handled,
+                IsExpanded = _handledExpanded
+            };
+            section.PropertyChanged += (_, args) =>
+            {
+                if (args.Property == Expander.IsExpandedProperty) _handledExpanded = section.IsExpanded;
+            };
+            NotesPanel.Children.Add(section);
         }
 
         ShowDismissedToggle.IsVisible = dismissed.Count > 0;
@@ -449,6 +467,9 @@ public partial class LoadOrderResultWindow : Window
         var decorations = struckThrough ? TextDecorations.Strikethrough : null;
         var (header, detail) = SplitMessage(note.Message);
 
+        // A pile-up of dozens of mods would otherwise be a headline several screens tall.
+        header = IssueSummary.Condense(header, note.Participants.Select(p => p.Name).ToList(), Texts.GUIIssueAndMore);
+
         var body = BuildBody(note, detail);
         if (body is null)
         {
@@ -501,6 +522,13 @@ public partial class LoadOrderResultWindow : Window
         var research = CreateResearchRow(note);
         if (research is not null) panel.Children.Add(research);
 
+        // Mods straight under "Find a fix". For a file conflict, winner first.
+        var shown = note.Kind == LoadOrderNoteKind.FileConflict
+            ? note.Participants.Reverse().ToList()
+            : note.Participants.ToList();
+        foreach (var participant in shown)
+            panel.Children.Add(CreateParticipantRow(note, participant));
+
         if (!string.IsNullOrWhiteSpace(detail))
         {
             panel.Children.Add(new SelectableTextBlock
@@ -509,9 +537,6 @@ public partial class LoadOrderResultWindow : Window
                 TextWrapping = TextWrapping.Wrap
             });
         }
-
-        foreach (var participant in note.Participants)
-            panel.Children.Add(CreateParticipantRow(note, participant));
 
         if (note.Details.Count > 0)
         {

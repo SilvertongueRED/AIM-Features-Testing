@@ -370,6 +370,8 @@
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>Показувати проблеми, позначені як нормальні ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>Позначено як нормальне</value></data>
   <data name="GUIIssueHandledHeader" xml:space="preserve"><value>Вирішено автоматично</value></data>
+  <data name="GUIIssueAndMore" xml:space="preserve"><value>{0} та ще {1}</value></data>
+  <data name="GUIIssueAllModsHeader" xml:space="preserve"><value>Усі моди ({0}) у цій проблемі</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[позначено як нормальне]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>Файли, які змінюють обидва моди</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>зараз перемагає</value></data>

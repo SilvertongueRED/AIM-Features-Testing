@@ -701,6 +701,8 @@ De links aan AIM overdragen?</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>Problemen tonen die ik als in orde heb gemarkeerd ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>Gemarkeerd als in orde</value></data>
   <data name="GUIIssueHandledHeader" xml:space="preserve"><value>Automatisch afgehandeld</value></data>
+  <data name="GUIIssueAndMore" xml:space="preserve"><value>{0} en {1} andere</value></data>
+  <data name="GUIIssueAllModsHeader" xml:space="preserve"><value>Alle {0} mods in dit probleem</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[gemarkeerd als in orde]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>Bestanden die beide schrijven</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>wint nu</value></data>

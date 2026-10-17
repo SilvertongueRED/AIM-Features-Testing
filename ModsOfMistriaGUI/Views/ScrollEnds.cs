@@ -37,7 +37,7 @@ public static class ScrollEnds
     /// was guesswork. The inner buttons move left by the width of the outer scrollbar and its
     /// button, which puts each pair clearly with its own area.
     /// </summary>
-    private const double NestedInset = 56;
+    private const double NestedInset = 32;
 
     /// <summary>The gap left between an inner scrollbar and the outer one running beside it.</summary>
     private const double NestedGutter = 12;

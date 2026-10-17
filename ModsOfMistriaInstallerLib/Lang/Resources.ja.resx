@@ -378,6 +378,8 @@ AIMに引き継ぎますか？</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>問題なしとして記録した項目を表示（{0}）</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>問題なしとして記録済み</value></data>
   <data name="GUIIssueHandledHeader" xml:space="preserve"><value>自動で処理済み</value></data>
+  <data name="GUIIssueAndMore" xml:space="preserve"><value>{0} ほか {1} 件</value></data>
+  <data name="GUIIssueAllModsHeader" xml:space="preserve"><value>この問題に関わる全 {0} 件のMod</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>［問題なしとして記録済み］</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>両方が書き込むファイル</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>現在の優先 Mod</value></data>

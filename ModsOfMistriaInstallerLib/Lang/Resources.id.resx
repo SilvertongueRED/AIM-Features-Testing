@@ -378,6 +378,8 @@ Alihkan ke AIM?</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>Tampilkan masalah yang ditandai baik-baik saja ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>Ditandai baik-baik saja</value></data>
   <data name="GUIIssueHandledHeader" xml:space="preserve"><value>Ditangani otomatis</value></data>
+  <data name="GUIIssueAndMore" xml:space="preserve"><value>{0} dan {1} lainnya</value></data>
+  <data name="GUIIssueAllModsHeader" xml:space="preserve"><value>Semua {0} mod dalam masalah ini</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[ditandai baik-baik saja]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>File yang ditulis oleh keduanya</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>menang sekarang</value></data>

@@ -378,6 +378,8 @@
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>显示我标记为正常的问题（{0}）</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>已标记为正常</value></data>
   <data name="GUIIssueHandledHeader" xml:space="preserve"><value>已自动处理</value></data>
+  <data name="GUIIssueAndMore" xml:space="preserve"><value>{0} 等另外 {1} 个</value></data>
+  <data name="GUIIssueAllModsHeader" xml:space="preserve"><value>此问题涉及的全部 {0} 个Mod</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[已标记为正常]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>两个模组都写入的文件</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>当前生效</value></data>

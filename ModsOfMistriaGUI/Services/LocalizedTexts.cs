@@ -221,6 +221,8 @@ public sealed class LocalizedTexts : ObservableObject
     public string GUIIssueShowDismissed => T("GUIIssueShowDismissed");
     public string GUIIssueDismissedHeader => T("GUIIssueDismissedHeader");
     public string GUIIssueHandledHeader => T("GUIIssueHandledHeader");
+    public string GUIIssueAndMore => T("GUIIssueAndMore");
+    public string GUIIssueAllModsHeader => T("GUIIssueAllModsHeader");
     public string GUIIssueDismissedMarker => T("GUIIssueDismissedMarker");
 
     // Conflict report: deciding which mod wins a shared-file conflict

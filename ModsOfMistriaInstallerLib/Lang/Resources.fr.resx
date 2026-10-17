@@ -704,6 +704,8 @@ Les confier à AIM ?</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>Afficher les problèmes marqués comme résolus ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>Marqué comme résolu</value></data>
   <data name="GUIIssueHandledHeader" xml:space="preserve"><value>Géré automatiquement</value></data>
+  <data name="GUIIssueAndMore" xml:space="preserve"><value>{0} et {1} autres</value></data>
+  <data name="GUIIssueAllModsHeader" xml:space="preserve"><value>Les {0} mods de ce problème</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[marqué comme résolu]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>Fichiers écrits par les deux mods</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>gagne maintenant</value></data>

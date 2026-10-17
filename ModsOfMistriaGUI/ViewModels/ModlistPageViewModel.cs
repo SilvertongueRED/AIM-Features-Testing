@@ -32,6 +32,13 @@ public partial class ModlistPageViewModel : PageViewBase
 {
     private int _modlistLoadInProgress;
     private int _modlistReloadRequested;
+
+    /// <summary>
+    /// The tick boxes as the user had them, kept across one reload. Removing a mod reloads the list
+    /// from the saved profile, which would otherwise put back every box the user had ticked or
+    /// cleared since the last save. Keyed by source path; used once, then dropped.
+    /// </summary>
+    private Dictionary<string, bool>? _carriedEnabledState;
     private DispatcherTimer? _installUiHeartbeat;
     private long _lastHeartbeatTimestamp;
     private readonly Settings _settings;
@@ -999,13 +1006,18 @@ public partial class ModlistPageViewModel : PageViewBase
             ModsLocation = result.ModsLocation;
             _profileManager = result.ProfileManager;
             Mods.Clear();
+            var carried = _carriedEnabledState;
+            _carriedEnabledState = null;
 
             for (var i = 0; i < result.OrderedMods.Count; i++)
             {
                 var mod = result.OrderedMods[i];
                 var model = new ModModel(mod)
                 {
-                    Enabled = IsProfileSelected(mod, result.EnabledIds, result.EnabledSources, result.DuplicateCopies),
+                    Enabled = carried is not null
+                              && carried.TryGetValue(DuplicateModDetector.NormalizeSource(mod.GetSourcePath()), out var kept)
+                        ? kept
+                        : IsProfileSelected(mod, result.EnabledIds, result.EnabledSources, result.DuplicateCopies),
                     Position = i + 1,
                     ContextActionsLocked = IsInstalling
                 };
@@ -3701,6 +3713,10 @@ public partial class ModlistPageViewModel : PageViewBase
         if (confirm != ButtonResult.Yes) return;
 
         model.ContextActionsLocked = true;
+        _carriedEnabledState = Mods
+            .Where(m => !ReferenceEquals(m, model))
+            .GroupBy(m => DuplicateModDetector.NormalizeSource(m.Mod.GetSourcePath()), StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First().Enabled, StringComparer.OrdinalIgnoreCase);
         try
         {
             // A zipped mod is read through an open handle on its archive, and the shell will not

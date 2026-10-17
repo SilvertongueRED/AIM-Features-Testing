@@ -9,7 +9,14 @@
         CanResize="True">
   <Grid Margin="14" RowDefinitions="Auto,Auto,*,Auto,Auto">
 
-    <SelectableTextBlock x:Name="IssueText" TextWrapping="Wrap" FontWeight="SemiBold" />
+    <StackPanel Spacing="6">
+      <SelectableTextBlock x:Name="IssueText" TextWrapping="Wrap" FontWeight="SemiBold" />
+      <Expander x:Name="IssueFullExpander" IsVisible="False" IsExpanded="False" HorizontalAlignment="Stretch">
+        <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <SelectableTextBlock x:Name="IssueFullText" TextWrapping="Wrap" Margin="0 4 12 0" />
+        </ScrollViewer>
+      </Expander>
+    </StackPanel>
 
     <TextBlock x:Name="StatusText" Grid.Row="1" TextWrapping="Wrap" Margin="0 8 0 0" Opacity="0.75" />
 
@@ -18,7 +25,7 @@
          verdict row would otherwise take everything and leave the findings with no height at all. -->
     <ScrollViewer x:Name="BodyScroller" Grid.Row="2" Margin="0 12 0 0" MinHeight="80"
                   VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-      <StackPanel Spacing="14">
+      <StackPanel Spacing="14" Margin="0 0 44 0">
 
         <!-- AIM's own answer, first, because it is the only part of this window that does not
              require the user to go and read something. It is computed from the files rather than

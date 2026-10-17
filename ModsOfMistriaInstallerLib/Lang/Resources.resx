@@ -779,6 +779,8 @@ Open download page(s) in browser?</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>Show issues I have marked as fine ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>Marked as fine</value></data>
   <data name="GUIIssueHandledHeader" xml:space="preserve"><value>Handled automatically</value></data>
+  <data name="GUIIssueAndMore" xml:space="preserve"><value>{0} and {1} more</value></data>
+  <data name="GUIIssueAllModsHeader" xml:space="preserve"><value>All {0} mods in this issue</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[marked as fine]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>Files they both write</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>wins now</value></data>

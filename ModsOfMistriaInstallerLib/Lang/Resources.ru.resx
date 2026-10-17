@@ -378,6 +378,8 @@
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>Показывать проблемы, отмеченные как исправные ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>Отмечено как исправное</value></data>
   <data name="GUIIssueHandledHeader" xml:space="preserve"><value>Решено автоматически</value></data>
+  <data name="GUIIssueAndMore" xml:space="preserve"><value>{0} и ещё {1}</value></data>
+  <data name="GUIIssueAllModsHeader" xml:space="preserve"><value>Все моды ({0}) в этой проблеме</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[отмечено как исправное]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>Файлы, которые изменяют оба мода</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>сейчас побеждает</value></data>

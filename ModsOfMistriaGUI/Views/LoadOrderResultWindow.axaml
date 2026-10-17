@@ -10,7 +10,8 @@
   <Grid Margin="18" RowDefinitions="Auto,*,Auto,Auto">
     <SelectableTextBlock x:Name="SummaryText" TextWrapping="Wrap" />
     <ScrollViewer x:Name="NotesScroller" Grid.Row="1" MaxHeight="560" VerticalScrollBarVisibility="Auto">
-      <StackPanel Spacing="10" HorizontalAlignment="Stretch">
+      <!-- Right margin keeps the floating jump buttons off the expander arrows. -->
+      <StackPanel Spacing="10" HorizontalAlignment="Stretch" Margin="0 0 48 0">
         <StackPanel x:Name="NotesPanel" Spacing="10" HorizontalAlignment="Stretch" />
 
         <!-- The issues already marked fine. A section of its own rather than more rows in the list

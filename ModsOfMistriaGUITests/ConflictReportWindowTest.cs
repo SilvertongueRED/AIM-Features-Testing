@@ -45,13 +45,16 @@ public class ConflictReportWindowTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(children, Has.Count.EqualTo(3));
+                Assert.That(children, Has.Count.EqualTo(2));
                 // The issue first, with its checkbox...
                 Assert.That(children[0], Is.InstanceOf<Grid>());
                 Assert.That(((Grid)children[0]).Children.OfType<CheckBox>().Count(), Is.EqualTo(1));
                 // ...then the informational section, header and note, with no checkbox.
-                Assert.That((children[1] as TextBlock)?.Text, Is.EqualTo("Handled automatically"));
-                Assert.That(children[2], Is.InstanceOf<Expander>());
+                var section = children[1] as Expander;
+                Assert.That(section, Is.Not.Null);
+                Assert.That((section!.Header as TextBlock)?.Text, Is.EqualTo("Handled automatically (1)"));
+                Assert.That(section.IsExpanded, Is.False);
+                Assert.That(((StackPanel)section.Content!).Children[0], Is.InstanceOf<Expander>());
                 Assert.That(window.FindControl<CheckBox>("ShowDismissedToggle")!.IsVisible, Is.False);
             });
 

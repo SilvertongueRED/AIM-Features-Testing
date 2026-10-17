@@ -383,6 +383,8 @@
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>Покажи проблемите, които съм маркирал като приемливи ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>Маркирано като приемливо</value></data>
   <data name="GUIIssueHandledHeader" xml:space="preserve"><value>Обработено автоматично</value></data>
+  <data name="GUIIssueAndMore" xml:space="preserve"><value>{0} и още {1}</value></data>
+  <data name="GUIIssueAllModsHeader" xml:space="preserve"><value>Всички {0} модификации в този проблем</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[маркирано като приемливо]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>Файлове, които и двата мода променят</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>печели в момента</value></data>
