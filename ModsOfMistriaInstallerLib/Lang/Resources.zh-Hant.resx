@@ -34,6 +34,7 @@
   <data name="GUIPhaseInstallingImages" xml:space="preserve"><value>正在安裝圖片</value></data>
   <data name="GUIPhaseInstallingToml" xml:space="preserve"><value>正在安裝 TOML</value></data>
   <data name="GUIPhaseInstallingFonts" xml:space="preserve"><value>正在安裝字型</value></data>
+  <data name="GUIPhaseInstallingAudio" xml:space="preserve"><value>正在安裝音訊</value></data>
   <data name="GUIPhaseInstallingJson" xml:space="preserve"><value>正在安裝 JSON</value></data>
   <data name="GUIPhaseInstallingXml" xml:space="preserve"><value>正在安裝 XML</value></data>
   <data name="GUIPhaseInstallingMist" xml:space="preserve"><value>正在安裝 MIST</value></data>
@@ -233,6 +234,7 @@
   <data name="GUIFileConflictMerge" xml:space="preserve"><value>可合併的中繼資料；重複項目仍可能依載入順序被覆寫。</value></data>
   <data name="GUIFileConflictLocalization" xml:space="preserve"><value>共用的本地化中繼資料；這些模組可能可以一起運作，但重複項目可能依載入順序被覆寫。</value></data>
   <data name="GUIFileConflictShared" xml:space="preserve"><value>共用目的地；處理方式取決於檔案類型。</value></data>
+  <data name="GUIFileConflictVariants" xml:space="preserve"><value>由 Variants Framework 保留為可切換的外觀；載入順序不決定哪個生效。</value></data>
   <data name="GUIModAlreadyInstalled" xml:space="preserve"><value>已安裝。</value></data>
  <data name="GUIModLegacyGamePatch" xml:space="preserve"><value>此模組包含已知的 1.0.3 之前版本相容性特徵。它可能已經過時，可能導致遊戲無法啟動或發生崩潰。AIM 不會自動封鎖它。</value></data>
   <data name="GUIModLegacyGamePatchError" xml:space="preserve"><value>Installation blocked: this mod contains a known pre-1.0.3 compatibility signature. It may break the game on the current version. Update the mod or use a version compatible with the current game.</value></data>
@@ -372,6 +374,7 @@
   <data name="GUIIssueDismissTooltip" xml:space="preserve"><value>標記為已檢查且沒有問題。AIM 會將它隱藏，直到相關模組之一變更版本，然後再次詢問。</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>顯示我標記為正常的問題（{0}）</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>已標記為正常</value></data>
+  <data name="GUIIssueHandledHeader" xml:space="preserve"><value>已自動處理</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[已標記為正常]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>兩個模組都寫入的檔案</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>目前生效</value></data>
@@ -646,7 +649,7 @@
   <data name="GUICrashNoModList" xml:space="preserve"><value>AIM 無法查看模組清單，因此只能顯示崩潰，無法指出原因。</value></data>
   <data name="GUICrashFailed" xml:space="preserve"><value>AIM 無法完成對此崩潰的讀取：{0}</value></data>
   <data name="GUICrashStale" xml:space="preserve"><value>此崩潰早於目前模組。請在修改前執行一次遊戲，並把下面的模組視為線索而非結論。</value></data>
-  <data name="GUICrashNoApiKey" xml:space="preserve"><value>你尚未登入 Nexus，因此 AIM 無法讀取模組錯誤追蹤器。</value></data>
+  <data name="GUICrashNoApiKey" xml:space="preserve"><value>你沒有登入 Nexus，所以 AIM 只讀取了模組公開的留言和錯誤回報，沒有讀取簡介和更新說明。以上內容都是根據你自己的檔案得出的。</value></data>
   <data name="GUICrashWorking" xml:space="preserve"><value>正在讀取錯誤追蹤器和留言…</value></data>
   <data name="GUICrashNothingToResearch" xml:space="preserve"><value>沒有模組被明確指出，暫不值得讀取其頁面。</value></data>
   <data name="GUICrashResearchFailed" xml:space="preserve"><value>AIM 無法讀取模組頁面：{0}</value></data>
@@ -815,4 +818,53 @@
   <data name="GUISettingsUpToDate" xml:space="preserve"><value>AIM 已是最新版本。</value></data>
   <data name="GUISettingsUpdateAvailable" xml:space="preserve"><value>有可用的 AIM 更新。請使用下方通知開啟其發行頁面。</value></data>
   <data name="GUISettingsUpdateCheckFailed" xml:space="preserve"><value>檢查 AIM 更新失敗。</value></data>
+  <data name="GUIIssueSearchDismissed" xml:space="preserve"><value>搜尋已標記為沒問題的項目…</value></data>
+  <data name="GUIIssueSortNewest" xml:space="preserve"><value>最近標記的優先</value></data>
+  <data name="GUIIssueSortOldest" xml:space="preserve"><value>最早標記的優先</value></data>
+  <data name="GUIIssueSortName" xml:space="preserve"><value>依名稱排序</value></data>
+  <data name="GUIIssueDismissedMatches" xml:space="preserve"><value>已標記為沒問題 - {1} 項中有 {0} 項符合</value></data>
+  <data name="GUIIssueDismissedNoMatch" xml:space="preserve"><value>已標記為沒問題的項目中沒有符合「{0}」的。</value></data>
+  <data name="GUIIssueMarkedFineOn" xml:space="preserve"><value>於 {0} 標記為沒問題</value></data>
+  <data name="GUIIssueOpenModPage" xml:space="preserve"><value>在 Nexus 上開啟 {0}</value></data>
+  <data name="GUIVerdictWinnerChosen" xml:space="preserve"><value>你選擇讓 {0} 優先。</value></data>
+  <data name="GUIVersionsUnknownVersion" xml:space="preserve"><value>未知版本</value></data>
+  <data name="GUIVersionsChangelogTooltip" xml:space="preserve"><value>更新說明，定位到版本 {0}</value></data>
+  <data name="GUIVersionsChangelogTooltipNoVersion" xml:space="preserve"><value>更新說明</value></data>
+  <data name="GUIChangelogVersionNotListed" xml:space="preserve"><value>作者沒有為版本 {0} 寫更新說明。下面是所有有說明的版本。</value></data>
+  <data name="GUIChangelogShowingVersion" xml:space="preserve"><value>已定位到版本 {0}，下方已醒目標示。</value></data>
+  <data name="GUICrashResearchProgress" xml:space="preserve"><value>正在讀取 {0} 的 Nexus 頁面（第 {1} 個，共 {2} 個）…</value></data>
+  <data name="GUICrashTreatmentsHeader" xml:space="preserve"><value>可以嘗試的做法（來自模組頁面）</value></data>
+  <data name="GUICrashTreatmentsHint" xml:space="preserve"><value>作者和其他玩家針對類似當機描述的解決辦法。先試第一個合適的，再用上面的按鈕驗證。</value></data>
+  <data name="GUICrashMentionsHeader" xml:space="preserve"><value>留言中提到你其他模組的內容</value></data>
+  <data name="GUICrashMentionsHint" xml:space="preserve"><value>嫌疑模組頁面中提到你已啟用的其他模組的留言（通常是在問兩者能否一起使用），如有作者回覆也會一併顯示。</value></data>
+  <data name="GUICrashMentionsGroup" xml:space="preserve"><value>{0} 的頁面中，關於 {1}</value></data>
+  <data name="GUICrashNothingReadable" xml:space="preserve"><value>沒有找到內容，但 Nexus 阻擋了 AIM 讀取部分頁面。見下方「AIM 讀取了什麼」。</value></data>
+  <data name="GUICrashFoundSummary" xml:space="preserve"><value>在嫌疑模組頁面找到 {0} 筆內容：{1} 筆可嘗試，{2} 筆關於你的其他模組。</value></data>
+  <data name="GUICrashCoverageHeader" xml:space="preserve"><value>AIM 讀取了什麼（頁面 {1} 部分中的 {0} 部分）</value></data>
+  <data name="GUICrashResearchBlocked" xml:space="preserve"><value>Nexus 對 AIM 的部分請求回傳了機器人驗證而不是頁面，所以這些留言或錯誤回報無法讀取。Nexus 沒有留言或錯誤回報的 API，你的 Nexus 登入只涵蓋簡介、更新說明和檔案。請用下方按鈕在瀏覽器中查看被阻擋的頁面。</value></data>
+  <data name="GUICrashResearchSignedOut" xml:space="preserve"><value>你沒有登入 Nexus，所以 AIM 跳過了模組的簡介和更新說明。從齒輪選單 → Nexus 下載 登入即可包含它們。</value></data>
+  <data name="GUICrashSourceDescription" xml:space="preserve"><value>簡介</value></data>
+  <data name="GUICrashSourceChangelog" xml:space="preserve"><value>更新說明</value></data>
+  <data name="GUICrashSourceReadme" xml:space="preserve"><value>說明檔</value></data>
+  <data name="GUICrashSourceComments" xml:space="preserve"><value>留言</value></data>
+  <data name="GUICrashSourceBugs" xml:space="preserve"><value>錯誤回報</value></data>
+  <data name="GUICrashCoverageBlocked" xml:space="preserve"><value>被 Nexus 的機器人驗證阻擋</value></data>
+  <data name="GUICrashCoverageFailed" xml:space="preserve"><value>無法讀取（Nexus 回傳 {0}）</value></data>
+  <data name="GUICrashCoverageOffline" xml:space="preserve"><value>無法讀取（沒有回應：離線或逾時）</value></data>
+  <data name="GUICrashCoverageNoPage" xml:space="preserve"><value>已略過：AIM 不知道這個模組的 Nexus 頁面</value></data>
+  <data name="GUICrashCoverageNotSignedIn" xml:space="preserve"><value>已略過：登入 Nexus 後才會包含</value></data>
+  <data name="GUICrashCoverageStopped" xml:space="preserve"><value>已略過：Nexus 阻擋了之前的頁面</value></data>
+  <data name="GUICrashCoverageComments" xml:space="preserve"><value>透過 {1} 次搜尋讀取 {0} 則留言，保留 {2} 則</value></data>
+  <data name="GUICrashCoverageBugs" xml:space="preserve"><value>讀取 {0} 份回報，開啟 {1} 份，保留 {2} 份</value></data>
+  <data name="GUICrashCoverageChangelog" xml:space="preserve"><value>讀取 {0} 個版本，保留 {1} 筆</value></data>
+  <data name="GUICrashCoverageKept" xml:space="preserve"><value>已讀取，保留 {0} 筆</value></data>
+  <data name="GUICrashTreatmentBasis" xml:space="preserve"><value>來自 {0} · {1} · {2}</value></data>
+  <data name="GUICrashOpenSource" xml:space="preserve"><value>開啟頁面 ↗</value></data>
+  <data name="GUICrashChipSameCrash" xml:space="preserve"><value>同一當機</value></data>
+  <data name="GUICrashChipMentions" xml:space="preserve"><value>提到 {0}</value></data>
+  <data name="GUICrashChipAuthor" xml:space="preserve"><value>模組作者</value></data>
+  <data name="GUICrashChipAuthorAnswered" xml:space="preserve"><value>作者已回覆</value></data>
+  <data name="GUICrashAuthorAnswered" xml:space="preserve"><value>↳ {0} 回覆：「{1}」</value></data>
+  <data name="GUICrashTheAuthor" xml:space="preserve"><value>作者</value></data>
+  <data name="GUICrashWhatToDo" xml:space="preserve"><value>處理辦法：{0}</value></data>
 </root>

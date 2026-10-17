@@ -113,6 +113,13 @@ public partial class CrashAnalysisWindow : Window
             ToolTip.SetPlacement(button, Avalonia.Controls.PlacementMode.Top);
 
         CloseButton.Click += (_, _) => Close();
+
+        // Nothing left to show it to.
+        Closed += (_, _) =>
+        {
+            StopResearch();
+            _researchRun++;
+        };
         CopyButton.Click += async (_, _) => await CopyAsync();
         RefreshButton.Click += async (_, _) => await LoadAsync();
         OpenFolderButton.Click += (_, _) => ExternalUrl.OpenFolder(_archive.Folder);
@@ -201,6 +208,10 @@ public partial class CrashAnalysisWindow : Window
 
         _crash = chosen;
 
+        // The last crash's research is about mods that may not be suspects in this one.
+        StopResearch();
+        _researchRun++;
+
         try
         {
             await AnalyseAsync(chosen);
@@ -219,11 +230,11 @@ public partial class CrashAnalysisWindow : Window
         SettledSection.IsVisible = false;
         VerifySection.IsVisible = false;
         StaleBanner.IsVisible = false;
-        ForSection.IsVisible = false;
-        AgainstSection.IsVisible = false;
-        CautionSection.IsVisible = false;
-        FindingsSection.IsVisible = false;
-        LinksSection.IsVisible = false;
+        // A pass still reading the last crash's pages would otherwise draw into the emptied window.
+        StopResearch();
+        _researchRun++;
+
+        ClearResearch();
         VerifyStatus.IsVisible = false;
         VerifySteps.IsVisible = false;
         VerifyProgressText.IsVisible = false;
@@ -235,12 +246,25 @@ public partial class CrashAnalysisWindow : Window
         BacktracePanel.Children.Clear();
         SuspectsPanel.Children.Clear();
         SettledPanel.Children.Clear();
-        ForPanel.Children.Clear();
-        AgainstPanel.Children.Clear();
-        CautionPanel.Children.Clear();
-        FindingsPanel.Children.Clear();
-        LinksPanel.Children.Clear();
         RawText.Text = "";
+    }
+
+    /// <summary>Empties every section research fills, so a new pass never shows the last one's findings.</summary>
+    private void ClearResearch()
+    {
+        foreach (var section in new Control[]
+                 {
+                     ResearchNotice, TreatmentsSection, MentionsSection, ForSection, AgainstSection,
+                     CautionSection, FindingsSection, CoverageSection, LinksSection
+                 })
+            section.IsVisible = false;
+
+        foreach (var panel in new Panel[]
+                 {
+                     TreatmentsPanel, MentionsPanel, ForPanel, AgainstPanel, CautionPanel, FindingsPanel,
+                     CoveragePanel, LinksPanel
+                 })
+            panel.Children.Clear();
     }
 
     // ── The answer AIM can give on its own ───────────────────────────────────────
@@ -1796,22 +1820,22 @@ public partial class CrashAnalysisWindow : Window
     {
         var texts = LocalizedTexts.Instance;
 
-        if (_client is null)
-        {
-            StatusText.Text = texts.GUICrashNoApiKey;
-            return;
-        }
-
-        var provenance = _context?.Provenance(suspect.ModId);
-        var subject = new ResearchSubject(suspect.Name, provenance?.NexusModId, provenance?.PageUrl);
-
+        // Not refused without a Nexus sign-in any more: the comments and the bug tracker are read
+        // from the public pages, and those are where a crash gets reported. The description and the
+        // release notes are skipped, and the coverage list says so.
         StatusText.Text = string.Format(texts.GUICrashResearchingCulprit, suspect.Name);
 
+        var (run, token) = BeginResearch();
         ResearchResult result;
 
         try
         {
-            result = await ConflictResearch.InvestigateAsync([subject], _client, PageReader);
+            result = await CrashResearch.InvestigateAsync(BuildQuestion([suspect]), _client, PageReader, ct: token);
+            if (run != _researchRun) return;
+        }
+        catch (OperationCanceledException)
+        {
+            return;
         }
         catch (Exception exception)
         {
@@ -1822,14 +1846,31 @@ public partial class CrashAnalysisWindow : Window
 
         // Replaces the shortlist's findings rather than adding to them: those were about mods that
         // have since been ruled out, and leaving them under a proved culprit reads as evidence
-        // about the culprit.
-        ForPanel.Children.Clear();
-        AgainstPanel.Children.Clear();
-        CautionPanel.Children.Clear();
-        FindingsPanel.Children.Clear();
-        LinksPanel.Children.Clear();
-
+        // about the culprit. ShowResearch clears before it fills.
         ShowResearch(result);
+    }
+
+    /// <summary>
+    /// What to ask the suspects' pages: who they are, which other mods the user runs, and the
+    /// crash's own identifiers to search for.
+    /// </summary>
+    private CrashQuestion BuildQuestion(IReadOnlyList<CrashSuspect> suspects)
+    {
+        var subjects = suspects
+            .Select(suspect =>
+            {
+                var provenance = _context?.Provenance(suspect.ModId);
+                return new ResearchSubject(suspect.Name, provenance?.NexusModId, provenance?.PageUrl)
+                {
+                    Version = _context?.Find(suspect.ModId)?.GetVersion()
+                };
+            })
+            .ToList();
+
+        var others = _context?.Enabled.Select(mod => mod.GetName()).ToList() ?? [];
+        var terms = _crash is null ? [] : CrashResearch.TermsFor(_crash);
+
+        return new CrashQuestion(subjects, others, terms);
     }
 
     private void RecordTrial(
@@ -1921,19 +1962,36 @@ public partial class CrashAnalysisWindow : Window
             return;
         }
 
-        var subjects = worth
-            .Select(suspect =>
-            {
-                var provenance = _context?.Provenance(suspect.ModId);
-                return new ResearchSubject(suspect.Name, provenance?.NexusModId, provenance?.PageUrl);
-            })
-            .ToList();
-
         ResearchResult result;
+        var question = BuildQuestion(worth);
+        var (run, token) = BeginResearch();
 
         try
         {
-            result = await ConflictResearch.InvestigateAsync(subjects, _client, PageReader);
+            // The first suspect's answer goes on screen as soon as it is in, rather than after the
+            // last one: reading four mods' comments and bug trackers takes long enough that a
+            // window showing nothing for it looks broken. A newer pass - another crash picked, or a
+            // culprit proved meanwhile - owns the window, so a late result from this one is dropped.
+            var done = 0;
+            StatusText.Text = string.Format(texts.GUICrashResearchProgress, worth[0].Name, 1, worth.Count);
+
+            result = await CrashResearch.InvestigateAsync(question, _client, PageReader, partial: soFar =>
+            {
+                if (run != _researchRun) return;
+
+                done++;
+                ShowResearch(soFar, finished: false);
+
+                StatusText.Text = done < worth.Count
+                    ? string.Format(texts.GUICrashResearchProgress, worth[done].Name, done + 1, worth.Count)
+                    : texts.GUICrashWorking;
+            }, ct: token);
+
+            if (run != _researchRun) return;
+        }
+        catch (OperationCanceledException)
+        {
+            return;
         }
         catch (Exception exception)
         {
@@ -1948,27 +2006,92 @@ public partial class CrashAnalysisWindow : Window
         ShowResearch(result);
     }
 
+    /// <summary>
+    /// Which research pass owns the window. Each new pass - a different crash, a proved culprit -
+    /// takes the next number and cancels the one before it, so its requests stop and its late
+    /// results are thrown away rather than drawn over the newer ones.
+    /// </summary>
+    private int _researchRun;
+
+    private CancellationTokenSource? _researchCancel;
+
+    private (int Run, CancellationToken Token) BeginResearch()
+    {
+        StopResearch();
+        _researchCancel = new CancellationTokenSource();
+        return (++_researchRun, _researchCancel.Token);
+    }
+
+    /// <summary>
+    /// Cancels the running pass. The source is cancelled and dropped rather than disposed: the pass
+    /// may still be unwinding through code that reads its token, and a source with no timer holds
+    /// nothing that needs releasing.
+    /// </summary>
+    private void StopResearch()
+    {
+        _researchCancel?.Cancel();
+        _researchCancel = null;
+    }
+
     /// <summary>Puts one research pass on screen, whether it covered the shortlist or one culprit.</summary>
-    private void ShowResearch(ResearchResult result)
+    /// <param name="finished">False while later suspects are still being read.</param>
+    private void ShowResearch(ResearchResult result, bool finished = true)
     {
         var texts = LocalizedTexts.Instance;
 
-        StatusText.Text = _client is null
-            ? texts.GUICrashNoApiKey
-            : result.FoundNothing
-                ? texts.GUICrashNothingFound
-                : string.Format(texts.GUICrashFoundCount, result.Findings.Count);
+        ClearResearch();
 
-        Fill(ForSection, ForPanel, result.Blockers, ForHeader, texts.GUICrashEvidenceFor);
-        Fill(AgainstSection, AgainstPanel, result.Clearances, AgainstHeader, texts.GUICrashEvidenceAgainst);
-        Fill(CautionSection, CautionPanel,
-            result.Findings.Where(finding => finding.Polarity is Polarity.Caution),
+        // What to try, first and once each: two pages saying "update to 2.0.11" is one thing to do.
+        var treatments = result.Findings
+            .Where(finding => finding.Treatment is not null && finding.Polarity is not Polarity.Clearance)
+            .GroupBy(finding => finding.Treatment!, StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.First())
+            .ToList();
+
+        TreatmentsSection.IsVisible = treatments.Count > 0;
+        TreatmentsHeader.Text = $"{texts.GUICrashTreatmentsHeader}  ({treatments.Count})";
+        TreatmentsHint.Text = texts.GUICrashTreatmentsHint;
+        foreach (var finding in treatments) TreatmentsPanel.Children.Add(CreateTreatment(finding));
+
+        // Every comment naming another of the user's mods, in its own section and nowhere else - the
+        // question it answers is "what do people say about the mods I run together", and spreading
+        // those across four sections made it the hardest one to read off the window.
+        var mentions = result.Findings.Where(finding => finding.MentionedMod is not null).ToList();
+
+        MentionsSection.IsVisible = mentions.Count > 0;
+        MentionsHeader.Text = $"{texts.GUICrashMentionsHeader}  ({mentions.Count})";
+        MentionsHint.Text = texts.GUICrashMentionsHint;
+
+        foreach (var group in mentions.GroupBy(finding => (finding.PageMod, finding.MentionedMod)))
+        {
+            MentionsPanel.Children.Add(new TextBlock
+            {
+                Text = string.Format(texts.GUICrashMentionsGroup, group.Key.PageMod, group.Key.MentionedMod),
+                FontWeight = FontWeight.SemiBold,
+                FontSize = 12,
+                Opacity = 0.85,
+                TextWrapping = TextWrapping.Wrap,
+                Margin = new Avalonia.Thickness(0, 4, 0, 0)
+            });
+
+            foreach (var finding in group) MentionsPanel.Children.Add(CreateFinding(finding));
+        }
+
+        var rest = result.Findings.Where(finding => finding.MentionedMod is null).ToList();
+
+        Fill(ForSection, ForPanel, rest.Where(finding => finding.Polarity is Polarity.Blocker), ForHeader,
+            texts.GUICrashEvidenceFor);
+        Fill(AgainstSection, AgainstPanel, rest.Where(finding => finding.Polarity is Polarity.Clearance),
+            AgainstHeader, texts.GUICrashEvidenceAgainst);
+        Fill(CautionSection, CautionPanel, rest.Where(finding => finding.Polarity is Polarity.Caution),
             CautionHeader, texts.GUICrashEvidenceCaution);
 
-        var rest = result.Findings.Where(finding => finding.Polarity is Polarity.Context).ToList();
-        FindingsSection.IsVisible = rest.Count > 0;
-        FindingsSection.Header = $"{texts.GUICrashEvidenceOther}  ({rest.Count})";
-        foreach (var finding in rest) FindingsPanel.Children.Add(CreateFinding(finding));
+        var context = rest.Where(finding => finding.Polarity is Polarity.Context).ToList();
+        FindingsSection.IsVisible = context.Count > 0;
+        FindingsSection.Header = $"{texts.GUICrashEvidenceOther}  ({context.Count})";
+        foreach (var finding in context) FindingsPanel.Children.Add(CreateFinding(finding));
+
+        ShowCoverage(result.Coverage);
 
         LinksSection.IsVisible = result.Links.Count > 0;
 
@@ -1979,6 +2102,100 @@ public partial class CrashAnalysisWindow : Window
             ToolTip.SetTip(button, $"{link.Reason}\n{link.Url}");
             LinksPanel.Children.Add(button);
         }
+
+        if (!finished) return;
+
+        var blocked = result.Coverage.Any(line => line.Status is CoverageStatus.Blocked);
+
+        StatusText.Text = _client is null && result.FoundNothing
+            ? texts.GUICrashNoApiKey
+            : result.FoundNothing
+                ? blocked ? texts.GUICrashNothingReadable : texts.GUICrashNothingFound
+                : string.Format(texts.GUICrashFoundSummary, result.Findings.Count, treatments.Count, mentions.Count);
+    }
+
+    /// <summary>
+    /// The coverage list, and the notice above the findings when Nexus would not serve the pages.
+    /// </summary>
+    private void ShowCoverage(IReadOnlyList<ResearchCoverage> coverage)
+    {
+        var texts = LocalizedTexts.Instance;
+
+        CoverageSection.IsVisible = coverage.Count > 0;
+
+        var read = coverage.Count(line => line.Status is CoverageStatus.Read or CoverageStatus.Empty);
+        CoverageSection.Header = string.Format(texts.GUICrashCoverageHeader, read, coverage.Count);
+
+        foreach (var line in coverage)
+        {
+            var text = new SelectableTextBlock
+            {
+                Text = $"• {line.ModName} - {SourceName(line.Source)}: {DescribeCoverage(line)}",
+                TextWrapping = TextWrapping.Wrap,
+                FontSize = 12,
+                Opacity = line.Status is CoverageStatus.Read ? 1 : 0.75
+            };
+
+            // Only the failures get a colour; everything else inherits the theme's, which a fixed
+            // colour - or an explicit null, which paints nothing at all - would not.
+            if (line.Status is CoverageStatus.Blocked or CoverageStatus.Failed) text.Foreground = Brushes.OrangeRed;
+
+            CoveragePanel.Children.Add(text);
+        }
+
+        var blocked = coverage.Any(line => line.Status is CoverageStatus.Blocked);
+        var signedOut = _client is null;
+
+        ResearchNotice.IsVisible = blocked || signedOut;
+        ResearchNoticeText.Text = blocked && signedOut
+            ? $"{texts.GUICrashResearchBlocked}\n\n{texts.GUICrashResearchSignedOut}"
+            : blocked
+                ? texts.GUICrashResearchBlocked
+                : texts.GUICrashResearchSignedOut;
+
+        // The details are the point when something went wrong; when everything was read they are
+        // a footnote.
+        if (blocked) CoverageSection.IsExpanded = true;
+    }
+
+    private static string SourceName(ResearchSource source)
+    {
+        var texts = LocalizedTexts.Instance;
+
+        return source switch
+        {
+            ResearchSource.Description => texts.GUICrashSourceDescription,
+            ResearchSource.Changelog => texts.GUICrashSourceChangelog,
+            ResearchSource.Readme => texts.GUICrashSourceReadme,
+            ResearchSource.Comments => texts.GUICrashSourceComments,
+            _ => texts.GUICrashSourceBugs
+        };
+    }
+
+    private static string DescribeCoverage(ResearchCoverage line)
+    {
+        var texts = LocalizedTexts.Instance;
+
+        return line.Status switch
+        {
+            CoverageStatus.Blocked => texts.GUICrashCoverageBlocked,
+            CoverageStatus.Failed => line.StatusCode > 0
+                ? string.Format(texts.GUICrashCoverageFailed, line.StatusCode)
+                : texts.GUICrashCoverageOffline,
+            CoverageStatus.Skipped => line.Skipped switch
+            {
+                SkipReason.NoNexusPage => texts.GUICrashCoverageNoPage,
+                SkipReason.NotSignedIn => texts.GUICrashCoverageNotSignedIn,
+                _ => texts.GUICrashCoverageStopped
+            },
+            _ => line.Source switch
+            {
+                ResearchSource.Comments => string.Format(texts.GUICrashCoverageComments, line.Read, line.Searched, line.Kept),
+                ResearchSource.BugReports => string.Format(texts.GUICrashCoverageBugs, line.Read, line.Searched, line.Kept),
+                ResearchSource.Changelog => string.Format(texts.GUICrashCoverageChangelog, line.Read, line.Kept),
+                _ => string.Format(texts.GUICrashCoverageKept, line.Kept)
+            }
+        };
     }
 
     private static void Fill(
@@ -1994,6 +2211,85 @@ public partial class CrashAnalysisWindow : Window
         header.Text = $"{label}  ({kept.Count})";
 
         foreach (var finding in kept) panel.Children.Add(CreateFinding(finding));
+    }
+
+    /// <summary>
+    /// One thing to try: the instruction in bold, where it came from beneath, and the page.
+    /// </summary>
+    private static Control CreateTreatment(ResearchFinding finding)
+    {
+        var texts = LocalizedTexts.Instance;
+        var accent = Color.Parse("#4c8bf5");
+
+        var action = new SelectableTextBlock
+        {
+            Text = finding.Treatment,
+            FontWeight = FontWeight.SemiBold,
+            TextWrapping = TextWrapping.Wrap
+        };
+
+        var basis = new TextBlock
+        {
+            Text = string.Format(texts.GUICrashTreatmentBasis, finding.PageMod.Length > 0 ? finding.PageMod : finding.ModName,
+                finding.Where, finding.Reason),
+            TextWrapping = TextWrapping.Wrap,
+            FontSize = 11,
+            Opacity = 0.75
+        };
+
+        var open = new Button
+        {
+            Content = texts.GUICrashOpenSource,
+            Padding = new Avalonia.Thickness(8, 1),
+            FontSize = 11,
+            HorizontalAlignment = HorizontalAlignment.Left
+        };
+        open.Click += (_, _) => ExternalUrl.Open(finding.SourceUrl);
+        ToolTip.SetTip(open, $"“{finding.Answer ?? finding.FullQuote}”\n{finding.SourceUrl}");
+
+        var chips = Chips(finding);
+
+        var body = new StackPanel { Spacing = 3 };
+        if (chips is not null) body.Children.Add(chips);
+        body.Children.Add(action);
+        body.Children.Add(basis);
+        body.Children.Add(open);
+
+        return new Border
+        {
+            Background = new SolidColorBrush(accent, 0.08),
+            BorderThickness = new Avalonia.Thickness(3, 0, 0, 0),
+            BorderBrush = new SolidColorBrush(accent),
+            CornerRadius = new Avalonia.CornerRadius(0, 4, 4, 0),
+            Padding = new Avalonia.Thickness(10, 6, 10, 6),
+            Child = body
+        };
+    }
+
+    /// <summary>
+    /// Small labels over a finding: it names this very crash, it is about another of the user's
+    /// mods, it is the mod author speaking. Null when none apply.
+    /// </summary>
+    private static Control? Chips(ResearchFinding finding)
+    {
+        var texts = LocalizedTexts.Instance;
+        var row = new WrapPanel { Orientation = Orientation.Horizontal };
+
+        void Add(string colour, string text) => row.Children.Add(new Border
+        {
+            Background = new SolidColorBrush(Color.Parse(colour)),
+            CornerRadius = new Avalonia.CornerRadius(3),
+            Padding = new Avalonia.Thickness(6, 1),
+            Margin = new Avalonia.Thickness(0, 0, 6, 2),
+            Child = new TextBlock { Text = text, FontSize = 10.5, Foreground = Brushes.White }
+        });
+
+        if (finding.MatchesThisCrash) Add("#b02222", texts.GUICrashChipSameCrash);
+        if (finding.MentionedMod is { } other) Add("#6a4fd0", string.Format(texts.GUICrashChipMentions, other));
+        if (finding.ByModAuthor) Add("#2e7d32", texts.GUICrashChipAuthor);
+        else if (finding.Answer is not null) Add("#2e7d32", texts.GUICrashChipAuthorAnswered);
+
+        return row.Children.Count == 0 ? null : row;
     }
 
     /// <summary>
@@ -2022,6 +2318,41 @@ public partial class CrashAnalysisWindow : Window
             FontSize = 13
         };
 
+        var body = new StackPanel { Spacing = 3 };
+        if (Chips(finding) is { } chips) body.Children.Add(chips);
+        body.Children.Add(quote);
+
+        // The author's answer, under the question it answers - the question alone is rarely the
+        // finding, and the answer alone does not say what it is answering.
+        if (finding.Answer is { Length: > 0 } answer)
+        {
+            body.Children.Add(new Border
+            {
+                BorderThickness = new Avalonia.Thickness(2, 0, 0, 0),
+                BorderBrush = new SolidColorBrush(Color.Parse("#2e7d32")),
+                Padding = new Avalonia.Thickness(8, 2, 0, 2),
+                Margin = new Avalonia.Thickness(10, 2, 0, 0),
+                Child = new SelectableTextBlock
+                {
+                    Text = string.Format(texts.GUICrashAuthorAnswered,
+                        finding.AnsweredBy.Length > 0 ? finding.AnsweredBy : texts.GUICrashTheAuthor, answer),
+                    TextWrapping = TextWrapping.Wrap,
+                    FontSize = 13
+                }
+            });
+        }
+
+        if (finding.Treatment is { Length: > 0 } treatment)
+        {
+            body.Children.Add(new SelectableTextBlock
+            {
+                Text = string.Format(texts.GUICrashWhatToDo, treatment),
+                FontWeight = FontWeight.SemiBold,
+                TextWrapping = TextWrapping.Wrap,
+                FontSize = 12
+            });
+        }
+
         var where = string.IsNullOrEmpty(finding.Where) ? "" : $" · {finding.Where}";
 
         var source = new Button
@@ -2042,6 +2373,7 @@ public partial class CrashAnalysisWindow : Window
 
         source.Click += (_, _) => ExternalUrl.Open(finding.SourceUrl);
         ToolTip.SetTip(source, $"{texts.GUICrashOpenPage}\n{finding.SourceUrl}");
+        body.Children.Add(source);
 
         return new Border
         {
@@ -2050,7 +2382,7 @@ public partial class CrashAnalysisWindow : Window
             BorderBrush = new SolidColorBrush(accent),
             CornerRadius = new Avalonia.CornerRadius(0, 4, 4, 0),
             Padding = new Avalonia.Thickness(10, 6, 10, 6),
-            Child = new StackPanel { Spacing = 3, Children = { quote, source } }
+            Child = body
         };
     }
 }

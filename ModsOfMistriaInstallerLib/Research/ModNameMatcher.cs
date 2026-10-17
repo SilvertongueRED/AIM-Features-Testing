@@ -66,16 +66,29 @@ public static class ModNameMatcher
     /// title - which lets "witchy weapons" find "Sushi's Witchy Weapons and Tools" while keeping
     /// both a stray "weapons" and a coincidence of trailing words from doing it.
     /// </summary>
-    public static bool Mentions(string text, string name)
+    public static bool Mentions(string text, string name) =>
+        !string.IsNullOrWhiteSpace(text) && MentionsIn(Haystack(text), name);
+
+    /// <summary>
+    /// Punctuation and underscores are flattened on both sides, so a folder name like
+    /// "suushiico_witchy_tools" reads as the words it is made of.
+    /// </summary>
+    private static string Haystack(string text) => " " + Separators.Replace(text, " ") + " ";
+
+    /// <summary>
+    /// Titles already split into their words. Checking one comment against every mod the user runs
+    /// asks the same few hundred titles the same question for every comment read, and a title's
+    /// words never change.
+    /// </summary>
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (string? Author, List<string> Words)>
+        ParsedNames = new(StringComparer.Ordinal);
+
+    private static bool MentionsIn(string haystack, string name)
     {
-        if (string.IsNullOrWhiteSpace(text)) return false;
+        if (string.IsNullOrWhiteSpace(name)) return false;
 
-        var (author, words) = Parse(name);
+        var (author, words) = ParsedNames.GetOrAdd(name, Parse);
         if (words.Count == 0) return false;
-
-        // Punctuation and underscores are flattened on both sides, so a folder name like
-        // "suushiico_witchy_tools" reads as the words it is made of.
-        var haystack = " " + Separators.Replace(text, " ") + " ";
 
         var present = words.Count(word => AppearsAsWord(haystack, word));
         var authorNamed = author is not null && AppearsAsWord(haystack, author);
@@ -198,6 +211,12 @@ public static class ModNameMatcher
     /// Which of <paramref name="names"/> the text mentions, if any. Used to attribute a comment to
     /// the pairing it is actually about.
     /// </summary>
-    public static string? FirstMentioned(string text, IEnumerable<string> names) =>
-        names.FirstOrDefault(name => Mentions(text, name));
+    public static string? FirstMentioned(string text, IEnumerable<string> names)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+
+        // The text is flattened once, not once per name.
+        var haystack = Haystack(text);
+        return names.FirstOrDefault(name => MentionsIn(haystack, name));
+    }
 }

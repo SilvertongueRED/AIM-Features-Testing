@@ -39,8 +39,8 @@ version = 2
 # hook surface. Keep them in step when adding or removing entries; the
 # shipped-catalog test also holds the docs' count sentences to these numbers.
 [counts]
-hooks = 140
-seams = 154
+hooks = 146
+seams = 162
 engine_fixes = 17
 call_rewrites = 1
 
@@ -757,6 +757,36 @@ doc  = "Fires in ari_eligible_for_date(npc, time_to_check) (Dates.gml), once per
 name = "ui.preset_popup_layout"
 kind = "filter"
 doc  = "Fires each time the customization menu generates its preset popup body, on popup open and again after a preset is added or deleted. The filtered value is the layout struct { frame_width: 46, frame_height: 47, columns: 4, rows: 2, spacing: 4 }: frame_width and frame_height size each preset frame, columns and rows shape the grid, and spacing is the gap centered_positions puts between frames. ctx is the CustomizationMenu struct. Return the replacement struct, or undefined to keep the engine values. The seam re-reads every field defensively, so an undefined return (or a partial struct) keeps the engine value for each field it lacks. Growing columns or rows grows the preset capacity (the stock 4x2 grid holds seven presets plus the button that creates a new preset), and a grid smaller than the current preset count leaves the overflow presets unreachable in the popup without deleting them. The popup backplate is sized at popup open (230x164) and does not adapt, so frames that outgrow it draw outside its art."
+
+[[hook]]
+name = "object.renderer_build"
+kind = "event"
+doc  = "Fires at the head of Grid.initialize_node_renderer(node), the single dispatcher every grid object's world renderer is built through (furniture, rugs, table-top furniture in child grids, buildings, trees, crops, rocks, bushes, stumps, breakables, dig sites and grass), before the category-specific create_*_renderer runs and before it reads node.prototype. ctx is { node, grid }: node is the grid node whose renderer is about to be built (node.object_id, node.prototype, node.top_left_x/y; furniture also node.cardinal_index), grid is the Grid building it (a child grid for furniture placed on furniture). Fires on placement, on every room entry and grid load, after a save loads, and whenever a child grid is rebuilt; never per frame. Observation hook whose contract allows one mutation: a handler may replace node.prototype with a shallow clone of the same object's prototype (same object_id and category, sub-structs shared or shallow-copied, sprite fields changed) so the build and every later live read of node.prototype use the clone. node.prototype is never saved (Grid serialization skips it) and the engine re-points it at NODE_PROTOTYPES on every load, so a clone lives only for the session. Do not change node.object_id. Return value ignored."
+
+[[hook]]
+name = "animal.sprites"
+kind = "filter"
+doc  = "Wraps BaseAnimal.sprites_for_animation(animation, cardinality), the one resolver every barn and coop animal, the mount, non-player animals and cutscene animals use for world sprites, held animals, the journal portrait and naming popups. The filtered value is the struct the engine returns: { base_sprite, top_sprite, base_cosmetic, top_cosmetic, shadow, lut, lut_texture, lut_index, lut_uvs }. ctx is { animal, animation, cardinality }: animal is the animal data struct (animal.kind, animal.variant, animal.sex, animal.idx, animal.is_baby()), animation and cardinality are the requested ones. Return the struct (mutated or replaced) or undefined to keep it. When you change base_sprite also set shadow = SHADOW_DICTIONARY.get(<new base_sprite>), and keep frame counts and origins compatible with the vanilla animation, since gameplay reads image_index ranges. Not per frame for stabled animals (set_sprites runs on state changes), but the mount calls it every frame: keep the handler's first check cheap."
+
+[[hook]]
+name = "pet.sprites"
+kind = "filter"
+doc  = "Wraps Pet.sprites_for_animation(animation, cardinality), the resolver for the player's pet in the world and in the journal portrait. The filtered value is the struct the engine returns: { lut_index, shadow, base_sprite, base_cosmetic, lut, lut_texture, lut_uvs, top_sprite, top_cosmetic }. ctx is { pet, animation, cardinality }: pet is the Pet struct (pet.variant, pet.pet_kind()). Return the struct (mutated or replaced) or undefined to keep it. When you change base_sprite also set shadow = SHADOW_DICTIONARY.get(<new base_sprite>). Called on state changes, not per frame."
+
+[[hook]]
+name = "animal.icon"
+kind = "filter"
+doc  = "Wraps get_animal_icon_data(kind, variant, sex, adult), the lookup behind every barn animal icon in the animal journal list, the mount picker, the adoption menu header and the farm building selection menu. The filtered value is the struct the engine returns: { sprite, lut, lut_index }. ctx is { kind, variant, sex, adult } exactly as passed (variant may be undefined, meaning the kind's default_icon_variant). Return the struct (mutated or replaced) or undefined to keep it. This site does not know which individual animal is drawn; ui.animal_entry fires afterwards for list rows that do."
+
+[[hook]]
+name = "ui.animal_entry"
+kind = "event"
+doc  = "Fires at the end of the AnimalEntry constructor, the list row the animal journal, daycare, sell, adoption and festival pickers build for one animal or the pet, after its icon sprite and LUT are set. ctx is { entry, animal, icon }: entry is the AnimalEntry, animal is the animal struct shown (the global PET for the pet row, a throwaway BaseAnimal for adoption rows), icon is the SpriteNode showing the animal's icon. Handlers may restyle icon (set_sprite, set_lut) to show a per-animal appearance. Return value ignored."
+
+[[hook]]
+name = "furniture.pickup_item"
+kind = "filter"
+doc  = "Fires when picking up a placed furniture object produces its item: for every furniture node removed by a pick (including rugs and items lifted off tables), and for every furniture node poofed into lost items when house stairs are placed over it. The filtered value is the LiveItem about to be dropped, already carrying the node's infusion and date photo. ctx is { node, grid, source }: node is the furniture node being removed (still readable, including any fields a mod stored on it), grid is the grid it sits in, source is \"pick\", \"rug\" or \"poof\". Return a replacement LiveItem (for example a different item id that places a look-alike object) or undefined to keep the engine's item. Copy infusion and date_photo onto a replacement you build yourself. Fires once per removed node, not per frame."
 
 [[seam]]
 id      = "animal_heart_points"
@@ -4405,3 +4435,135 @@ replace = '''
 '''
 marker  = "mmapi_furniture_preview_floor_sprite"
 provides = ["furniture.preview_sprite"]
+
+# --- Variants Framework seams: per-object and per-animal appearance -------------------
+
+[[seam]]
+id      = "object_renderer_build"
+file    = "gml/scripts/GameplaySystems/Data/Grid/__GridGeneral/Grid.gml"
+target  = { fn = "initialize_node_renderer", at = "head" }
+op      = "emit"
+hook    = "object.renderer_build"
+ctx     = "{ node: node, grid: self }"
+indent  = 8
+catch_var = "__mmapi_object_renderer_build"
+marker  = "mmapi_object_run_renderer_build"
+
+[[seam]]
+id      = "animal_sprites"
+file    = "gml/scripts/GameplaySystems/Ranching/Animal.gml"
+target  = { fn = "sprites_for_animation" }
+op      = "wrap"
+hook    = "animal.sprites"
+ctx     = "{ animal: self, animation: animation, cardinality: cardinality }"
+blank_before = true
+catch_var = "__mmapi_animal_sprites"
+marker  = "mmapi_animal_run_sprites_filters"
+
+[[seam]]
+id      = "pet_sprites"
+file    = "gml/scripts/Pet.gml"
+target  = { fn = "sprites_for_animation" }
+op      = "wrap"
+hook    = "pet.sprites"
+ctx     = "{ pet: self, animation: animation, cardinality: cardinality }"
+blank_before = true
+catch_var = "__mmapi_pet_sprites"
+marker  = "mmapi_pet_run_sprites_filters"
+
+[[seam]]
+id      = "animal_icon"
+file    = "gml/scripts/GameplaySystems/Ranching/AnimalUtils.gml"
+target  = { fn = "get_animal_icon_data" }
+op      = "wrap"
+hook    = "animal.icon"
+ctx     = "{ kind: kind, variant: variant, sex: sex, adult: adult }"
+blank_before = true
+catch_var = "__mmapi_animal_icon"
+marker  = "mmapi_animal_run_icon_filters"
+
+[[seam]]
+id      = "ui_animal_entry"
+file    = "gml/scripts/AnimalMenu.gml"
+context_before = '''
+        self.animal_icon.set_sprite(icon_data.sprite);
+        if icon_data.lut != undefined {
+            self.animal_icon.set_lut(icon_data.lut, icon_data.lut_index);
+        }
+    }
+'''
+context_after = '''
+
+    function shift_basic_details_up() {
+'''
+op      = "emit"
+hook    = "ui.animal_entry"
+ctx     = "{ entry: self, animal: self.animal, icon: self.animal_icon }"
+indent  = 4
+catch_var = "__mmapi_ui_animal_entry"
+marker  = "mmapi_ui_run_animal_entry"
+
+[[seam]]
+id      = "furniture_pickup_item"
+file    = "gml/scripts/GameplaySystems/Data/Grid/GridActions/Pick.gml"
+context_before = '''
+                        if node.prototype.is_date_photo {
+                            live_item.date_photo = node.date_photo;
+                        }
+'''
+context_after = '''
+
+                        drop_item_to_ground(original_node.renderer.x, original_node.renderer.y + 1, node.renderer.y - original_node.renderer.y)
+'''
+op      = "filter"
+hook    = "furniture.pickup_item"
+ctx     = '{ node: node, grid: data[2], source: "pick" }'
+var     = "live_item"
+indent  = 24
+catch_var = "__mmapi_furniture_pickup_item"
+marker  = "mmapi_furniture_run_pickup_item"
+
+[[seam]]
+id      = "furniture_pickup_item_rug"
+file    = "gml/scripts/GameplaySystems/Data/Grid/GridActions/Pick.gml"
+anchor  = '''
+            if is_rug_pick {
+                drop_item_from_object(node.object_id, node.renderer.x, node.renderer.y, try_string_to_infusion(node.infusion));
+                erase_rug_node(grid, inst_index);
+'''
+replace = '''
+            if is_rug_pick {
+                var __mmapi_rug_proto = find_item_prototype(node.object_id); // mmapi_furniture_run_pickup_item_rug
+                if __mmapi_rug_proto != undefined {
+                    var __mmapi_rug_drop = instance_create_layer(node.renderer.x, node.renderer.y, "Instances", obj_item);
+                    __mmapi_rug_drop.move_z = true;
+                    var __mmapi_rug_item = new LiveItem(__mmapi_rug_proto.item_id);
+                    if __mmapi_rug_item.infusion == undefined {
+                        __mmapi_rug_item.infusion = try_string_to_infusion(node.infusion);
+                    }
+                    try { __mmapi_rug_item = mmapi_apply_filters("furniture.pickup_item", __mmapi_rug_item, { node: node, grid: grid, source: "rug" }); } catch (__mmapi_rug_pickup_filter) {}
+                    __mmapi_rug_drop.setup(List(__mmapi_rug_item));
+                }
+                erase_rug_node(grid, inst_index);
+'''
+marker  = "mmapi_furniture_run_pickup_item_rug"
+provides = ["furniture.pickup_item"]
+
+[[seam]]
+id      = "furniture_pickup_item_poof"
+file    = "gml/scripts/GameplaySystems/Data/Grid/__GridGeneral/GridUtils.gml"
+context_before = '''
+                    if item.infusion == undefined {
+                        item.infusion = try_string_to_infusion(grid.node_parent[ni].infusion);
+                    }
+'''
+context_after = '''
+                    lost_items_list.push({
+'''
+op      = "filter"
+hook    = "furniture.pickup_item"
+ctx     = '{ node: grid.node_parent[ni], grid: grid, source: "poof" }'
+var     = "item"
+indent  = 20
+catch_var = "__mmapi_furniture_pickup_item_poof"
+marker  = "mmapi_furniture_run_pickup_item_poof"

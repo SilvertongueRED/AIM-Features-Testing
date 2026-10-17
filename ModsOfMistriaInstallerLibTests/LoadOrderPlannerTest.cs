@@ -182,6 +182,81 @@ public class LoadOrderPlannerTest
         });
     }
 
+    // With the Variants Framework selected, a shared sprite replacement is no longer a winner
+    // question: both versions become looks. It is still listed, as information.
+    [Test]
+    public void ShouldReportArtTheVariantsFrameworkKeepsAsLooksAsInformationOnly()
+    {
+        MockMod Recolour(string id, string name, byte colour) => new(new Dictionary<string, object>
+        {
+            ["images/replace/spr_decor_lamp_south.png"] = new byte[] { colour },
+            ["fiddle/items/furniture/lamps.toml"] = "[lamp]",
+            ["manifest.toml"] = name
+        }) { Id = id, Name = name };
+
+        var framework = new MockMod(new Dictionary<string, object>
+        {
+            [Garethp.ModsOfMistriaInstallerLib.Variants.VariantFramework.MarkerFile] = "",
+            ["manifest.toml"] = "framework"
+        }) { Id = "a.framework", Name = "Variants Framework" };
+        var first = Recolour("a.first", "First", 1);
+        var second = Recolour("a.second", "Second", 2);
+
+        var plan = LoadOrderPlanner.Plan([framework, first, second]);
+
+        var looks = plan.Notes.Single(note => note.Kind == LoadOrderNoteKind.HandledByVariants);
+        Assert.Multiple(() =>
+        {
+            Assert.That(looks.IsInformational, Is.True);
+            Assert.That(looks.Message, Does.Contain("Kept side by side as switchable looks (Variants Framework)"));
+            Assert.That(looks.Message, Does.Not.Contain("overrides"));
+            Assert.That(looks.Details, Is.EqualTo(new[] { "images/replace/spr_decor_lamp_south.png" }));
+            Assert.That(looks.Participants.Select(p => p.ModId), Is.EqualTo(new[] { "a.first", "a.second" }));
+            Assert.That(looks.IssueKey, Does.EndWith("|variants"));
+
+            // No override note for the sprite; the shared fiddle table is still a merge note.
+            var fileNotes = plan.Notes.Where(note => note.Kind == LoadOrderNoteKind.FileConflict).ToList();
+            Assert.That(fileNotes.Single().IssueKey, Does.EndWith("|merge"));
+            Assert.That(plan.Notes.Where(note => note.Kind != LoadOrderNoteKind.HandledByVariants),
+                Has.All.Matches<LoadOrderNote>(note => !note.IsInformational));
+        });
+
+        // Without the framework the same pair is the override it always was.
+        var without = LoadOrderPlanner.Plan([first, second]);
+        Assert.That(without.Notes.Any(note => note.Kind == LoadOrderNoteKind.HandledByVariants), Is.False);
+        Assert.That(without.Notes.Single(note => note.IssueKey == "a.first,a.second").Message,
+            Does.Contain("\"Second\" overrides \"First\""));
+    }
+
+    // Portrait Wardrobe keeps every pack's portraits to pick in game: with it selected (alone),
+    // two portrait packs are information, not a winner question.
+    [Test]
+    public void ShouldReportPortraitsPortraitWardrobeKeepsAsInformationOnly()
+    {
+        MockMod Pack(string id, string name, byte colour) => new(new Dictionary<string, object>
+        {
+            ["images/replace/spr_portrait_march_beach_neutral.png"] = new byte[] { colour },
+            ["manifest.toml"] = name
+        }) { Id = id, Name = name };
+
+        var wardrobe = new MockMod(new Dictionary<string, object>
+        {
+            ["fiddle/mods/portrait_wardrobe/registry.toml"] = "format = 1",
+            ["manifest.toml"] = "wardrobe"
+        }) { Id = "a.wardrobe", Name = "Portrait Wardrobe" };
+        var first = Pack("a.first", "First", 1);
+        var second = Pack("a.second", "Second", 2);
+
+        var plan = LoadOrderPlanner.Plan([wardrobe, first, second]);
+        var note = plan.Notes.Single(n => n.Kind == LoadOrderNoteKind.HandledByVariants);
+        Assert.Multiple(() =>
+        {
+            Assert.That(note.IsInformational, Is.True);
+            Assert.That(note.Message, Does.Contain("Kept side by side to pick in game (Portrait Wardrobe)"));
+            Assert.That(plan.Notes.Any(n => n.Message.Contains("overrides")), Is.False);
+        });
+    }
+
     [Test]
     public void ShouldIgnoreConflictsBetweenModsThatAreNotSelected()
     {
@@ -327,5 +402,100 @@ public class LoadOrderPlannerTest
         // A merged table settles a repeated key last-wins, so a mod whose job is to change a value
         // has to be read after whatever set it.
         Assert.That(IdsOf(plan), Is.EqualTo(new[] { "author.furniture", "author.prices" }));
+    }
+
+    // ── load_position: where a mod asks to sit among its own kind ─────────────────
+
+    private static MockMod Positioned(string id, ModLoadPosition position, params string[] files) =>
+        new(files.ToList()) { Id = id, Name = id, LoadPosition = position };
+
+    [Test]
+    public void ShouldLoadABaseRecolourFirstAmongTheReplacements()
+    {
+        // The user added the broad recolour last. Every narrower recolour has to land on top of it,
+        // or the broad one silently overwrites the files they share.
+        var barns = Ships("author.barns", "images/replace/barn.png");
+        var hearts = Ships("author.hearts", "images/replace/heart.png");
+        var world = Positioned("author.world", ModLoadPosition.Early, "images/replace/barn.png", "images/replace/tree.png");
+
+        var plan = LoadOrderPlanner.Plan([barns, hearts, world], groupByRole: true);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(IdsOf(plan), Is.EqualTo(new[] { "author.world", "author.barns", "author.hearts" }));
+            Assert.That(plan.Notes.Where(note => note.Kind == LoadOrderNoteKind.RoleMove)
+                    .Select(note => note.Message),
+                Has.Some.Contains("base"), "the move has to say it came from the mod's own hint");
+        });
+    }
+
+    [Test]
+    public void ShouldNotLetABaseRecolourJumpAboveCodeOrContent()
+    {
+        // "early" is early among its own kind. Frameworks, code and new content still come first.
+        var world = Positioned("author.world", ModLoadPosition.Early, "images/replace/tree.png");
+        var code = Ships("author.configs", "gml/main.gml");
+        var furniture = Ships("author.furniture", "momi/furniture/items/chairs.toml");
+
+        var plan = LoadOrderPlanner.Plan([world, furniture, code], groupByRole: true);
+
+        Assert.That(IdsOf(plan), Is.EqualTo(new[] { "author.configs", "author.furniture", "author.world" }));
+    }
+
+    [Test]
+    public void ShouldLoadAPatchLastAmongItsKind()
+    {
+        var patch = Positioned("author.patch", ModLoadPosition.Late, "images/replace/a.png");
+        var first = Ships("author.first", "images/replace/a.png");
+        var second = Ships("author.second", "images/replace/b.png");
+
+        var plan = LoadOrderPlanner.Plan([patch, first, second], groupByRole: true);
+
+        Assert.That(IdsOf(plan), Is.EqualTo(new[] { "author.first", "author.second", "author.patch" }));
+    }
+
+    [Test]
+    public void ShouldKeepTheUsersOrderBetweenModsThatBothAskToBeEarly()
+    {
+        var second = Positioned("author.second", ModLoadPosition.Early, "images/replace/b.png");
+        var narrow = Ships("author.narrow", "images/replace/a.png");
+        var first = Positioned("author.first", ModLoadPosition.Early, "images/replace/a.png");
+
+        var plan = LoadOrderPlanner.Plan([second, narrow, first], groupByRole: true);
+
+        Assert.That(IdsOf(plan), Is.EqualTo(new[] { "author.second", "author.first", "author.narrow" }));
+    }
+
+    [Test]
+    public void ShouldIgnoreLoadPositionWhenLayeringIsNotAskedFor()
+    {
+        var narrow = Ships("author.narrow", "images/replace/a.png");
+        var world = Positioned("author.world", ModLoadPosition.Early, "images/replace/a.png");
+
+        var plan = LoadOrderPlanner.Plan([narrow, world]);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(IdsOf(plan), Is.EqualTo(new[] { "author.narrow", "author.world" }));
+            Assert.That(plan.ChangesAnything, Is.False);
+        });
+    }
+
+    [Test]
+    public void ShouldLetARequirementOverruleALoadPosition()
+    {
+        // The hint is a preference; a declared requirement is a fact and still wins.
+        var addon = Ships("author.addon", "images/replace/a.png");
+        var world = new MockMod(new List<string> { "images/replace/a.png" })
+        {
+            Id = "author.world",
+            Name = "World",
+            LoadPosition = ModLoadPosition.Early,
+            Requirements = [new ModRequirement("Addon", "Author")]
+        };
+
+        var plan = LoadOrderPlanner.Plan([addon, world], groupByRole: true);
+
+        Assert.That(IdsOf(plan), Is.EqualTo(new[] { "author.addon", "author.world" }));
     }
 }

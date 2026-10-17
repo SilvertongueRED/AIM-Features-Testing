@@ -635,6 +635,40 @@ public static class ModArchiveInstaller
         }
     }
 
+    /// <summary>
+    /// The version the shallowest manifest in an archive declares, or null when there is no
+    /// manifest or it cannot be read.
+    ///
+    /// For labelling, not for installing: the version dropdown needs to say which release a backed
+    /// up .zip holds, and the only reliable place that is written down is the manifest inside it.
+    /// </summary>
+    internal static string? ReadManifestVersion(string archivePath)
+    {
+        try
+        {
+            using var archive = ArchiveFactory.OpenArchive(archivePath);
+
+            var manifest = archive.Entries
+                .Where(entry => !entry.IsDirectory && entry.Key is not null)
+                .Where(entry => ManifestNames.Contains(FileName(entry.Key!), StringComparer.OrdinalIgnoreCase))
+                .OrderBy(entry => Normalise(entry.Key!).Count(c => c == '/'))
+                .FirstOrDefault();
+
+            if (manifest is null) return null;
+
+            using var stream = manifest.OpenEntryStream();
+            using var reader = new StreamReader(stream);
+
+            var version = ModIdentity.ReadManifest(FileName(manifest.Key!), reader.ReadToEnd())?.Version;
+            return string.IsNullOrWhiteSpace(version) ? null : version.Trim();
+        }
+        catch (Exception e)
+        {
+            Logger.Log($"Could not read the version inside {Path.GetFileName(archivePath)}: {e.Message}");
+            return null;
+        }
+    }
+
     private static IArchive OpenArchive(string archivePath)
     {
         try

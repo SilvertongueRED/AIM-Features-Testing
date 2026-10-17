@@ -36,6 +36,7 @@
   <data name="GUIPhaseInstallingImages" xml:space="preserve"><value>画像をインストール中</value></data>
   <data name="GUIPhaseInstallingToml" xml:space="preserve"><value>TOMLをインストール中</value></data>
   <data name="GUIPhaseInstallingFonts" xml:space="preserve"><value>フォントをインストール中</value></data>
+  <data name="GUIPhaseInstallingAudio" xml:space="preserve"><value>オーディオをインストール中</value></data>
   <data name="GUIPhaseInstallingJson" xml:space="preserve"><value>JSONをインストール中</value></data>
   <data name="GUIPhaseInstallingXml" xml:space="preserve"><value>XMLをインストール中</value></data>
   <data name="GUIPhaseInstallingMist" xml:space="preserve"><value>MISTをインストール中</value></data>
@@ -233,6 +234,7 @@
   <data name="GUIFileConflictMerge" xml:space="preserve"><value>統合可能なメタデータです。重複する項目は読み込み順によって上書きされる場合があります。</value></data>
   <data name="GUIFileConflictLocalization" xml:space="preserve"><value>共有ローカライズメタデータです。これらのMODは同時に動作する可能性がありますが、重複する項目は読み込み順によって上書きされる場合があります。</value></data>
   <data name="GUIFileConflictShared" xml:space="preserve"><value>共有された保存先です。処理方法はファイルの種類によって異なります。</value></data>
+  <data name="GUIFileConflictVariants" xml:space="preserve"><value>Variants Framework により切り替え可能な見た目として保持されます。読み込み順で勝者は決まりません。</value></data>
   <data name="GUIModAlreadyInstalled" xml:space="preserve"><value>インストール済み。</value></data>
  <data name="GUIModLegacyGamePatch" xml:space="preserve"><value>このMODにはバージョン1.0.3以前の既知の互換性シグネチャが含まれています。古いMODである可能性があり、ゲームが起動しなかったりクラッシュしたりする場合があります。AIMは自動的にはブロックしません。</value></data>
   <data name="GUIModLegacyGamePatchError" xml:space="preserve"><value>Installation blocked: this mod contains a known pre-1.0.3 compatibility signature. It may break the game on the current version. Update the mod or use a version compatible with the current game.</value></data>
@@ -372,6 +374,7 @@ AIMに引き継ぎますか？</value></data>
   <data name="GUIIssueDismissTooltip" xml:space="preserve"><value>確認済みで問題ないものとして記録します。関係する Mod のバージョンが変わるまで AIM は表示を控え、その後もう一度確認します。</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>問題なしとして記録した項目を表示（{0}）</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>問題なしとして記録済み</value></data>
+  <data name="GUIIssueHandledHeader" xml:space="preserve"><value>自動で処理済み</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>［問題なしとして記録済み］</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>両方が書き込むファイル</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>現在の優先 Mod</value></data>
@@ -711,7 +714,7 @@ AIMに引き継ぎますか？</value></data>
   <data name="GUICrashNoModList" xml:space="preserve"><value>ここからMod一覧を確認できないため、クラッシュは表示できますが原因のModは特定できません。</value></data>
   <data name="GUICrashFailed" xml:space="preserve"><value>AIMはこのクラッシュの読み取りを完了できませんでした: {0}</value></data>
   <data name="GUICrashStale" xml:space="preserve"><value>このクラッシュは現在インストールされているModより古いものです。AIMは発生後にゲームを再構築したため、クラッシュした状態と現在ディスクにある状態は異なります。変更する前に一度プレイし、下のModは結論ではなく手がかりとして扱ってください。</value></data>
-  <data name="GUICrashNoApiKey" xml:space="preserve"><value>Nexusにログインしていないため、AIMはModのバグトラッカーを読めません。上の内容はすべて手元のファイルから判断しています。</value></data>
+  <data name="GUICrashNoApiKey" xml:space="preserve"><value>Nexus にサインインしていないため、AIM は Mod の公開コメントとバグ報告だけを読み、説明と更新履歴は読んでいません。上の内容はすべてあなた自身のファイルから割り出したものです。</value></data>
   <data name="GUICrashWorking" xml:space="preserve"><value>このクラッシュが示すModのバグトラッカーとコメントを読んでいます…</value></data>
   <data name="GUICrashNothingToResearch" xml:space="preserve"><value>ページを読む価値があるほど明確に示されたModはありません。</value></data>
   <data name="GUICrashResearchFailed" xml:space="preserve"><value>AIMはModページを読み取れませんでした: {0}。手元のファイルからの判断は有効です。</value></data>
@@ -842,4 +845,53 @@ AIMに引き継ぎますか？</value></data>
   <data name="GUISettingsUpToDate" xml:space="preserve"><value>AIM は最新です。</value></data>
   <data name="GUISettingsUpdateAvailable" xml:space="preserve"><value>AIM の更新があります。下の通知からリリースページを開いてください。</value></data>
   <data name="GUISettingsUpdateCheckFailed" xml:space="preserve"><value>AIM の更新確認に失敗しました。</value></data>
+  <data name="GUIIssueSearchDismissed" xml:space="preserve"><value>問題なしにした項目を検索…</value></data>
+  <data name="GUIIssueSortNewest" xml:space="preserve"><value>最近マークした順</value></data>
+  <data name="GUIIssueSortOldest" xml:space="preserve"><value>古くマークした順</value></data>
+  <data name="GUIIssueSortName" xml:space="preserve"><value>名前順</value></data>
+  <data name="GUIIssueDismissedMatches" xml:space="preserve"><value>問題なしにした項目 - {1} 件中 {0} 件が一致</value></data>
+  <data name="GUIIssueDismissedNoMatch" xml:space="preserve"><value>問題なしにした項目に「{0}」と一致するものはありません。</value></data>
+  <data name="GUIIssueMarkedFineOn" xml:space="preserve"><value>{0} に問題なしにしました</value></data>
+  <data name="GUIIssueOpenModPage" xml:space="preserve"><value>Nexus で {0} を開く</value></data>
+  <data name="GUIVerdictWinnerChosen" xml:space="preserve"><value>{0} を優先させました。</value></data>
+  <data name="GUIVersionsUnknownVersion" xml:space="preserve"><value>不明なバージョン</value></data>
+  <data name="GUIVersionsChangelogTooltip" xml:space="preserve"><value>更新履歴(バージョン {0} の位置で開きます)</value></data>
+  <data name="GUIVersionsChangelogTooltipNoVersion" xml:space="preserve"><value>更新履歴</value></data>
+  <data name="GUIChangelogVersionNotListed" xml:space="preserve"><value>作者はバージョン {0} の更新履歴を書いていません。履歴があるバージョンはすべて下にあります。</value></data>
+  <data name="GUIChangelogShowingVersion" xml:space="preserve"><value>バージョン {0} の位置で開きました(下で強調表示)。</value></data>
+  <data name="GUICrashResearchProgress" xml:space="preserve"><value>{0} の Nexus ページを読み込み中({2} 件中 {1} 件目)…</value></data>
+  <data name="GUICrashTreatmentsHeader" xml:space="preserve"><value>試すこと(各 Mod のページより)</value></data>
+  <data name="GUICrashTreatmentsHint" xml:space="preserve"><value>作者や他のプレイヤーが同様のクラッシュについて書いている対処法です。合うものを上から試し、上のボタンで確認してください。</value></data>
+  <data name="GUICrashMentionsHeader" xml:space="preserve"><value>あなたの他の Mod についてのコメント</value></data>
+  <data name="GUICrashMentionsHint" xml:space="preserve"><value>疑わしい Mod のページで、あなたが有効にしている別の Mod に触れているコメントです(多くは併用できるかという質問)。作者の回答があれば一緒に表示します。</value></data>
+  <data name="GUICrashMentionsGroup" xml:space="preserve"><value>{0} のページ - {1} について</value></data>
+  <data name="GUICrashNothingReadable" xml:space="preserve"><value>何も見つかりませんでした。ただし Nexus が一部のページの読み込みをブロックしました。下の「AIM が読んだもの」を参照してください。</value></data>
+  <data name="GUICrashFoundSummary" xml:space="preserve"><value>疑わしい Mod のページで {0} 件見つかりました: 試すこと {1} 件、他の Mod について {2} 件。</value></data>
+  <data name="GUICrashCoverageHeader" xml:space="preserve"><value>AIM が読んだもの(ページの {1} 項目中 {0} 項目)</value></data>
+  <data name="GUICrashResearchBlocked" xml:space="preserve"><value>Nexus が AIM の一部のリクエストにページではなくボット確認を返したため、そのコメントやバグ報告は読めませんでした。Nexus にはコメントやバグ報告用の API がなく、Nexus へのサインインで読めるのは説明、更新履歴、ファイルだけです。下のボタンでブロックされたページをブラウザで開いてください。</value></data>
+  <data name="GUICrashResearchSignedOut" xml:space="preserve"><value>Nexus にサインインしていないため、AIM は Mod の説明と更新履歴を読みませんでした。歯車メニュー → Nexus ダウンロードからサインインすると含まれます。</value></data>
+  <data name="GUICrashSourceDescription" xml:space="preserve"><value>説明</value></data>
+  <data name="GUICrashSourceChangelog" xml:space="preserve"><value>更新履歴</value></data>
+  <data name="GUICrashSourceReadme" xml:space="preserve"><value>readme</value></data>
+  <data name="GUICrashSourceComments" xml:space="preserve"><value>コメント</value></data>
+  <data name="GUICrashSourceBugs" xml:space="preserve"><value>バグ報告</value></data>
+  <data name="GUICrashCoverageBlocked" xml:space="preserve"><value>Nexus のボット確認でブロックされました</value></data>
+  <data name="GUICrashCoverageFailed" xml:space="preserve"><value>読めませんでした(Nexus の応答: {0})</value></data>
+  <data name="GUICrashCoverageOffline" xml:space="preserve"><value>読めませんでした(応答なし - オフラインまたはタイムアウト)</value></data>
+  <data name="GUICrashCoverageNoPage" xml:space="preserve"><value>スキップ - この Mod の Nexus ページが分かりません</value></data>
+  <data name="GUICrashCoverageNotSignedIn" xml:space="preserve"><value>スキップ - 含めるには Nexus にサインインしてください</value></data>
+  <data name="GUICrashCoverageStopped" xml:space="preserve"><value>スキップ - Nexus が前のページをブロックしました</value></data>
+  <data name="GUICrashCoverageComments" xml:space="preserve"><value>{1} 回の検索で {0} 件のコメントを読み、{2} 件を採用</value></data>
+  <data name="GUICrashCoverageBugs" xml:space="preserve"><value>{0} 件の報告を読み、{1} 件を開いて {2} 件を採用</value></data>
+  <data name="GUICrashCoverageChangelog" xml:space="preserve"><value>{0} バージョン分を読み、{1} 件を採用</value></data>
+  <data name="GUICrashCoverageKept" xml:space="preserve"><value>読み込み済み、{0} 件を採用</value></data>
+  <data name="GUICrashTreatmentBasis" xml:space="preserve"><value>出典: {0} · {1} · {2}</value></data>
+  <data name="GUICrashOpenSource" xml:space="preserve"><value>ページを開く ↗</value></data>
+  <data name="GUICrashChipSameCrash" xml:space="preserve"><value>同じクラッシュ</value></data>
+  <data name="GUICrashChipMentions" xml:space="preserve"><value>{0} に言及</value></data>
+  <data name="GUICrashChipAuthor" xml:space="preserve"><value>Mod 作者</value></data>
+  <data name="GUICrashChipAuthorAnswered" xml:space="preserve"><value>作者が回答</value></data>
+  <data name="GUICrashAuthorAnswered" xml:space="preserve"><value>↳ {0} の回答: 「{1}」</value></data>
+  <data name="GUICrashTheAuthor" xml:space="preserve"><value>作者</value></data>
+  <data name="GUICrashWhatToDo" xml:space="preserve"><value>対処: {0}</value></data>
 </root>

@@ -96,6 +96,7 @@
   <data name="GUIPhaseInstallingImages" xml:space="preserve"><value>Встановлення зображень</value></data>
   <data name="GUIPhaseInstallingToml" xml:space="preserve"><value>Встановлення TOML</value></data>
   <data name="GUIPhaseInstallingFonts" xml:space="preserve"><value>Встановлення шрифтів</value></data>
+  <data name="GUIPhaseInstallingAudio" xml:space="preserve"><value>Встановлення аудіо</value></data>
   <data name="GUIPhaseInstallingJson" xml:space="preserve"><value>Встановлення JSON</value></data>
   <data name="GUIPhaseInstallingXml" xml:space="preserve"><value>Встановлення XML</value></data>
   <data name="GUIPhaseInstallingMist" xml:space="preserve"><value>Встановлення MIST</value></data>
@@ -225,6 +226,7 @@
   <data name="GUIFileConflictMerge" xml:space="preserve"><value>Метадані можна об’єднати; дубльовані записи все одно можуть бути перезаписані відповідно до порядку завантаження.</value></data>
   <data name="GUIFileConflictLocalization" xml:space="preserve"><value>Спільні метадані локалізації; ці моди можуть працювати разом, але дубльовані записи можуть бути перезаписані відповідно до порядку завантаження.</value></data>
   <data name="GUIFileConflictShared" xml:space="preserve"><value>Спільне призначення; спосіб обробки залежить від типу файлу.</value></data>
+  <data name="GUIFileConflictVariants" xml:space="preserve"><value>Зберігаються Variants Framework як перемикані вигляди; порядок завантаження не визначає переможця.</value></data>
   <data name="GUIModAlreadyInstalled" xml:space="preserve"><value>Уже встановлено.</value></data>
  <data name="GUIModLegacyGamePatch" xml:space="preserve"><value>Цей мод містить відомий признак сумісності з часів до версії 1.0.3. Мод може бути застарілим, перешкодити запуску гри або спричинити збій. AIM не блокуватиме його автоматично.</value></data>
   <data name="GUIModLegacyGamePatchError" xml:space="preserve"><value>Installation blocked: this mod contains a known pre-1.0.3 compatibility signature. It may break the game on the current version. Update the mod or use a version compatible with the current game.</value></data>
@@ -364,6 +366,7 @@
   <data name="GUIIssueDismissTooltip" xml:space="preserve"><value>Позначити як перевірене й нормальне. AIM приховуватиме це, доки один із пов’язаних модів не змінить версію, а потім запитає знову.</value></data>
   <data name="GUIIssueShowDismissed" xml:space="preserve"><value>Показувати проблеми, позначені як нормальні ({0})</value></data>
   <data name="GUIIssueDismissedHeader" xml:space="preserve"><value>Позначено як нормальне</value></data>
+  <data name="GUIIssueHandledHeader" xml:space="preserve"><value>Вирішено автоматично</value></data>
   <data name="GUIIssueDismissedMarker" xml:space="preserve"><value>[позначено як нормальне]</value></data>
   <data name="GUIConflictSharedFilesHeader" xml:space="preserve"><value>Файли, які змінюють обидва моди</value></data>
   <data name="GUIConflictCurrentWinner" xml:space="preserve"><value>зараз перемагає</value></data>
@@ -810,7 +813,7 @@
   <data name="GUICrashNoModList" xml:space="preserve"><value>AIM не бачить список модів і не може назвати винуватця.</value></data>
   <data name="GUICrashFailed" xml:space="preserve"><value>AIM не зміг прочитати цей збій: {0}</value></data>
   <data name="GUICrashStale" xml:space="preserve"><value>Цей збій старіший за теперішні моди. Зіграйте один раз до внесення змін.</value></data>
-  <data name="GUICrashNoApiKey" xml:space="preserve"><value>Увійдіть до Nexus, щоб AIM міг читати трекери помилок модів.</value></data>
+  <data name="GUICrashNoApiKey" xml:space="preserve"><value>Ви не ввійшли в Nexus, тому AIM прочитав лише публічні коментарі та звіти про помилки модів, без описів і списків змін. Усе вище визначено за вашими власними файлами.</value></data>
   <data name="GUICrashWorking" xml:space="preserve"><value>Читаю трекери помилок і коментарі…</value></data>
   <data name="GUICrashNothingToResearch" xml:space="preserve"><value>Жоден мод не вказано достатньо чітко для дослідження.</value></data>
   <data name="GUICrashResearchFailed" xml:space="preserve"><value>AIM не зміг прочитати сторінки модів: {0}</value></data>
@@ -840,4 +843,53 @@
   <data name="GUISettingsUpToDate" xml:space="preserve"><value>AIM оновлено.</value></data>
   <data name="GUISettingsUpdateAvailable" xml:space="preserve"><value>Доступне оновлення AIM. Скористайтеся сповіщенням нижче, щоб відкрити сторінку випуску.</value></data>
   <data name="GUISettingsUpdateCheckFailed" xml:space="preserve"><value>Не вдалося перевірити оновлення AIM.</value></data>
+  <data name="GUIIssueSearchDismissed" xml:space="preserve"><value>Пошук серед проблем, позначених як нормальні…</value></data>
+  <data name="GUIIssueSortNewest" xml:space="preserve"><value>Спочатку нещодавно позначені</value></data>
+  <data name="GUIIssueSortOldest" xml:space="preserve"><value>Спочатку давно позначені</value></data>
+  <data name="GUIIssueSortName" xml:space="preserve"><value>Від А до Я</value></data>
+  <data name="GUIIssueDismissedMatches" xml:space="preserve"><value>Позначені як нормальні - збігається {0} з {1}</value></data>
+  <data name="GUIIssueDismissedNoMatch" xml:space="preserve"><value>Серед позначених як нормальні проблем немає збігів із "{0}".</value></data>
+  <data name="GUIIssueMarkedFineOn" xml:space="preserve"><value>Позначено як нормальне {0}</value></data>
+  <data name="GUIIssueOpenModPage" xml:space="preserve"><value>Відкрити {0} на Nexus</value></data>
+  <data name="GUIVerdictWinnerChosen" xml:space="preserve"><value>Ви обрали переможцем {0}.</value></data>
+  <data name="GUIVersionsUnknownVersion" xml:space="preserve"><value>Невідома версія</value></data>
+  <data name="GUIVersionsChangelogTooltip" xml:space="preserve"><value>Список змін, відкритий на версії {0}</value></data>
+  <data name="GUIVersionsChangelogTooltipNoVersion" xml:space="preserve"><value>Список змін</value></data>
+  <data name="GUIChangelogVersionNotListed" xml:space="preserve"><value>Автор не писав нотаток до версії {0}. Нижче всі версії, до яких нотатки є.</value></data>
+  <data name="GUIChangelogShowingVersion" xml:space="preserve"><value>Відкрито на версії {0}, її виділено нижче.</value></data>
+  <data name="GUICrashResearchProgress" xml:space="preserve"><value>Читання сторінок Nexus для {0} ({1} з {2})…</value></data>
+  <data name="GUICrashTreatmentsHeader" xml:space="preserve"><value>Що спробувати - за сторінками модів</value></data>
+  <data name="GUICrashTreatmentsHint" xml:space="preserve"><value>Рішення, які автори та інші гравці описують для подібних вилетів. Спробуйте перше відповідне, потім перевірте кнопкою вище.</value></data>
+  <data name="GUICrashMentionsHeader" xml:space="preserve"><value>Що пишуть у коментарях про інші ваші моди</value></data>
+  <data name="GUICrashMentionsHint" xml:space="preserve"><value>Коментарі на сторінках підозрюваних модів, де згадано інший ваш увімкнений мод - зазвичай питання, чи працюють вони разом, - з відповіддю автора, якщо вона була.</value></data>
+  <data name="GUICrashMentionsGroup" xml:space="preserve"><value>На сторінці {0}, про {1}</value></data>
+  <data name="GUICrashNothingReadable" xml:space="preserve"><value>Нічого не знайдено, але Nexus не дав AIM прочитати частину сторінок. Див. "Що прочитав AIM" нижче.</value></data>
+  <data name="GUICrashFoundSummary" xml:space="preserve"><value>Знайдено {0} на сторінках підозрюваних: {1} - що спробувати, {2} - про інші ваші моди.</value></data>
+  <data name="GUICrashCoverageHeader" xml:space="preserve"><value>Що прочитав AIM ({0} з {1} частин сторінок)</value></data>
+  <data name="GUICrashResearchBlocked" xml:space="preserve"><value>Nexus відповів на частину запитів AIM перевіркою на бота замість сторінки, тому ці коментарі або звіти про помилки прочитати не вдалося. У Nexus немає API для коментарів і звітів про помилки - вхід у Nexus дає доступ лише до описів, списків змін і файлів. Відкрийте заблоковані сторінки в браузері кнопками внизу.</value></data>
+  <data name="GUICrashResearchSignedOut" xml:space="preserve"><value>Ви не ввійшли в Nexus, тому AIM пропустив описи та списки змін модів. Увійдіть через меню шестірні → Завантаження Nexus, щоб їх ураховувати.</value></data>
+  <data name="GUICrashSourceDescription" xml:space="preserve"><value>опис</value></data>
+  <data name="GUICrashSourceChangelog" xml:space="preserve"><value>список змін</value></data>
+  <data name="GUICrashSourceReadme" xml:space="preserve"><value>readme</value></data>
+  <data name="GUICrashSourceComments" xml:space="preserve"><value>коментарі</value></data>
+  <data name="GUICrashSourceBugs" xml:space="preserve"><value>звіти про помилки</value></data>
+  <data name="GUICrashCoverageBlocked" xml:space="preserve"><value>заблоковано перевіркою Nexus на бота</value></data>
+  <data name="GUICrashCoverageFailed" xml:space="preserve"><value>не вдалося прочитати (Nexus відповів {0})</value></data>
+  <data name="GUICrashCoverageOffline" xml:space="preserve"><value>не вдалося прочитати (немає відповіді - немає мережі або сплив час)</value></data>
+  <data name="GUICrashCoverageNoPage" xml:space="preserve"><value>пропущено - AIM не знає сторінку цього мода на Nexus</value></data>
+  <data name="GUICrashCoverageNotSignedIn" xml:space="preserve"><value>пропущено - увійдіть у Nexus, щоб ураховувати</value></data>
+  <data name="GUICrashCoverageStopped" xml:space="preserve"><value>пропущено - Nexus заблокував попередню сторінку</value></data>
+  <data name="GUICrashCoverageComments" xml:space="preserve"><value>прочитано {0} коментарів за {1} пошуків, залишено {2}</value></data>
+  <data name="GUICrashCoverageBugs" xml:space="preserve"><value>прочитано {0} звітів, відкрито {1}, залишено {2}</value></data>
+  <data name="GUICrashCoverageChangelog" xml:space="preserve"><value>прочитано версій: {0}, залишено {1}</value></data>
+  <data name="GUICrashCoverageKept" xml:space="preserve"><value>прочитано, залишено {0}</value></data>
+  <data name="GUICrashTreatmentBasis" xml:space="preserve"><value>З {0} · {1} · {2}</value></data>
+  <data name="GUICrashOpenSource" xml:space="preserve"><value>Відкрити сторінку ↗</value></data>
+  <data name="GUICrashChipSameCrash" xml:space="preserve"><value>Той самий виліт</value></data>
+  <data name="GUICrashChipMentions" xml:space="preserve"><value>Згадує {0}</value></data>
+  <data name="GUICrashChipAuthor" xml:space="preserve"><value>Автор мода</value></data>
+  <data name="GUICrashChipAuthorAnswered" xml:space="preserve"><value>Автор відповів</value></data>
+  <data name="GUICrashAuthorAnswered" xml:space="preserve"><value>↳ {0} відповів(ла): «{1}»</value></data>
+  <data name="GUICrashTheAuthor" xml:space="preserve"><value>Автор</value></data>
+  <data name="GUICrashWhatToDo" xml:space="preserve"><value>Що робити: {0}</value></data>
 </root>

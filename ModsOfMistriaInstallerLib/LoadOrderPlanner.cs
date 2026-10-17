@@ -86,6 +86,12 @@ public sealed record LoadOrderNote(LoadOrderNoteKind Kind, string Message)
         string.Join(",", modIds
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(id => id, StringComparer.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// True for a note that reports something AIM already handles. The report lists these apart
+    /// from the issues and leaves them out of every count, so "nothing to report" stays true.
+    /// </summary>
+    public bool IsInformational => Kind == LoadOrderNoteKind.HandledByVariants;
 }
 
 public enum LoadOrderNoteKind
@@ -119,7 +125,14 @@ public enum LoadOrderNoteKind
     HotkeyConflict,
 
     /// <summary>A selected mod has a known or generic compatibility warning.</summary>
-    CompatibilityWarning
+    CompatibilityWarning,
+
+    /// <summary>
+    /// Mods replace the same game art, and the selected Variants Framework keeps every version as a
+    /// switchable look. Informational: AIM already resolves it, so it needs no action, no
+    /// dismissal, and no warning triangle.
+    /// </summary>
+    HandledByVariants
 }
 
 public sealed record LoadOrderPlan(List<IMod> Order, List<LoadOrderNote> Notes)
@@ -173,11 +186,16 @@ public static class LoadOrderPlanner
     /// conflict report, which only wants a plan so it can say who currently wins a shared file -
     /// and would name the wrong mod if the list moved underneath the question.
     /// </param>
+    /// <param name="isVanillaSprite">
+    /// Passed to <see cref="ModFileConflictDetector.Find"/>: tells a replacement of the game's art
+    /// from new art when the Variants Framework is selected. Null when the game is not available.
+    /// </param>
     public static LoadOrderPlan Plan(
         IReadOnlyList<IMod> mods,
         IReadOnlyList<IMod>? conflictScope = null,
         bool rankConflictsBySuggestedOrder = true,
-        bool groupByRole = false)
+        bool groupByRole = false,
+        Func<string, bool>? isVanillaSprite = null)
     {
         var notes = new List<LoadOrderNote>();
 
@@ -189,7 +207,8 @@ public static class LoadOrderPlanner
 
         notes.AddRange(DescribeFileConflicts(
             conflictScope ?? mods,
-            rankConflictsBySuggestedOrder ? order : mods.ToList()));
+            rankConflictsBySuggestedOrder ? order : mods.ToList(),
+            isVanillaSprite));
 
         // IDs identify a mod package, not necessarily one row in the UI. A folder and a ZIP
         // copy may legitimately expose the same ID, so compare the actual instances here.
@@ -237,6 +256,12 @@ public static class LoadOrderPlanner
             .Select((mod, index) => (Mod: mod, Index: index))
             .OrderBy(entry => (int)RoleFor(entry.Mod))
 
+            // Inside a layer, a mod whose author marked it as a base for its kind (manifest
+            // `load_position = "early"`, a broad recolour say) goes first, so every narrower mod of
+            // the same kind lands on top of it; one marked as a patch goes last. Unmarked mods - the
+            // overwhelming majority - are not touched by this key at all.
+            .ThenBy(entry => ModLoadPositions.Rank(PositionOf(entry.Mod)))
+
             // The tiebreak is the position the user already had them in, which is what makes this a
             // layering of their list rather than a replacement of it.
             .ThenBy(entry => entry.Index)
@@ -268,13 +293,49 @@ public static class LoadOrderPlanner
 
             var role = roleFor(mod);
             var direction = index < previous ? "earlier" : "later";
+            var position = PositionOf(mod);
 
-            notes.Add(new LoadOrderNote(LoadOrderNoteKind.RoleMove,
-                $"\"{mod.GetName()}\" now loads {direction}, with the rest of its kind, because " +
-                $"{ModRoleClassifier.Explain(role)}.")
+            var message = position switch
             {
-                IssueKey = $"{mod.GetId()}|{role}"
+                ModLoadPosition.Early =>
+                    $"\"{mod.GetName()}\" now loads {direction}. Its author marked it as a base for mods " +
+                    "of its kind, so it goes first among them and narrower mods that change the same " +
+                    $"files load after it and win. It sits with the rest of its kind because " +
+                    $"{ModRoleClassifier.Explain(role)}.",
+                ModLoadPosition.Late =>
+                    $"\"{mod.GetName()}\" now loads {direction}. Its author marked it as a patch for mods " +
+                    "of its kind, so it goes last among them and wins the files they share. It sits " +
+                    $"with the rest of its kind because {ModRoleClassifier.Explain(role)}.",
+                _ =>
+                    $"\"{mod.GetName()}\" now loads {direction}, with the rest of its kind, because " +
+                    $"{ModRoleClassifier.Explain(role)}."
+            };
+
+            notes.Add(new LoadOrderNote(LoadOrderNoteKind.RoleMove, message)
+            {
+                // A position hint is its own reason to move, so dismissing the plain layering note
+                // for this mod must not also hide this one (and the other way round).
+                IssueKey = position == ModLoadPosition.Default
+                    ? $"{mod.GetId()}|{role}"
+                    : $"{mod.GetId()}|{role}|{position.ToString().ToLowerInvariant()}"
             });
+        }
+    }
+
+    /// <summary>
+    /// The mod's own <c>load_position</c>, treating a failure to read it as no preference: a hint
+    /// is never worth failing a plan over.
+    /// </summary>
+    private static ModLoadPosition PositionOf(IMod mod)
+    {
+        try
+        {
+            return mod.GetLoadPosition();
+        }
+        catch (Exception exception)
+        {
+            Logger.Log($"Could not read {mod.GetName()}'s load position: {exception.Message}");
+            return ModLoadPosition.Default;
         }
     }
 
@@ -460,7 +521,8 @@ public static class LoadOrderPlanner
     /// the suggested order. Mergeable metadata and shared localisation are left out: those are
     /// combined rather than overwritten, so their order does not decide a winner.
     /// </summary>
-    private static List<LoadOrderNote> DescribeFileConflicts(IReadOnlyList<IMod> scope, List<IMod> order)
+    private static List<LoadOrderNote> DescribeFileConflicts(IReadOnlyList<IMod> scope, List<IMod> order,
+        Func<string, bool>? isVanillaSprite = null)
     {
         // A folder and an archive copy can have the same manifest ID. Pick one copy per ID - the
         // last, because that is the one that would win - and take the position, name, version and
@@ -483,10 +545,11 @@ public static class LoadOrderPlanner
         var sources = chosen.ToDictionary(
             entry => entry.Key, entry => entry.Value.Mod.GetSourcePath(), StringComparer.OrdinalIgnoreCase);
 
+        var portraitWardrobeSelected = PortraitWardrobe.PortraitWardrobeBuilder.IsFrameworkInstalled(scope);
         IReadOnlyList<ModFileConflict> conflicts;
         try
         {
-            conflicts = ModFileConflictDetector.Find(scope);
+            conflicts = ModFileConflictDetector.Find(scope, isVanillaSprite);
         }
         catch (Exception exception)
         {
@@ -518,7 +581,53 @@ public static class LoadOrderPlanner
                 conflict.Kind is ModFileConflictKind.MergeableMetadata or ModFileConflictKind.SharedLocalization),
             combining: true);
 
-        return overrides.Concat(merges).ToList();
+        // Overlaps the Variants Framework turns into looks. Still listed, so the user can see which
+        // mods share art, but as information: there is no winner to choose and nothing to dismiss.
+        var looks = DescribeLooks(conflicts.Where(conflict => conflict.Kind == ModFileConflictKind.HandledByVariants));
+
+        return overrides.Concat(merges).Concat(looks).ToList();
+
+        List<LoadOrderNote> DescribeLooks(IEnumerable<ModFileConflict> subset) => subset
+            .Select(conflict => new
+            {
+                Conflict = conflict,
+                ModIds = conflict.ModIds.Where(position.ContainsKey).ToList()
+            })
+            .Where(item => item.ModIds.Count > 1)
+            .GroupBy(item => string.Join("|", item.ModIds.OrderBy(id => id, StringComparer.OrdinalIgnoreCase)),
+                StringComparer.OrdinalIgnoreCase)
+            .Select(group =>
+            {
+                var ids = group.First().ModIds.OrderBy(id => position[id]).ToList();
+                var paths = group
+                    .Select(item => item.Conflict.Path)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Order(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+                var images = paths.Count(path => path.EndsWith(".png", StringComparison.OrdinalIgnoreCase));
+                var plural = images == 1 ? "" : "s";
+
+                // Which framework keeps them: Portrait Wardrobe has the portraits whenever it is
+                // selected, the Variants Framework everything else (and portraits without it).
+                var portraitImages = paths.Count(p => p.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+                    && PortraitWardrobe.PortraitSpriteNames.IsPortrait(Path.GetFileNameWithoutExtension(p)));
+                var keptBy = portraitWardrobeSelected && portraitImages == images ? "Portrait Wardrobe"
+                    : portraitWardrobeSelected && portraitImages > 0 ? "Variants Framework / Portrait Wardrobe"
+                    : "Variants Framework";
+                return new LoadOrderNote(LoadOrderNoteKind.HandledByVariants,
+                    $"{string.Join(", ", ids.Select(id => $"\"{names[id]}\""))} replace the same " +
+                    $"{images} image{plural}. Kept side by side " +
+                    (keptBy == "Portrait Wardrobe" ? "to pick in game" : "as switchable looks") +
+                    $" ({keptBy}), so load order does not decide a winner and nothing needs to change.")
+                {
+                    Details = paths,
+                    IssueKey = LoadOrderNote.DescribeMods(ids) + "|variants",
+                    Participants = ids
+                        .Select(id => new IssueParticipant(id, names[id], versions[id], sources[id]))
+                        .ToList()
+                };
+            })
+            .ToList();
 
         List<LoadOrderNote> Describe(IEnumerable<ModFileConflict> subset, bool combining) => subset
             .Select(conflict => new

@@ -1,5 +1,85 @@
 # Changelog
 
+## Unreleased
+
+### Keep every look: the Variants Framework
+
+- With the **Variants Framework** mod ticked, mods that replace the same furniture, farm building,
+  animal, pet, world object or item art no longer overwrite each other. Each becomes a switchable
+  look (the game's original art too); the installed default is still whatever load order chose.
+- Furniture looks the player can buy: every non-default look of a contested piece is also added as
+  its own item, sold wherever the original is and sharing its recipe. Animal looks become adoption
+  colours.
+- Six new hooks back the in-game side: `object.renderer_build`, `animal.sprites`, `pet.sprites`,
+  `animal.icon`, `ui.animal_entry`, `furniture.pickup_item`.
+- Barn and coop doors keep a working swing animation in every look (the engine finds the swing
+  sprite by name).
+- Every variant id ever generated is remembered in `aim_variants.json` and kept loadable as a
+  "retired look" stand-in when its mod, or the framework, is removed.
+- **Check issues** shows overlaps the framework handles under **Handled automatically**.
+
+### Mods can replace the game's music and sound effects
+
+- A mod can now ship FMOD sound banks in an `audio/` folder. `audio/Fall.bank` replaces the game's
+  `assets/audio/Fall.bank` whole, the same way `images/replace/` swaps a sprite.
+- AIM only replaces banks the game already has (matching the name in any letter case), and only
+  files that really are FMOD banks, so a typo or a stray file can't silence the game.
+- Audio mods load in the file-replacement layer, and two mods replacing the same bank are reported
+  as a replacement conflict: the one installed last wins.
+
+### Mods can say where they belong among their own kind
+
+- A manifest can now set `load_position` to `"early"` or `"late"`. **Suggest order** keeps its
+  layers (frameworks, then code, then new content, then data overrides, then file replacements),
+  but inside a layer an `early` mod - a broad recolour, say - now goes first, so the narrower
+  recolours that share its files load after it and win. A `late` mod goes last among its kind.
+- A declared requirement still wins over the hint, an unrecognised value is ignored, and MOMI
+  ignores the field entirely. The note explaining a move says when it came from the mod's own hint.
+- A LUT replacement (`images/replace/*_lut.png`) can now ask to **overwrite** the installed palettes
+  instead of being appended after them, with `lut_mode = "overwrite"` in its `.meta.toml`. Appending
+  is still the default, for mods that add colour variants; overwriting is what lets a recolour change
+  LUT-drawn UI such as the HUD's day/night palette and the font colours.
+
+### Crash research reads the bug tracker and the comments for this crash
+
+- **Check Crashes** now asks the suspects' Nexus pages about *this* crash instead of borrowing the
+  conflict researcher's question. Each suspect's comment thread is searched for the crash's own
+  identifiers (the missing field, the script it died in), for crash reports and for compatibility
+  talk; the bug tracker's crash reports are opened and read with the author's replies.
+- **What to try**: fixes the pages describe become instructions at the top of the results - a
+  release newer than the one installed that fixed a crash, a bug report the author marked fixed, a
+  folder to delete, a patch to install - each with where it came from.
+- **What the comments say about your other mods**: comments on a suspect's page that name another
+  mod you have switched on ("does this work with March Expanded?") get their own section, paired
+  with the author's answer when there was one. The answer is fetched from the thread itself, since
+  a search returns replies without the question they answer.
+- **What AIM read**: a per-mod list of what was read, what was empty and what could not be. Nexus
+  has no API for comments or bug reports, so those are read from the public pages; when Nexus
+  answers with its bot check instead of the page, AIM now says so rather than reporting "nothing
+  found". Descriptions and release notes still come through your Nexus sign-in.
+- A changelog line about a mod keeping up with game patches ("no longer breaks with game
+  patches") is no longer reported as a known problem, and description quotes are cut to the
+  sentence that says something - bulleted lists, image links and raw `[/*]` tags no longer run into
+  one quote. A list under "Incompatible with:" is still read as naming each mod in it.
+
+### Issues window
+
+- **Find a fix…** is always the first thing in an opened issue.
+- Mod names in an issue link to their Nexus page when AIM knows it.
+- **Make this one win** now marks the issue as fine, recording which mod you chose.
+- The issues marked fine can be searched, are sorted by when they were marked (newest first, or
+  oldest first, or A-Z), and each says when it was marked and why.
+
+### Mod list
+
+- The **Versions** dropdown shows each restore point's version as well as its date, with a
+  release-notes icon that opens the changelog at that version. Restore points saved without a
+  version now read it from the mod's own manifest.
+- **Recent** (and A-Z) sorting stays applied after a mod is removed or the list reloads, and is
+  remembered between launches.
+- Loading settings no longer rewrites the settings file part-way through, which could empty the
+  saved drop folders.
+
 ## 0.2.2 - 2026-09-18
 
 ### Fields of Mistria 1.0.5 support

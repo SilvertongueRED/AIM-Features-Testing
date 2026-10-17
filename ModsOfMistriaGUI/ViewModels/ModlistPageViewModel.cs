@@ -20,6 +20,7 @@ using Garethp.ModsOfMistriaInstallerLib.ModTypes;
 using Garethp.ModsOfMistriaInstallerLib.Nexus;
 using Garethp.ModsOfMistriaInstallerLib.Research;
 using Garethp.ModsOfMistriaInstallerLib.Store;
+using Garethp.ModsOfMistriaInstallerLib.Variants;
 using Garethp.ModsOfMistriaInstallerLib.Worker;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
@@ -85,6 +86,9 @@ public partial class ModlistPageViewModel : PageViewBase
             // archive in the mods folder in the middle of an install.
             Nexus.InstalledMods = () => _installedIdentities;
         }
+
+        Mods.CollectionChanged += OnModsCollectionChanged;
+        RestoreSort();
 
         SetLanguageCommand = new RelayCommand<string?>(SetLanguage);
         SetThemeCommand = new RelayCommand<string?>(SetTheme);
@@ -659,7 +663,7 @@ public partial class ModlistPageViewModel : PageViewBase
 
             var archived = backups?.List(ModBackupStore.ModNameFor(model.Mod.GetSourcePath())) ?? [];
             model.SetBackups(archived.Select(backup =>
-                new ModBackupChoice(model, backup, RestoreChosenVersionCommand)));
+                new ModBackupChoice(model, backup, RestoreChosenVersionCommand, ShowBackupChangelogCommand)));
 
             // Whether AIM has changed anything inside this mod. Read on every list load rather than
             // only after an edit: the marker has to survive a restart, which is precisely when
@@ -668,6 +672,12 @@ public partial class ModlistPageViewModel : PageViewBase
             model.WasEditedByAim = edits?.WasEdited(model.Mod.GetId()) ?? false;
             model.AimEditSummary = edits?.DescribeEdits(model.Mod.GetId()) ?? "";
         }
+
+        // The "Recent" sort reads UpdatedAt, which is only known from here. The list is projected
+        // the moment its rows are created - before this runs - so every reload (removing a mod,
+        // an update landing, the mods folder changing under AIM) used to leave "Recent" ticked over
+        // a list sorted by nothing in particular, until the user unticked it and ticked it again.
+        if (SortByRecentlyUpdated) RefreshFilteredMods();
 
         RefreshEditableFiles();
     }
@@ -1131,13 +1141,16 @@ public partial class ModlistPageViewModel : PageViewBase
     }
 
     // This runs after loading, selection changes, and archive operations. The
-    // file scan is off the UI thread and never touches the game archive.
+    // file scan is off the UI thread and never writes the game archive. With the
+    // Variants Framework selected it reads the pristine archive's directory (names
+    // only, cached) to tell a replacement of the game's art from new art.
     private void RefreshSelectedModConflicts()
     {
         var refreshVersion = Interlocked.Increment(ref _conflictRefreshVersion);
         var models = Mods.ToList();
         var selectedModels = models.Where(m => m.Enabled).ToList();
         var selected = selectedModels.Select(m => m.Mod).ToList();
+        var isVanillaSprite = VanillaSprites.LazyPredicate(MistriaLocation);
 
         // Compatibility checks run for every discovered mod when the list is
         // loaded and are refreshed after selection changes. They are cheap
@@ -1251,8 +1264,14 @@ public partial class ModlistPageViewModel : PageViewBase
             IReadOnlyList<ModFileConflict> fileConflicts;
             try
             {
+                // Art the Variants Framework keeps as switchable looks is not a problem with the
+                // selection, so it never lights a row's warning triangle. The report still lists
+                // it, as information.
                 fileConflicts = FilterSettledFileConflicts(
-                    ModFileConflictDetector.Find(selected), selected, dismissed);
+                    ModFileConflictDetector.Find(selected, isVanillaSprite)
+                        .Where(conflict => conflict.Kind != ModFileConflictKind.HandledByVariants)
+                        .ToList(),
+                    selected, dismissed);
             }
             catch (Exception exception)
             {
@@ -1345,6 +1364,7 @@ public partial class ModlistPageViewModel : PageViewBase
             ModFileConflictKind.HardReplacement => Texts.GUIFileConflictReplacement,
             ModFileConflictKind.MergeableMetadata => Texts.GUIFileConflictMerge,
             ModFileConflictKind.SharedLocalization => Texts.GUIFileConflictLocalization,
+            ModFileConflictKind.HandledByVariants => Texts.GUIFileConflictVariants,
             _ => Texts.GUIFileConflictShared
         };
         var owners = selected
@@ -1910,13 +1930,46 @@ public partial class ModlistPageViewModel : PageViewBase
     partial void OnSortAlphabeticallyChanged(bool value)
     {
         if (value) SortByRecentlyUpdated = false;
+        RememberSort();
         RefreshVisibleMods();
     }
 
     partial void OnSortByRecentlyUpdatedChanged(bool value)
     {
         if (value) SortAlphabetically = false;
+        RememberSort();
         RefreshVisibleMods();
+    }
+
+    /// <summary>
+    /// A sort stays on until the user turns it off - including across restarts, so somebody who
+    /// keeps the list in "Recent" order does not have to ask for it again every launch.
+    /// </summary>
+    private void RememberSort()
+    {
+        if (_restoringSort) return;
+
+        _settings.ModListSort = SortAlphabetically
+            ? Settings.ModListSortAlphabetical
+            : SortByRecentlyUpdated
+                ? Settings.ModListSortRecent
+                : "";
+    }
+
+    private bool _restoringSort;
+
+    private void RestoreSort()
+    {
+        _restoringSort = true;
+        try
+        {
+            SortAlphabetically = _settings.ModListSort == Settings.ModListSortAlphabetical;
+            SortByRecentlyUpdated = _settings.ModListSort == Settings.ModListSortRecent;
+        }
+        finally
+        {
+            _restoringSort = false;
+        }
     }
 
     partial void OnShowOnlyEnabledChanged(bool value) => RefreshVisibleMods();
@@ -1987,6 +2040,29 @@ public partial class ModlistPageViewModel : PageViewBase
         _filteredMods = filtered;
         OnPropertyChanged(nameof(FilteredMods));
     }
+
+    /// <summary>
+    /// Keeps a sorted or filtered view in step with the list underneath it.
+    ///
+    /// The projection is a snapshot, so anything that changes <see cref="Mods"/> without going
+    /// through one of the toggles - a mod removed, a reload, a drag in another view - used to leave
+    /// it showing the old order until a toggle was flipped. One refresh per burst of changes: a
+    /// reload clears and re-adds every row, and sorting two hundred rows two hundred times over is
+    /// work nobody asked for.
+    /// </summary>
+    private void OnModsCollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        if (!IsListReordered || _visibleRefreshQueued) return;
+
+        _visibleRefreshQueued = true;
+        Dispatcher.UIThread.Post(() =>
+        {
+            _visibleRefreshQueued = false;
+            RefreshFilteredMods();
+        }, DispatcherPriority.Background);
+    }
+
+    private bool _visibleRefreshQueued;
 
     // ── Commands ──────────────────────────────────────────────────────────────────
 
@@ -2787,8 +2863,10 @@ public partial class ModlistPageViewModel : PageViewBase
         // planner would suggest. The report does not apply that suggestion, so naming its
         // winner would label a mod that does not currently win - and leave "make this one win"
         // with nothing to do.
+        var isVanillaSprite = VanillaSprites.LazyPredicate(MistriaLocation);
         var plan = await Task.Run(() =>
-            LoadOrderPlanner.Plan(current, enabled, rankConflictsBySuggestedOrder: false));
+            LoadOrderPlanner.Plan(current, enabled, rankConflictsBySuggestedOrder: false,
+                isVanillaSprite: isVanillaSprite));
         var notes = plan.Notes
             .Where(note => note.Kind != LoadOrderNoteKind.DependencyMove)
             .Concat(await Task.Run(() => BuildDetailedSelectionNotes(enabled)))
@@ -2797,10 +2875,11 @@ public partial class ModlistPageViewModel : PageViewBase
         var dismissed = await GetDismissedIssuesAsync();
 
         // "Nothing to report" has to mean nothing the user still cares about, or dismissing
-        // the last issue would leave an empty window with no explanation in it.
+        // the last issue would leave an empty window with no explanation in it. Informational
+        // notes (overlaps AIM already resolves) are never something to care about.
         var outstanding = dismissed is null
-            ? notes.Count
-            : notes.Count(note => !dismissed.IsDismissed(note.StableKey));
+            ? notes.Count(note => !note.IsInformational)
+            : notes.Count(note => !note.IsInformational && !dismissed.IsDismissed(note.StableKey));
         var summary = outstanding == 0 ? Texts.GUIConflictReportNothing : string.Empty;
 
         // Everything the report's buttons need to answer instantly. The mod list is snapshotted
@@ -2908,6 +2987,19 @@ public partial class ModlistPageViewModel : PageViewBase
         await ChangelogWindow.ShowAsync(owner, model.Mod.GetName(), entries);
     }
 
+    /// <summary>
+    /// The same history, opened at the version a restore point holds - from the icon beside it in
+    /// the versions dropdown, so the user can read what that version was before rolling back to it.
+    /// </summary>
+    [RelayCommand]
+    private async Task ShowBackupChangelog(ModBackupChoice? choice)
+    {
+        if (choice is null || App.TopLevel is not Window owner) return;
+
+        var entries = await FetchChangelogAsync(choice.Mod);
+        await ChangelogWindow.ShowAsync(owner, choice.Mod.Mod.GetName(), entries, choice.Backup.Version);
+    }
+
     // ── Keybinds ──────────────────────────────────────────────────────────────────
 
     private BindingVault? _bindingVault;
@@ -2987,7 +3079,23 @@ public partial class ModlistPageViewModel : PageViewBase
         MakeModWin,
         ResearchConflict,
         InspectRebind,
-        RebindHotkey);
+        RebindHotkey)
+    {
+        PageFor = NexusPageFor
+    };
+
+    /// <summary>
+    /// Where a mod in an issue lives on Nexus: the page the row already knows - which covers mods
+    /// matched to Nexus by hand as well as downloaded ones - then whatever the install index
+    /// recorded for that exact folder.
+    /// </summary>
+    private string? NexusPageFor(IssueParticipant participant)
+    {
+        var row = RowFor(participant);
+        if (!string.IsNullOrWhiteSpace(row?.NexusPageUrl)) return row.NexusPageUrl;
+
+        return UpdateService?.Index.Get(participant.SourcePath)?.PageUrl;
+    }
 
     /// <summary>
     /// The row for a mod named in an issue.
@@ -3272,7 +3380,7 @@ public partial class ModlistPageViewModel : PageViewBase
 
         var archived = BackupStore?.List(ModBackupStore.ModNameFor(model.Mod.GetSourcePath())) ?? [];
         model.SetBackups(archived.Select(backup =>
-            new ModBackupChoice(model, backup, RestoreChosenVersionCommand)));
+            new ModBackupChoice(model, backup, RestoreChosenVersionCommand, ShowBackupChangelogCommand)));
     }
 
     // ── Rebinding a shortcut ──────────────────────────────────────────────────────

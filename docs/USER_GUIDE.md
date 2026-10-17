@@ -249,6 +249,31 @@ so the installer's own scan of the mods folder ignores it.
   list. Across drives it uses a hidden staging copy first, so an interrupted transfer never leaves a
   half-written mod in the Mods folder.
 
+## Keeping every look (Variants Framework)
+
+When two mods replace the same art — two barn recolours, two chicken skins, three takes on the same
+chair — normally the last one in load order wins and the others are lost. Tick the **Variants
+Framework** mod and press **Install**, and AIM keeps them all instead:
+
+- Each mod's version of a piece becomes a **look**. The game's own art is kept as the **Original**
+  look. Nothing changes on screen until you choose: the default stays what load order picked.
+- In game, the framework's **Restyling Brush**, a keybind (**V** / **LB + RB**) or **Settings →
+  Looks & Variants** lets you change the look of one placed piece, one animal or the pet, or the
+  default for everything of a kind. Every menu works with mouse, keyboard and controller.
+- When two or more mods change the same furniture piece, each extra look is also added as its own
+  item ("Cottage Garden Arch (Witchy Black)") wherever the original is sold, sharing its recipe.
+  Animal looks become their own adoption colours once the colour they are based on is unlocked.
+- **Check issues** lists these overlaps under **Handled automatically** instead of as problems, and
+  they never light a mod's warning triangle.
+- Art the game only loads once (menus, map scenery) can't switch while playing; the in-game
+  catalog offers it as a choice that the next install uses.
+- AIM records every look item and animal look it has created (`aim_variants.json` in the mods
+  folder). If a look mod is removed later, or the framework is unticked, those ids are still
+  installed as plain "retired look" stand-ins, so saves never lose a placed piece or its contents.
+- Mods need no changes. Portraits are left to Portrait Wardrobe when it is installed.
+
+The framework's own README has the full in-game guide.
+
 ## Appearance and text size
 
 AIM follows the system Light/Dark theme by default. From the bottom menu you can explicitly select
