@@ -48,6 +48,12 @@
   recolours that share its files load after it and win. A `late` mod goes last among its kind.
 - A declared requirement still wins over the hint, an unrecognised value is ignored, and MOMI
   ignores the field entirely. The note explaining a move says when it came from the mod's own hint.
+### Colour recolours can overwrite a palette LUT
+
+- A LUT replacement (`images/replace/*_lut.png`) can now ask to **overwrite** the installed palettes
+  instead of being appended after them, with `lut_mode = "overwrite"` in its `.meta.toml`. Appending
+  is still the default, for mods that add colour variants; overwriting is what lets a recolour change
+  LUT-drawn UI such as the HUD's day/night palette and the font colours.
 
 ## 0.2.2 - 2026-09-18
 

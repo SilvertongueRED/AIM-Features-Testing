@@ -80,6 +80,16 @@ public class SpriteMetaFileAssetProperties
     
     [TomlPropertyName("tags")] public List<string>? Tags { get; set; }
 
+    /// <summary>
+    /// AIM extension, read only from a mod's own <c>images/replace/*_lut.meta.toml</c>: how its LUT
+    /// combines with the one already installed. Absent or <c>"merge"</c> appends the mod's new
+    /// palette columns, which is what a mod adding colour variants wants. <c>"overwrite"</c> replaces
+    /// the installed columns with the mod's, column for column, which is what a recolour wants: the
+    /// game picks a palette by column index, so an appended recolour would never be shown.
+    /// Deliberately not copied by <see cref="Merge"/>, so it never reaches the game's own meta file.
+    /// </summary>
+    [TomlPropertyName("lut_mode")] public string? LutMode { get; set; }
+
     public void Merge(SpriteMetaFileAssetProperties? newProperties)
     {
         if (newProperties is null) return;
