@@ -11,6 +11,13 @@ public record NxmHandlerStatus(bool IsRegistered, bool IsThisExecutable, string?
     /// <summary>Whether this AIM installation is listed as an NXM-capable application.</summary>
     public bool IsThisApplicationRegistered { get; init; }
 
+    /// <summary>
+    /// Windows will open nxm:// links with this AIM without asking. On Windows that means the
+    /// user picked AIM in Default apps (or in the "Select an app" prompt and chose Always): being
+    /// registered is not enough, because with no choice made Windows asks every time.
+    /// </summary>
+    public bool IsChosenDefault { get; init; }
+
     /// <summary>Another program (Vortex, MO2, an older copy of AIM) currently owns nxm://.</summary>
     public bool IsClaimedByAnother => IsRegistered && !IsThisExecutable;
 
@@ -101,7 +108,8 @@ public static class NxmProtocolHandler
                 {
                     IsThisApplicationRegistered = OperatingSystem.IsWindows()
                         ? IsWindowsApplicationRegistered()
-                        : false
+                        : false,
+                    IsChosenDefault = false
                 };
             }
 
@@ -112,7 +120,10 @@ public static class NxmProtocolHandler
                                    (isThisApplicationRegistered && IsThisProductCommand(current));
             return new NxmHandlerStatus(true, isThisExecutable, current)
             {
-                IsThisApplicationRegistered = isThisApplicationRegistered
+                IsThisApplicationRegistered = isThisApplicationRegistered,
+                IsChosenDefault = OperatingSystem.IsWindows()
+                    ? IsWindowsUserChoiceThisApplication()
+                    : isThisExecutable
             };
         }
         catch (Exception e)
@@ -253,8 +264,9 @@ public static class NxmProtocolHandler
     }
 
     /// <summary>
-    /// Opens the Windows picker where the user can choose which registered application handles
-    /// nxm:// links. Windows owns the final default-app selection; AIM must not edit UserChoice.
+    /// Opens the Windows page where the user can choose which registered application handles
+    /// nxm:// links, already showing AIM's own entry so "NXM" is one click away. Windows owns the
+    /// final default-app selection; AIM must not edit UserChoice.
     /// </summary>
     public static bool OpenWindowsDefaultApps()
     {
@@ -262,7 +274,8 @@ public static class NxmProtocolHandler
 
         try
         {
-            Process.Start(new ProcessStartInfo("ms-settings:defaultapps")
+            Process.Start(new ProcessStartInfo(
+                $"ms-settings:defaultapps?registeredAppUser={Uri.EscapeDataString(WindowsRegisteredApplicationName)}")
             {
                 UseShellExecute = true
             });
@@ -345,6 +358,13 @@ public static class NxmProtocolHandler
 
         using var registeredApplications = Registry.CurrentUser.OpenSubKey(WindowsRegisteredApplicationsPath, writable: true);
         registeredApplications?.DeleteValue(WindowsRegisteredApplicationName, throwOnMissingValue: false);
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static bool IsWindowsUserChoiceThisApplication()
+    {
+        using var userChoice = Registry.CurrentUser.OpenSubKey(WindowsUserChoicePath);
+        return WindowsProgId.Equals(userChoice?.GetValue("ProgId") as string, StringComparison.OrdinalIgnoreCase);
     }
 
     [SupportedOSPlatform("windows")]

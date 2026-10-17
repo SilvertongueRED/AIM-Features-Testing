@@ -107,9 +107,27 @@ public class NexusSettingsTest
     }
 
     [Test]
-    public void ShouldLeaveLinkSharingOffUntilTheUserTurnsItOn()
+    public void ShouldShareLinksUnlessTheUserTurnsItOff()
     {
+        Assert.That(new NexusSettings(_directory).ShareLinksWithOtherManagers, Is.True);
+    }
+
+    [Test]
+    public void ShouldRememberThatLinkSharingWasTurnedOff()
+    {
+        new NexusSettings(_directory).ShareLinksWithOtherManagers = false;
+
         Assert.That(new NexusSettings(_directory).ShareLinksWithOtherManagers, Is.False);
+    }
+
+    [Test]
+    public void ShouldWalkTheUserThroughDefaultAppsOnlyOnce()
+    {
+        Assert.That(new NexusSettings(_directory).DefaultAppGuided, Is.False);
+
+        new NexusSettings(_directory).DefaultAppGuided = true;
+
+        Assert.That(new NexusSettings(_directory).DefaultAppGuided, Is.True);
     }
 
     [Test]

@@ -28,6 +28,7 @@ public class NexusSettings
     private const string HandlerPromptField = "nxmHandlerPromptAnswered";
     private const string HandlerAlwaysClaimField = "nxmHandlerAlwaysClaim";
     private const string HandlerPromptedForField = "nxmHandlerPromptedFor";
+    private const string DefaultAppGuidedField = "nxmDefaultAppGuided";
     private const string ShareLinksField = "nxmShareWithOtherManagers";
     private const string LastLinkManagerField = "nxmLastLinkManager";
     private const string LinkManagerPathsField = "nxmLinkManagerPaths";
@@ -158,15 +159,26 @@ public class NexusSettings
         }
     }
 
+    /// <summary>
+    /// Whether the user has already been walked through choosing AIM in Windows Default apps. Shown
+    /// once on its own, so a user who picks something else afterwards is not nagged at every launch.
+    /// </summary>
+    public bool DefaultAppGuided
+    {
+        get => _data.Value<bool?>(DefaultAppGuidedField) ?? false;
+        set { _data[DefaultAppGuidedField] = value; Save(); }
+    }
+
     // ── Link sharing ─────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Whether AIM passes nxm:// links on to whichever mod manager was opened most recently.
-    /// See <see cref="NxmLinkRouter"/>. Off unless the user turns it on.
+    /// Whether AIM passes nxm:// links on to the mod manager that can use them (Stardrop for Stardew
+    /// Valley, Vortex for other games). See <see cref="NxmLinkRouter"/>. On unless the user turns it
+    /// off: it only has an effect on Windows, and only for links AIM cannot install itself.
     /// </summary>
     public bool ShareLinksWithOtherManagers
     {
-        get => _data.Value<bool?>(ShareLinksField) ?? false;
+        get => _data.Value<bool?>(ShareLinksField) ?? true;
         set { _data[ShareLinksField] = value; Save(); }
     }
 
