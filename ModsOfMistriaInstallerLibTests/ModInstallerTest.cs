@@ -6,6 +6,7 @@ using Garethp.ModsOfMistriaInstallerLib.ModTypes;
 using Garethp.ModsOfMistriaInstallerLib.Seam;
 using Garethp.ModsOfMistriaInstallerLib.Store;
 using Garethp.ModsOfMistriaInstallerLib.Tools;
+using Garethp.ModsOfMistriaInstallerLib.Variants;
 using ModsOfMistriaInstallerLibTests.Fixtures;
 using ModsOfMistriaInstallerLibTests.TestUtils;
 using Newtonsoft.Json.Linq;
@@ -216,6 +217,98 @@ public class ModInstallerTest
             "source validation must happen before creating a pristine backup");
     }
 
+    // ── Variants Framework save safety ─────────────────────────────────────────
+
+    // A furniture object and its item as the game ships them, plus what an earlier install with
+    // the Variants Framework generated from it (recorded in the mods folder's history).
+    private static readonly Dictionary<string, string> LampGame = new()
+    {
+        ["assets/fiddle/object_prototypes/furniture.toml"] =
+            "[test_lamp]\nsize = [2, 2]\n[test_lamp.south]\nsprite = \"spr_decor_test_lamp_south\"\n",
+        ["assets/fiddle/items/furniture/test_set.toml"] =
+            "[test_lamp]\nname = \"Test Lamp\"\nicon_sprite = \"spr_ui_item_decor_test_lamp\"\nobject = \"test_lamp\"\n",
+        ["assets/fiddle/stores.toml"] = "[general]\nconstant_stock = [\"test_lamp\"]\n",
+        ["assets/animations/Furniture/spr_decor_test_lamp_south.meta.toml"] =
+            "[meta_properties]\nid = \"0001\"\nasset_kind = \"Animation\"\n",
+        ["assets/animations/Icons/spr_ui_item_decor_test_lamp.meta.toml"] =
+            "[meta_properties]\nid = \"0002\"\nasset_kind = \"Animation\"\n",
+    };
+
+    private string WriteVariantHistory()
+    {
+        var mods = Path.Combine(_fom, "mods");
+        Directory.CreateDirectory(mods);
+        var history = new VariantHistory();
+        history.Remember([new ItemVariant("furniture:test_lamp", "lkgone1234", "test_lamp", "test_lamp",
+            "test_lamp_lkgone1234", "test_lamp_lkgone1234")], []);
+        history.Save(mods);
+        return mods;
+    }
+
+    [Test]
+    public void ShouldKeepEarlierVariantItemsLoadableWhenTheFrameworkIsRemoved()
+    {
+        WriteLiveArchive(SyntheticLayer.PristineGame, LampGame);
+        var mods = WriteVariantHistory();
+        var historyBefore = File.ReadAllText(VariantHistory.PathIn(mods));
+
+        var result = new ModInstaller(_fom, mods).InstallMods([ContentMod("contentmod")], (_, _) => { },
+            gateMode: CompileGateMode.Off);
+
+        Assert.That(result.Skipped, Is.Empty);
+        using (var live = ZipFile.OpenRead(new AssetsStore(_fom).LivePath))
+        {
+            // Placed variant furniture (and its chest contents) survives: the id still exists,
+            // showing the original's art, and it is sold nowhere.
+            Assert.That(ReadEntry(live, "assets/fiddle/object_prototypes/furniture.toml"), Does.Contain("[test_lamp_lkgone1234"));
+            Assert.That(ReadEntry(live, "assets/" + VariantFinalizer.VariantItemsFile), Does.Contain("retired look"));
+            Assert.That(ReadEntry(live, "assets/fiddle/stores.toml"), Does.Not.Contain("lkgone1234"));
+        }
+
+        Assert.That(File.ReadAllText(VariantHistory.PathIn(mods)), Is.EqualTo(historyBefore), "the history is kept as it was");
+    }
+
+    [Test]
+    public void ShouldKeepEarlierVariantItemsLoadableWhenTheFrameworkIsSkipped()
+    {
+        // Selected, planned, then excluded by the GML layer: its runtime is not there to serve
+        // new variants, but the ids earlier installs generated still have to load.
+        WriteLiveArchive(SyntheticLayer.PristineGame, LampGame);
+        var mods = WriteVariantHistory();
+        var framework = new MockMod(new Dictionary<string, object>
+        {
+            [VariantFramework.MarkerFile] = "",
+            [VariantFramework.RegistryGmlPath] = "function mistria_variants_registry_data() { return undefined; }\n",
+        })
+        {
+            Id = "mistria.mistria_variants", Name = "Variants Framework", Author = "mistria",
+            DirName = "mistria_variants", Version = "0.0.1", RequiredHooks = ["absent.hook"],
+        };
+
+        var result = new ModInstaller(_fom, mods).InstallMods([framework, ContentMod("contentmod")], (_, _) => { },
+            gateMode: CompileGateMode.Off);
+
+        Assert.That(result.Skipped.Select(s => s.Id), Is.EqualTo(new[] { "mistria.mistria_variants" }));
+        using var live = ZipFile.OpenRead(new AssetsStore(_fom).LivePath);
+        Assert.That(ReadEntry(live, "assets/" + VariantFinalizer.VariantItemsFile), Does.Contain("test_lamp_lkgone1234"));
+        Assert.That(live.GetEntry("assets/gml/scripts/mistria_variants/data/mistria_variants_registry.gml"), Is.Null);
+    }
+
+    [Test]
+    public void ShouldLeaveAnInstallThatNeverUsedTheFrameworkUntouched()
+    {
+        WriteLiveArchive(SyntheticLayer.PristineGame, LampGame);
+        var mods = Path.Combine(_fom, "mods");
+        Directory.CreateDirectory(mods);
+
+        new ModInstaller(_fom, mods).InstallMods([ContentMod("contentmod")], (_, _) => { }, gateMode: CompileGateMode.Off);
+
+        using var live = ZipFile.OpenRead(new AssetsStore(_fom).LivePath);
+        Assert.That(live.GetEntry("assets/" + VariantFinalizer.VariantItemsFile), Is.Null);
+        Assert.That(ReadEntry(live, "assets/fiddle/object_prototypes/furniture.toml"), Is.EqualTo(LampGame["assets/fiddle/object_prototypes/furniture.toml"]));
+        Assert.That(File.Exists(VariantHistory.PathIn(mods)), Is.False);
+    }
+
     // ── Fixtures and helpers ───────────────────────────────────────────────────
 
     private static MockMod GmlMod(string id, List<string>? requiresHooks = null) =>
@@ -234,7 +327,7 @@ public class ModInstallerTest
 
     // The synthetic pristine engine, plus the empty vanilla locations table
     // the location pre-pass reads unconditionally
-    private void WriteLiveArchive(string game)
+    private void WriteLiveArchive(string game, IReadOnlyDictionary<string, string>? extra = null)
     {
         var livePath = Path.Combine(_fom, "assets.zip");
         File.Delete(livePath);
@@ -242,6 +335,8 @@ public class ModInstallerTest
         WriteEntry(archive, "assets/gml/objects/Game.gml", game);
         WriteEntry(archive, "assets/gml/objects/Other.gml", SyntheticLayer.PristineOther);
         WriteEntry(archive, "assets/fiddle/locations.toml", "");
+        foreach (var (name, content) in extra ?? new Dictionary<string, string>())
+            WriteEntry(archive, name, content);
     }
 
     private string[] GameManifestIds()

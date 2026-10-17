@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### Keep every look: the Variants Framework
+
+- With the **Variants Framework** mod ticked, mods that replace the same furniture, farm building,
+  animal, pet, world object or item art no longer overwrite each other. Each becomes a switchable
+  look (the game's original art too); the installed default is still whatever load order chose.
+- Furniture looks the player can buy: every non-default look of a contested piece is also added as
+  its own item, sold wherever the original is and sharing its recipe. Animal looks become adoption
+  colours.
+- Six new hooks back the in-game side: `object.renderer_build`, `animal.sprites`, `pet.sprites`,
+  `animal.icon`, `ui.animal_entry`, `furniture.pickup_item`.
+- Barn and coop doors keep a working swing animation in every look (the engine finds the swing
+  sprite by name).
+- Every variant id ever generated is remembered in `aim_variants.json` and kept loadable as a
+  "retired look" stand-in when its mod, or the framework, is removed.
+- **Check issues** shows overlaps the framework handles under **Handled automatically**.
+
 ### Portrait Wardrobe: keep every portrait pack and pick in game
 
 - With the **Portrait Wardrobe** mod ticked, portrait packs that replace the same villager portrait

@@ -128,8 +128,8 @@ public enum LoadOrderNoteKind
     CompatibilityWarning,
 
     /// <summary>
-    /// Mods replace the same portraits, and the selected Portrait Wardrobe keeps every pack's version
-    /// to pick in game. Informational: AIM already resolves it, so it needs no action, no
+    /// Mods replace the same game art, and the selected Variants Framework keeps every version as a
+    /// switchable look. Informational: AIM already resolves it, so it needs no action, no
     /// dismissal, and no warning triangle.
     /// </summary>
     HandledByVariants
@@ -186,11 +186,16 @@ public static class LoadOrderPlanner
     /// conflict report, which only wants a plan so it can say who currently wins a shared file -
     /// and would name the wrong mod if the list moved underneath the question.
     /// </param>
+    /// <param name="isVanillaSprite">
+    /// Passed to <see cref="ModFileConflictDetector.Find"/>: tells a replacement of the game's art
+    /// from new art when the Variants Framework is selected. Null when the game is not available.
+    /// </param>
     public static LoadOrderPlan Plan(
         IReadOnlyList<IMod> mods,
         IReadOnlyList<IMod>? conflictScope = null,
         bool rankConflictsBySuggestedOrder = true,
-        bool groupByRole = false)
+        bool groupByRole = false,
+        Func<string, bool>? isVanillaSprite = null)
     {
         var notes = new List<LoadOrderNote>();
 
@@ -202,7 +207,8 @@ public static class LoadOrderPlanner
 
         notes.AddRange(DescribeFileConflicts(
             conflictScope ?? mods,
-            rankConflictsBySuggestedOrder ? order : mods.ToList()));
+            rankConflictsBySuggestedOrder ? order : mods.ToList(),
+            isVanillaSprite));
 
         // IDs identify a mod package, not necessarily one row in the UI. A folder and a ZIP
         // copy may legitimately expose the same ID, so compare the actual instances here.
@@ -473,7 +479,8 @@ public static class LoadOrderPlanner
     /// the suggested order. Mergeable metadata and shared localisation are left out: those are
     /// combined rather than overwritten, so their order does not decide a winner.
     /// </summary>
-    private static List<LoadOrderNote> DescribeFileConflicts(IReadOnlyList<IMod> scope, List<IMod> order)
+    private static List<LoadOrderNote> DescribeFileConflicts(IReadOnlyList<IMod> scope, List<IMod> order,
+        Func<string, bool>? isVanillaSprite = null)
     {
         // A folder and an archive copy can have the same manifest ID. Pick one copy per ID - the
         // last, because that is the one that would win - and take the position, name, version and
@@ -496,10 +503,11 @@ public static class LoadOrderPlanner
         var sources = chosen.ToDictionary(
             entry => entry.Key, entry => entry.Value.Mod.GetSourcePath(), StringComparer.OrdinalIgnoreCase);
 
+        var portraitWardrobeSelected = PortraitWardrobe.PortraitWardrobeBuilder.IsFrameworkInstalled(scope);
         IReadOnlyList<ModFileConflict> conflicts;
         try
         {
-            conflicts = ModFileConflictDetector.Find(scope);
+            conflicts = ModFileConflictDetector.Find(scope, isVanillaSprite);
         }
         catch (Exception exception)
         {
@@ -531,8 +539,8 @@ public static class LoadOrderPlanner
                 conflict.Kind is ModFileConflictKind.MergeableMetadata or ModFileConflictKind.SharedLocalization),
             combining: true);
 
-        // Overlaps Portrait Wardrobe keeps side by side. Still listed, so the user can see which
-        // mods share portraits, but as information: there is no winner to choose and nothing to dismiss.
+        // Overlaps the Variants Framework turns into looks. Still listed, so the user can see which
+        // mods share art, but as information: there is no winner to choose and nothing to dismiss.
         var looks = DescribeLooks(conflicts.Where(conflict => conflict.Kind == ModFileConflictKind.HandledByVariants));
 
         return overrides.Concat(merges).Concat(looks).ToList();
@@ -557,10 +565,18 @@ public static class LoadOrderPlanner
                 var images = paths.Count(path => path.EndsWith(".png", StringComparison.OrdinalIgnoreCase));
                 var plural = images == 1 ? "" : "s";
 
+                // Which framework keeps them: Portrait Wardrobe has the portraits whenever it is
+                // selected, the Variants Framework everything else (and portraits without it).
+                var portraitImages = paths.Count(p => p.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+                    && PortraitWardrobe.PortraitSpriteNames.IsPortrait(Path.GetFileNameWithoutExtension(p)));
+                var keptBy = portraitWardrobeSelected && portraitImages == images ? "Portrait Wardrobe"
+                    : portraitWardrobeSelected && portraitImages > 0 ? "Variants Framework / Portrait Wardrobe"
+                    : "Variants Framework";
                 return new LoadOrderNote(LoadOrderNoteKind.HandledByVariants,
                     $"{string.Join(", ", ids.Select(id => $"\"{names[id]}\""))} replace the same " +
-                    $"{images} image{plural}. Kept side by side to pick in game (Portrait Wardrobe), " +
-                    "so load order does not decide a winner and nothing needs to change.")
+                    $"{images} image{plural}. Kept side by side " +
+                    (keptBy == "Portrait Wardrobe" ? "to pick in game" : "as switchable looks") +
+                    $" ({keptBy}), so load order does not decide a winner and nothing needs to change.")
                 {
                     Details = paths,
                     IssueKey = LoadOrderNote.DescribeMods(ids) + "|variants",

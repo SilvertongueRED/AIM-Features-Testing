@@ -3,7 +3,7 @@
 [← MMAPI](MMAPI.md)
 
 <!-- merge: keep both catalog entries -->
-Every named hook the seam catalog declares has its own page, as does every seam, engine fix, and call rewrite behind them. The catalog currently declares **140 hooks**, fed by **154 seams**, **17 engine fixes**, and **1 call rewrite**. The authoritative source for all of it is the seam catalog itself, `ModsOfMistriaInstallerLib/Seam/Payload/seams.toml`. See [Seams](SEAMS.md).
+Every named hook the seam catalog declares has its own page, as does every seam, engine fix, and call rewrite behind them. The catalog currently declares **146 hooks**, fed by **162 seams**, **17 engine fixes**, and **1 call rewrite**. The authoritative source for all of it is the seam catalog itself, `ModsOfMistriaInstallerLib/Seam/Payload/seams.toml`. See [Seams](SEAMS.md).
 
 Each hook has exactly one kind, and each kind has one registration directive. A handler registered with the wrong directive never runs and produces only a warning in the MMAPI log. See [Hooks](HOOKS.md).
 
@@ -50,9 +50,11 @@ Each hook has exactly one kind, and each kind has one registration directive. A 
 | [furniture.place_guard](hooks/furniture.place_guard.md) | guard | Veto a furniture placement before it is written. |
 | [furniture.floor_sprite](hooks/furniture.floor_sprite.md) | filter | Swap a furniture piece's floor sprite as its renderer is built. |
 | [furniture.preview_sprite](hooks/furniture.preview_sprite.md) | filter | Keep a held furniture preview's main and floor sprites in sync. |
+| [furniture.pickup_item](hooks/furniture.pickup_item.md) | filter | Change the item a furniture piece turns back into when it is picked up. |
 | [factory.product_drops](hooks/factory.product_drops.md) | filter | Change the products an apiary or terrarium drops on collection. |
 | [object.interact](hooks/object.interact.md) | override | Take over any grid object's interaction. |
 | [object.node_sprite](hooks/object.node_sprite.md) | filter | Swap the sprite of any world node before it draws. |
+| [object.renderer_build](hooks/object.renderer_build.md) | event | Know when any grid object's renderer is built, and give one placed object its own prototype. |
 | [store.item_added](hooks/store.item_added.md) | event | Know when an item lands in the shopping basket. |
 | [museum.donate_item](hooks/museum.donate_item.md) | event | Know when an item is donated to the museum. |
 | [museum.donation_attempted](hooks/museum.donation_attempted.md) | event | Know when a museum donation is attempted, before the museum records it. |
@@ -98,6 +100,9 @@ Each hook has exactly one kind, and each kind has one registration directive. A 
 | [animal.heart_points](hooks/animal.heart_points.md) | filter | Adjust the heart points a barn animal gains. |
 | [animal.created](hooks/animal.created.md) | event | Customize each barn/coop animal instance as it spawns. |
 | [pet.created](hooks/pet.created.md) | event | Customize the farm pet instance as it spawns. |
+| [animal.sprites](hooks/animal.sprites.md) | filter | Swap the sprites a barn or coop animal renders with, per animal. |
+| [pet.sprites](hooks/pet.sprites.md) | filter | Swap the sprites the farm pet renders with. |
+| [animal.icon](hooks/animal.icon.md) | filter | Swap the menu icon a barn animal kind or variant shows. |
 | [animal.pet](hooks/animal.pet.md) | event | Know when the player pets or puts down an animal. |
 | [animal.production_gate](hooks/animal.production_gate.md) | filter | Change whether a barn/coop animal advances production that day. |
 | [animal.product_ready](hooks/animal.product_ready.md) | filter | Change whether an animal's production counter is ready to drop products. |
@@ -161,6 +166,7 @@ Each hook has exactly one kind, and each kind has one registration directive. A 
 <!-- merge: keep both seam entries -->
 | [ui.preset_popup_layout](hooks/ui.preset_popup_layout.md) | filter | Resize the customization menu's preset popup frames and grid. |
 | [ui.relationship_row_built](hooks/ui.relationship_row_built.md) | event | Add custom nodes to each NPC row in the relationships journal. |
+| [ui.animal_entry](hooks/ui.animal_entry.md) | event | Restyle each animal row in the journal and the animal pickers. |
 | [dialogue.play_guard](hooks/dialogue.play_guard.md) | guard | Block a conversation before it starts. |
 | [dialogue.path](hooks/dialogue.path.md) | filter | Change which conversation plays before it starts. |
 | [dialogue.line](hooks/dialogue.line.md) | filter | Reword any dialogue line before the textbox shows it. |
@@ -215,9 +221,13 @@ The anchored engine edits that make the hooks fire. Mod authors never write seam
 | [furniture_floor_sprite](seams/furniture_floor_sprite.md) | Filters the floor sprite as a furniture renderer is built. |
 | [furniture_preview_sprite](seams/furniture_preview_sprite.md) | Filters the held furniture ghost's main sprite. |
 | [furniture_preview_floor_sprite](seams/furniture_preview_floor_sprite.md) | Filters the held furniture ghost's floor sprite. |
+| [furniture_pickup_item](seams/furniture_pickup_item.md) | Filters the item a picked-up furniture node drops, right before it lands. |
+| [furniture_pickup_item_rug](seams/furniture_pickup_item_rug.md) | Rebuilds the rug pick's item drop inline so the dropped item can be filtered. |
+| [furniture_pickup_item_poof](seams/furniture_pickup_item_poof.md) | Filters the item a furniture node turns into when house stairs poof it into lost items. |
 | [factory_product_drops](seams/factory_product_drops.md) | Filters the rolled products before an apiary or terrarium drops them. |
 | [object_interact](seams/object_interact.md) | Puts a claim-scoped override in front of every grid-object interaction. |
 | [node_renderer_set_sprite](seams/node_renderer_set_sprite.md) | Filters the sprite every world node renderer is about to wear. |
+| [object_renderer_build](seams/object_renderer_build.md) | Emits at the head of the one dispatcher every grid object's world renderer is built through. |
 | [store_item_added](seams/store_item_added.md) | Announces every shelf tap that puts an item in the shopping basket. |
 | [museum_donate_item](seams/museum_donate_item.md) | Emits the moment an item is donated to the museum. |
 | [museum_donation_attempted](seams/museum_donation_attempted.md) | Emits an event at the beginning of a museum donation attempt. |
@@ -263,6 +273,9 @@ The anchored engine edits that make the hooks fire. Mod authors never write seam
 | [animal_heart_points](seams/animal_heart_points.md) | Reroutes every barn-animal heart-point delta through a filter before it applies. |
 | [animal_created](seams/animal_created.md) | Emits at the end of `spawn_animal()`, after the instance is linked to its data. |
 | [pet_created](seams/pet_created.md) | Captures the created pet instance and emits after `spawn_pet()`. |
+| [animal_sprites](seams/animal_sprites.md) | Wraps `BaseAnimal.sprites_for_animation()` so every barn and coop animal's sprite set is filterable. |
+| [pet_sprites](seams/pet_sprites.md) | Wraps `Pet.sprites_for_animation()` so the farm pet's sprite set is filterable. |
+| [animal_icon](seams/animal_icon.md) | Wraps `get_animal_icon_data()` so every barn animal menu icon is filterable. |
 | [animal_production_gate](seams/animal_production_gate.md) | Filters the daily production gate for each stable animal. |
 | [animal_product_ready](seams/animal_product_ready.md) | Filters the production-days readiness comparison. |
 | [animal_product_drops](seams/animal_product_drops.md) | Filters the normal and golden product lists before stats and grid insertion. |
@@ -339,11 +352,15 @@ The anchored engine edits that make the hooks fire. Mod authors never write seam
 | [ui_eod_notification_custom_entry](seams/ui_eod_notification_custom_entry.md) | Renders custom calendar event rows in the notification switch fallback. |
 | [ui_preset_popup_layout](seams/ui_preset_popup_layout.md) | Rebuilds the preset popup's layout constants through a filter each time the popup body is generated. |
 | [ui_relationship_row_built](seams/ui_relationship_row_built.md) | Hands each finished NPC row to mods as the relationships journal builds its list. |
+| [ui_animal_entry](seams/ui_animal_entry.md) | Hands each animal list row to mods once its icon is set. |
+| [font_styles_loaded](seams/font_styles_loaded.md) | Filters the text-style mapping returned by the engine's font loader. |
 | [dialogue_play_guard](seams/dialogue_play_guard.md) | Puts a veto check at the head of `play_conversation()`. |
 | [dialogue_path](seams/dialogue_path.md) | Rebuilds `play_conversation()`'s four arguments through the `dialogue.path` filter. |
 | [dialogue_line](seams/dialogue_line.md) | Filters each localized dialogue line before the textbox shows it. |
+| [dialogue_finished](seams/dialogue_finished.md) | Emits right after `ConversationDriver.finish_conversation()` marks the driver `Finished`. |
 | [dialogue_prompt_metadata](seams/dialogue_prompt_metadata.md) | Carries each prompt's original index and raw key into its prompt box. |
 | [dialogue_prompt_lock](seams/dialogue_prompt_lock.md) | Applies the monotonic prompt-lock decision and legacy romance-guard bridge before the prompt becomes interactive. |
+| [store_basket_cost](seams/store_basket_cost.md) | Filters the store basket's summed cost inside `StoreMenu.update_prices()`, before the UI and payment read it. |
 | [dialogue_speaker](seams/dialogue_speaker.md) | Filters the just-built textbox speaker before it is assigned. |
 | [dialogue_speaker_ctx_arg](seams/dialogue_speaker_ctx_arg.md) | Threads the ConversationDriver into the initial Speaker action so `dialogue.speaker`'s ctx is filled from line one. |
 | [dialogue_npc_blip](seams/dialogue_npc_blip.md) | Filters an NPC speaker's blip sound right after the default lookup. |

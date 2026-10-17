@@ -151,6 +151,31 @@ them all instead:
   that lookup.
 - If the library cannot be built, the install carries on and portraits install the usual way.
 
+## Keeping every look (Variants Framework)
+
+When two mods replace the same art — two barn recolours, two chicken skins, three takes on the same
+chair — normally the last one in load order wins and the others are lost. Tick the **Variants
+Framework** mod and press **Install**, and AIM keeps them all instead:
+
+- Each mod's version of a piece becomes a **look**. The game's own art is kept as the **Original**
+  look. Nothing changes on screen until you choose: the default stays what load order picked.
+- In game, the framework's **Restyling Brush**, a keybind (**V** / **LB + RB**) or **Settings →
+  Looks & Variants** lets you change the look of one placed piece, one animal or the pet, or the
+  default for everything of a kind. Every menu works with mouse, keyboard and controller.
+- When two or more mods change the same furniture piece, each extra look is also added as its own
+  item ("Cottage Garden Arch (Witchy Black)") wherever the original is sold, sharing its recipe.
+  Animal looks become their own adoption colours once the colour they are based on is unlocked.
+- **Check issues** lists these overlaps under **Handled automatically** instead of as problems, and
+  they never light a mod's warning triangle.
+- Art the game only loads once (menus, map scenery) can't switch while playing; the in-game
+  catalog offers it as a choice that the next install uses.
+- AIM records every look item and animal look it has created (`aim_variants.json` in the mods
+  folder). If a look mod is removed later, or the framework is unticked, those ids are still
+  installed as plain "retired look" stand-ins, so saves never lose a placed piece or its contents.
+- Mods need no changes. Portraits are left to Portrait Wardrobe when it is installed.
+
+The framework's own README has the full in-game guide.
+
 ## Mod list tools
 
 - **Select all.** The checkbox above the list selects everything, or clears the selection when

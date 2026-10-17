@@ -162,6 +162,9 @@ public class GmlCompileGateTest
     {
         // set-but-missing never silently demotes to no gate, in any mode
         var missing = Path.Combine(_tempDir, "not-a-checker.exe");
+        // Restore whatever the run was started with: clearing it would quietly
+        // demote every later checker-backed test in this process to a skip.
+        var original = Environment.GetEnvironmentVariable("MOMI_GML_CHECKER");
         Environment.SetEnvironmentVariable("MOMI_GML_CHECKER", missing);
 
         try
@@ -170,7 +173,7 @@ public class GmlCompileGateTest
         }
         finally
         {
-            Environment.SetEnvironmentVariable("MOMI_GML_CHECKER", null);
+            Environment.SetEnvironmentVariable("MOMI_GML_CHECKER", original);
         }
     }
 

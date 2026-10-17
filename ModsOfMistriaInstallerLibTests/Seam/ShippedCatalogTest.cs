@@ -77,8 +77,8 @@ public class ShippedCatalogTest
         // This is a breaking 0.16.x migration. The old symbols named a
         // chance decision in a previous engine implementation; the current
         // function chooses a floor from start_floor + range instead.
-        Assert.That(_catalog.DeclaredCounts!.Hooks, Is.EqualTo(140));
-        Assert.That(_catalog.DeclaredCounts.Seams, Is.EqualTo(154));
+        Assert.That(_catalog.DeclaredCounts!.Hooks, Is.EqualTo(146));
+        Assert.That(_catalog.DeclaredCounts.Seams, Is.EqualTo(162));
         Assert.That(_catalog.Hook("dungeon.side_room_chance"), Is.Null);
         Assert.That(_catalog.Seams.Any(s => s.Id == "dungeon_side_room_chance"), Is.False);
 
@@ -318,8 +318,8 @@ public class ShippedCatalogTest
     [Test]
     public void ShouldEmitDialogueFinishedAfterNativeEndActionsAndStateTransition()
     {
-        Assert.That(_catalog.DeclaredCounts!.Hooks, Is.EqualTo(140));
-        Assert.That(_catalog.DeclaredCounts.Seams, Is.EqualTo(154));
+        Assert.That(_catalog.DeclaredCounts!.Hooks, Is.EqualTo(146));
+        Assert.That(_catalog.DeclaredCounts.Seams, Is.EqualTo(162));
 
         var hook = _catalog.Hook("dialogue.finished");
         Assert.That(hook, Is.Not.Null);
@@ -340,8 +340,8 @@ public class ShippedCatalogTest
     [Test]
     public void ShouldFilterTheStoreBasketCostBeforeUiAndPaymentUseIt()
     {
-        Assert.That(_catalog.DeclaredCounts!.Hooks, Is.EqualTo(140));
-        Assert.That(_catalog.DeclaredCounts.Seams, Is.EqualTo(154));
+        Assert.That(_catalog.DeclaredCounts!.Hooks, Is.EqualTo(146));
+        Assert.That(_catalog.DeclaredCounts.Seams, Is.EqualTo(162));
 
         var hook = _catalog.Hook("store.basket_cost");
         Assert.That(hook, Is.Not.Null);
@@ -393,6 +393,102 @@ public class ShippedCatalogTest
         Assert.That(seam.Hooks, Is.EqualTo(new[] { "crop.harvest_destroy" }));
         Assert.That(seam.Marker, Is.EqualTo("mmapi_crop_run_harvest_destroy_filters"));
         Assert.That(seam.Op, Is.EqualTo(DispatchOp.Filter));
+    }
+
+    [Test]
+    public void ShouldDeclareTheVariantsFrameworkAppearanceHooks()
+    {
+        // The Variants Framework's runtime relies on these exact kinds: two
+        // observation points and four value filters.
+        var kinds = new Dictionary<string, HookKind>
+        {
+            ["object.renderer_build"] = HookKind.Event,
+            ["animal.sprites"] = HookKind.Filter,
+            ["pet.sprites"] = HookKind.Filter,
+            ["animal.icon"] = HookKind.Filter,
+            ["ui.animal_entry"] = HookKind.Event,
+            ["furniture.pickup_item"] = HookKind.Filter,
+        };
+        foreach (var (name, kind) in kinds)
+        {
+            var hook = _catalog.Hook(name);
+            Assert.That(hook, Is.Not.Null, name);
+            Assert.That(hook!.Kind, Is.EqualTo(kind), name);
+        }
+
+        Assert.That(_catalog.Hook("object.renderer_build")!.Doc, Does.Contain("shallow clone"));
+        Assert.That(_catalog.Hook("furniture.pickup_item")!.Doc, Does.Contain("\"pick\", \"rug\" or \"poof\""));
+
+        var renderer = _catalog.Seams.Single(s => s.Id == "object_renderer_build");
+        Assert.That(renderer.File, Is.EqualTo("assets/gml/scripts/GameplaySystems/Data/Grid/__GridGeneral/Grid.gml"));
+        Assert.That(renderer.Op, Is.EqualTo(DispatchOp.Emit));
+        Assert.That(renderer.TargetFn, Is.EqualTo("initialize_node_renderer"));
+        Assert.That(renderer.TargetAt, Is.EqualTo("head"));
+
+        foreach (var (id, fn, hook) in new[]
+                 {
+                     ("animal_sprites", "sprites_for_animation", "animal.sprites"),
+                     ("pet_sprites", "sprites_for_animation", "pet.sprites"),
+                     ("animal_icon", "get_animal_icon_data", "animal.icon"),
+                 })
+        {
+            var wrap = _catalog.Seams.Single(s => s.Id == id);
+            Assert.That(wrap.Op, Is.EqualTo(DispatchOp.Wrap), id);
+            Assert.That(wrap.TargetFn, Is.EqualTo(fn), id);
+            Assert.That(wrap.Hooks, Is.EqualTo(new[] { hook }), id);
+        }
+
+        // One filter, three removal sites, each naming itself in ctx.source.
+        var pickups = _catalog.Seams
+            .Where(s => s.Hooks.Contains("furniture.pickup_item"))
+            .ToDictionary(s => s.Id);
+        Assert.That(pickups.Keys, Is.EquivalentTo(new[]
+        {
+            "furniture_pickup_item", "furniture_pickup_item_rug", "furniture_pickup_item_poof",
+        }));
+        Assert.That(pickups["furniture_pickup_item"].Replace, Does.Contain("source: \"pick\""));
+        Assert.That(pickups["furniture_pickup_item_rug"].Op, Is.Null);
+        Assert.That(pickups["furniture_pickup_item_rug"].Replace,
+            Does.Contain("mmapi_apply_filters(\"furniture.pickup_item\", __mmapi_rug_item, { node: node, grid: grid, source: \"rug\" })"));
+        Assert.That(pickups["furniture_pickup_item_poof"].File,
+            Is.EqualTo("assets/gml/scripts/GameplaySystems/Data/Grid/__GridGeneral/GridUtils.gml"));
+        Assert.That(pickups["furniture_pickup_item_poof"].Replace, Does.Contain("source: \"poof\""));
+    }
+
+    [Test]
+    public void ShouldGiveEveryHookAndSeamADocPageAndACatalogRow()
+    {
+        var repoRoot = FindRepoRoot();
+        if (repoRoot is null)
+            Assert.Ignore("docs/MMAPI not found - running outside the repo checkout");
+
+        var docs = Path.Combine(repoRoot!, "docs", "MMAPI");
+        var catalogPage = File.ReadAllText(Path.Combine(docs, "CATALOG.md"));
+
+        var missingHookPages = _catalog.HookDeclarations
+            .Select(d => d.Name)
+            .Where(name => !File.Exists(Path.Combine(docs, "hooks", name + ".md")))
+            .ToList();
+        var missingSeamPages = _catalog.Seams
+            .Select(s => s.Id)
+            .Where(id => !File.Exists(Path.Combine(docs, "seams", id + ".md")))
+            .ToList();
+        var missingHookRows = _catalog.HookDeclarations
+            .Select(d => d.Name)
+            .Where(name => !catalogPage.Contains($"](hooks/{name}.md)"))
+            .ToList();
+        var missingSeamRows = _catalog.Seams
+            .Select(s => s.Id)
+            .Where(id => !catalogPage.Contains($"](seams/{id}.md)"))
+            .ToList();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(missingHookPages, Is.Empty, "hooks without docs/MMAPI/hooks/<name>.md");
+            Assert.That(missingSeamPages, Is.Empty, "seams without docs/MMAPI/seams/<id>.md");
+            Assert.That(missingHookRows, Is.Empty, "hooks without a CATALOG.md row");
+            Assert.That(missingSeamRows, Is.Empty, "seams without a CATALOG.md row");
+        });
     }
 
     [Test]

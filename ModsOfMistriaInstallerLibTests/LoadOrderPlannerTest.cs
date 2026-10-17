@@ -182,6 +182,52 @@ public class LoadOrderPlannerTest
         });
     }
 
+    // With the Variants Framework selected, a shared sprite replacement is no longer a winner
+    // question: both versions become looks. It is still listed, as information.
+    [Test]
+    public void ShouldReportArtTheVariantsFrameworkKeepsAsLooksAsInformationOnly()
+    {
+        MockMod Recolour(string id, string name, byte colour) => new(new Dictionary<string, object>
+        {
+            ["images/replace/spr_decor_lamp_south.png"] = new byte[] { colour },
+            ["fiddle/items/furniture/lamps.toml"] = "[lamp]",
+            ["manifest.toml"] = name
+        }) { Id = id, Name = name };
+
+        var framework = new MockMod(new Dictionary<string, object>
+        {
+            [Garethp.ModsOfMistriaInstallerLib.Variants.VariantFramework.MarkerFile] = "",
+            ["manifest.toml"] = "framework"
+        }) { Id = "a.framework", Name = "Variants Framework" };
+        var first = Recolour("a.first", "First", 1);
+        var second = Recolour("a.second", "Second", 2);
+
+        var plan = LoadOrderPlanner.Plan([framework, first, second]);
+
+        var looks = plan.Notes.Single(note => note.Kind == LoadOrderNoteKind.HandledByVariants);
+        Assert.Multiple(() =>
+        {
+            Assert.That(looks.IsInformational, Is.True);
+            Assert.That(looks.Message, Does.Contain("Kept side by side as switchable looks (Variants Framework)"));
+            Assert.That(looks.Message, Does.Not.Contain("overrides"));
+            Assert.That(looks.Details, Is.EqualTo(new[] { "images/replace/spr_decor_lamp_south.png" }));
+            Assert.That(looks.Participants.Select(p => p.ModId), Is.EqualTo(new[] { "a.first", "a.second" }));
+            Assert.That(looks.IssueKey, Does.EndWith("|variants"));
+
+            // No override note for the sprite; the shared fiddle table is still a merge note.
+            var fileNotes = plan.Notes.Where(note => note.Kind == LoadOrderNoteKind.FileConflict).ToList();
+            Assert.That(fileNotes.Single().IssueKey, Does.EndWith("|merge"));
+            Assert.That(plan.Notes.Where(note => note.Kind != LoadOrderNoteKind.HandledByVariants),
+                Has.All.Matches<LoadOrderNote>(note => !note.IsInformational));
+        });
+
+        // Without the framework the same pair is the override it always was.
+        var without = LoadOrderPlanner.Plan([first, second]);
+        Assert.That(without.Notes.Any(note => note.Kind == LoadOrderNoteKind.HandledByVariants), Is.False);
+        Assert.That(without.Notes.Single(note => note.IssueKey == "a.first,a.second").Message,
+            Does.Contain("\"Second\" overrides \"First\""));
+    }
+
     // Portrait Wardrobe keeps every pack's portraits to pick in game: with it selected (alone),
     // two portrait packs are information, not a winner question.
     [Test]

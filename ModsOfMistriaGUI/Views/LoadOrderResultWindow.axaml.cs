@@ -238,9 +238,9 @@ public partial class LoadOrderResultWindow : Window
         foreach (var note in live)
             NotesPanel.Children.Add(CreateDismissableRow(note, isDismissed: false));
 
-        // Things AIM already resolves (portraits Portrait Wardrobe keeps side by side). Shown so the
-        // user can see which mods share art, but with no checkbox: there is nothing to judge, and a
-        // tick here would only clutter the dismissal store.
+        // Things AIM already resolves (art the Variants Framework keeps as switchable looks). Shown
+        // so the user can see which mods share art, but with no checkbox: there is nothing to judge,
+        // and a tick here would only clutter the dismissal store.
         if (informational.Count > 0)
         {
             NotesPanel.Children.Add(new TextBlock

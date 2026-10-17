@@ -20,6 +20,7 @@ using Garethp.ModsOfMistriaInstallerLib.ModTypes;
 using Garethp.ModsOfMistriaInstallerLib.Nexus;
 using Garethp.ModsOfMistriaInstallerLib.Research;
 using Garethp.ModsOfMistriaInstallerLib.Store;
+using Garethp.ModsOfMistriaInstallerLib.Variants;
 using Garethp.ModsOfMistriaInstallerLib.Worker;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
@@ -1131,13 +1132,16 @@ public partial class ModlistPageViewModel : PageViewBase
     }
 
     // This runs after loading, selection changes, and archive operations. The
-    // file scan is off the UI thread and never touches the game archive.
+    // file scan is off the UI thread and never writes the game archive. With the
+    // Variants Framework selected it reads the pristine archive's directory (names
+    // only, cached) to tell a replacement of the game's art from new art.
     private void RefreshSelectedModConflicts()
     {
         var refreshVersion = Interlocked.Increment(ref _conflictRefreshVersion);
         var models = Mods.ToList();
         var selectedModels = models.Where(m => m.Enabled).ToList();
         var selected = selectedModels.Select(m => m.Mod).ToList();
+        var isVanillaSprite = VanillaSprites.LazyPredicate(MistriaLocation);
 
         // Compatibility checks run for every discovered mod when the list is
         // loaded and are refreshed after selection changes. They are cheap
@@ -1251,11 +1255,11 @@ public partial class ModlistPageViewModel : PageViewBase
             IReadOnlyList<ModFileConflict> fileConflicts;
             try
             {
-                // Portraits Portrait Wardrobe keeps side by side are not a problem with the
-                // selection, so they never light a row's warning triangle. The report still
-                // lists them, as information.
+                // Art the Variants Framework keeps as switchable looks is not a problem with the
+                // selection, so it never lights a row's warning triangle. The report still lists
+                // it, as information.
                 fileConflicts = FilterSettledFileConflicts(
-                    ModFileConflictDetector.Find(selected)
+                    ModFileConflictDetector.Find(selected, isVanillaSprite)
                         .Where(conflict => conflict.Kind != ModFileConflictKind.HandledByVariants)
                         .ToList(),
                     selected, dismissed);
@@ -2794,8 +2798,10 @@ public partial class ModlistPageViewModel : PageViewBase
         // planner would suggest. The report does not apply that suggestion, so naming its
         // winner would label a mod that does not currently win - and leave "make this one win"
         // with nothing to do.
+        var isVanillaSprite = VanillaSprites.LazyPredicate(MistriaLocation);
         var plan = await Task.Run(() =>
-            LoadOrderPlanner.Plan(current, enabled, rankConflictsBySuggestedOrder: false));
+            LoadOrderPlanner.Plan(current, enabled, rankConflictsBySuggestedOrder: false,
+                isVanillaSprite: isVanillaSprite));
         var notes = plan.Notes
             .Where(note => note.Kind != LoadOrderNoteKind.DependencyMove)
             .Concat(await Task.Run(() => BuildDetailedSelectionNotes(enabled)))

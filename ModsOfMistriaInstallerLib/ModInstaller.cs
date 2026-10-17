@@ -13,6 +13,7 @@ using Garethp.ModsOfMistriaInstallerLib.Seam;
 using Garethp.ModsOfMistriaInstallerLib.Store;
 using Garethp.ModsOfMistriaInstallerLib.Tools;
 using Garethp.ModsOfMistriaInstallerLib.Utils;
+using Garethp.ModsOfMistriaInstallerLib.Variants;
 using Microsoft.Win32;
 
 namespace Garethp.ModsOfMistriaInstallerLib;
@@ -42,9 +43,9 @@ public class ModInstaller
     public ModInstaller(string fomLocation, string modsLocation)
     {
         _fomLocation    = fomLocation;
+        _modsLocation   = modsLocation;
         _assetsLocation = Path.Combine(fomLocation, "assets");
         _atlasDirectory = Path.Combine(_assetsLocation, "atlases");
-        _modsLocation   = modsLocation;
     }
 
     public static IEnumerable<IGenerator> GetGenerators()
@@ -93,6 +94,49 @@ public class ModInstaller
         var store = new AssetsStore(_fomLocation);
         store.EnsureBackup();
 
+        // Variants Framework: when its mod is selected, mods that replace the same art become
+        // switchable looks instead of overwriting each other. Planning only reads; if it fails
+        // for any reason the install carries on as it would without the framework. Without the
+        // framework (or when planning failed) the variant ids earlier installs generated are
+        // still written as retired stand-ins, because saves hold them: a placed variant chest
+        // would otherwise vanish with its contents, and a barn animal of a variant would stop
+        // the save from loading.
+        VariantSession? variants = null;
+        try
+        {
+            phase("", "Preparing looks and variants");
+            variants = VariantCompiler.Prepare(mods, store.BackupPath, _modsLocation, reportStatus);
+        }
+        catch (Exception exception)
+        {
+            Logger.Log($"[variants] Looks are disabled for this install: {exception}");
+            try
+            {
+                variants = VariantCompiler.PrepareRetireOnly(_modsLocation, reportStatus);
+            }
+            catch (Exception retireException)
+            {
+                Logger.Log($"[variants] Earlier variant items could not be kept loadable: {retireException}");
+                variants = null;
+            }
+        }
+
+        try
+        {
+            return InstallWithVariants(mods, reportStatus, gmlOptions, gateMode, phase, store, variants);
+        }
+        finally
+        {
+            variants?.Dispose();
+        }
+    }
+
+    private InstallResult InstallWithVariants(List<IMod> mods, Action<string, string> reportStatus,
+        GmlLayerOptions? gmlOptions, CompileGateMode gateMode, Action<string, string> phase,
+        AssetsStore store, VariantSession? variants)
+    {
+        IMod Effective(IMod mod) => variants?.Effective(mod) ?? mod;
+
         // Stage the GML layer before the rebuild. The layer stages on every
         // install that has mods selected, so the catalog's engine fixes and
         // the framework land even when every mod is content-only. A
@@ -102,7 +146,7 @@ public class ModInstaller
         var result = new InstallResult();
         GmlLayerPlan? plan = null;
         var installMods = mods;
-        var gmlMods = mods.Select(GmlModCollector.Collect).OfType<GmlModCode>().ToList();
+        var gmlMods = mods.Select(mod => GmlModCollector.Collect(Effective(mod))).OfType<GmlModCode>().ToList();
         if (mods.Count > 0)
         {
             phase("", LocalizedPhase("GUIPreparingGmlLayer"));
@@ -124,7 +168,7 @@ public class ModInstaller
                     result.Skipped.Add(new SkippedMod(gmlMod.Id, gmlMod.Version, [Resources.CoreGameGmlChanged]));
                 }
 
-                var gmlModSet = gmlMods.Select(g => g.Mod).ToHashSet();
+                var gmlModSet = gmlMods.Select(g => VariantSession.Original(g.Mod)).ToHashSet();
                 installMods = mods.Where(m => !gmlModSet.Contains(m)).ToList();
             }
         }
@@ -134,13 +178,13 @@ public class ModInstaller
             // D12: one mod, one fate - an excluded mod's content is excluded too
             foreach (var excluded in plan.Excluded)
             {
-                var mod = excluded.Mod.Mod;
+                var mod = VariantSession.Original(excluded.Mod.Mod);
                 foreach (var reason in excluded.Reasons)
                     mod.GetValidation().AddError(mod, "gml", reason);
                 result.Skipped.Add(new SkippedMod(excluded.Mod.Id, excluded.Mod.Version, excluded.Reasons));
             }
 
-            var excludedMods = plan.Excluded.Select(e => e.Mod.Mod).ToHashSet();
+            var excludedMods = plan.Excluded.Select(e => VariantSession.Original(e.Mod.Mod)).ToHashSet();
             installMods = mods.Where(m => !excludedMods.Contains(m)).ToList();
         }
 
@@ -176,7 +220,7 @@ public class ModInstaller
 
             try
             {
-                RunInstallers(mod, fileNameUIDMapping, atlasUtils, reportStatus, phase);
+                RunInstallers(Effective(mod), fileNameUIDMapping, atlasUtils, reportStatus, phase);
             }
             catch (Exception exception)
             {
@@ -199,6 +243,21 @@ public class ModInstaller
             BuildPortraitLibrary(store, installMods, fileNameUIDMapping, atlasUtils, reportStatus, phase);
         }
 
+        if (variants is not null)
+        {
+            if (!variants.RetireOnly && !installMods.Any(VariantFramework.IsFrameworkMod))
+            {
+                // Planned, but the framework itself was skipped (a GML problem): its runtime is
+                // not there to serve new variants, yet saves may still hold earlier ones.
+                Logger.Log("[variants] The Variants Framework mod was not installed this time; " +
+                           "only keeping earlier variant items loadable.");
+                variants.RetireEverything();
+            }
+
+            phase("", variants.RetireOnly ? "Keeping earlier variant items loadable" : "Adding variant items");
+            VariantFinalizer.Apply(_fileModifier, variants, reportStatus);
+        }
+
         phase("", LocalizedPhase("GUISavingAtlases"));
         atlasUtils.Flush();
 
@@ -214,6 +273,10 @@ public class ModInstaller
 
         phase("", LocalizedPhase("GUIWritingGameArchive"));
             store.Commit(installMods.Select(mod => new InstalledModState(mod.GetId(), mod.GetVersion())));
+
+        // Only after the archive is in place: the history promises future installs that these
+        // ids exist in saves. A retire-only session leaves the history as it was.
+        variants?.Commit();
 
         // After the archive commits, so the Mods tab never describes an
         // archive that failed to land. The Mods tab lists exactly what runs (D12).
