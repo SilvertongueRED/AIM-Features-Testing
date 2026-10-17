@@ -403,4 +403,99 @@ public class LoadOrderPlannerTest
         // has to be read after whatever set it.
         Assert.That(IdsOf(plan), Is.EqualTo(new[] { "author.furniture", "author.prices" }));
     }
+
+    // ── load_position: where a mod asks to sit among its own kind ─────────────────
+
+    private static MockMod Positioned(string id, ModLoadPosition position, params string[] files) =>
+        new(files.ToList()) { Id = id, Name = id, LoadPosition = position };
+
+    [Test]
+    public void ShouldLoadABaseRecolourFirstAmongTheReplacements()
+    {
+        // The user added the broad recolour last. Every narrower recolour has to land on top of it,
+        // or the broad one silently overwrites the files they share.
+        var barns = Ships("author.barns", "images/replace/barn.png");
+        var hearts = Ships("author.hearts", "images/replace/heart.png");
+        var world = Positioned("author.world", ModLoadPosition.Early, "images/replace/barn.png", "images/replace/tree.png");
+
+        var plan = LoadOrderPlanner.Plan([barns, hearts, world], groupByRole: true);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(IdsOf(plan), Is.EqualTo(new[] { "author.world", "author.barns", "author.hearts" }));
+            Assert.That(plan.Notes.Where(note => note.Kind == LoadOrderNoteKind.RoleMove)
+                    .Select(note => note.Message),
+                Has.Some.Contains("base"), "the move has to say it came from the mod's own hint");
+        });
+    }
+
+    [Test]
+    public void ShouldNotLetABaseRecolourJumpAboveCodeOrContent()
+    {
+        // "early" is early among its own kind. Frameworks, code and new content still come first.
+        var world = Positioned("author.world", ModLoadPosition.Early, "images/replace/tree.png");
+        var code = Ships("author.configs", "gml/main.gml");
+        var furniture = Ships("author.furniture", "momi/furniture/items/chairs.toml");
+
+        var plan = LoadOrderPlanner.Plan([world, furniture, code], groupByRole: true);
+
+        Assert.That(IdsOf(plan), Is.EqualTo(new[] { "author.configs", "author.furniture", "author.world" }));
+    }
+
+    [Test]
+    public void ShouldLoadAPatchLastAmongItsKind()
+    {
+        var patch = Positioned("author.patch", ModLoadPosition.Late, "images/replace/a.png");
+        var first = Ships("author.first", "images/replace/a.png");
+        var second = Ships("author.second", "images/replace/b.png");
+
+        var plan = LoadOrderPlanner.Plan([patch, first, second], groupByRole: true);
+
+        Assert.That(IdsOf(plan), Is.EqualTo(new[] { "author.first", "author.second", "author.patch" }));
+    }
+
+    [Test]
+    public void ShouldKeepTheUsersOrderBetweenModsThatBothAskToBeEarly()
+    {
+        var second = Positioned("author.second", ModLoadPosition.Early, "images/replace/b.png");
+        var narrow = Ships("author.narrow", "images/replace/a.png");
+        var first = Positioned("author.first", ModLoadPosition.Early, "images/replace/a.png");
+
+        var plan = LoadOrderPlanner.Plan([second, narrow, first], groupByRole: true);
+
+        Assert.That(IdsOf(plan), Is.EqualTo(new[] { "author.second", "author.first", "author.narrow" }));
+    }
+
+    [Test]
+    public void ShouldIgnoreLoadPositionWhenLayeringIsNotAskedFor()
+    {
+        var narrow = Ships("author.narrow", "images/replace/a.png");
+        var world = Positioned("author.world", ModLoadPosition.Early, "images/replace/a.png");
+
+        var plan = LoadOrderPlanner.Plan([narrow, world]);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(IdsOf(plan), Is.EqualTo(new[] { "author.narrow", "author.world" }));
+            Assert.That(plan.ChangesAnything, Is.False);
+        });
+    }
+
+    [Test]
+    public void ShouldLetARequirementOverruleALoadPosition()
+    {
+        // The hint is a preference; a declared requirement is a fact and still wins.
+        var addon = Ships("author.addon", "images/replace/a.png");
+        var world = new MockMod(new List<string> { "images/replace/a.png" })
+        {
+            Id = "author.world",
+            Name = "World",
+            LoadPosition = ModLoadPosition.Early,
+            Requirements = [new ModRequirement("Addon", "Author")]
+        };
+
+        var plan = LoadOrderPlanner.Plan([addon, world], groupByRole: true);
+
+        Assert.That(IdsOf(plan), Is.EqualTo(new[] { "author.addon", "author.world" }));
+    }
 }

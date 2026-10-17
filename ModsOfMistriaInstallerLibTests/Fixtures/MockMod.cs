@@ -26,6 +26,9 @@ public class MockMod : IMod
     // Mods this one declares a dependency on, as they would appear in manifest.toml.
     public List<ModRequirement> Requirements { get; init; } = [];
 
+    // The manifest's load_position, for the load order planner's tests.
+    public ModLoadPosition LoadPosition { get; init; } = ModLoadPosition.Default;
+
     public MockMod(List<string> files)
     {
         files.ForEach(file =>
@@ -174,6 +177,8 @@ public class MockMod : IMod
     public List<ModRequirement> GetRequirements() => Requirements;
 
     public List<string> GetRequiredHooks() => RequiredHooks;
+
+    public ModLoadPosition GetLoadPosition() => LoadPosition;
 
     // What a manifest's update_url / download_url would say. Null by default, which is what a mod
     // with no Nexus page of its own looks like.

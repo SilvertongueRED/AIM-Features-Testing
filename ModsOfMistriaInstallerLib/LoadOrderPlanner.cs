@@ -256,6 +256,12 @@ public static class LoadOrderPlanner
             .Select((mod, index) => (Mod: mod, Index: index))
             .OrderBy(entry => (int)RoleFor(entry.Mod))
 
+            // Inside a layer, a mod whose author marked it as a base for its kind (manifest
+            // `load_position = "early"`, a broad recolour say) goes first, so every narrower mod of
+            // the same kind lands on top of it; one marked as a patch goes last. Unmarked mods - the
+            // overwhelming majority - are not touched by this key at all.
+            .ThenBy(entry => ModLoadPositions.Rank(PositionOf(entry.Mod)))
+
             // The tiebreak is the position the user already had them in, which is what makes this a
             // layering of their list rather than a replacement of it.
             .ThenBy(entry => entry.Index)
@@ -287,13 +293,49 @@ public static class LoadOrderPlanner
 
             var role = roleFor(mod);
             var direction = index < previous ? "earlier" : "later";
+            var position = PositionOf(mod);
 
-            notes.Add(new LoadOrderNote(LoadOrderNoteKind.RoleMove,
-                $"\"{mod.GetName()}\" now loads {direction}, with the rest of its kind, because " +
-                $"{ModRoleClassifier.Explain(role)}.")
+            var message = position switch
             {
-                IssueKey = $"{mod.GetId()}|{role}"
+                ModLoadPosition.Early =>
+                    $"\"{mod.GetName()}\" now loads {direction}. Its author marked it as a base for mods " +
+                    "of its kind, so it goes first among them and narrower mods that change the same " +
+                    $"files load after it and win. It sits with the rest of its kind because " +
+                    $"{ModRoleClassifier.Explain(role)}.",
+                ModLoadPosition.Late =>
+                    $"\"{mod.GetName()}\" now loads {direction}. Its author marked it as a patch for mods " +
+                    "of its kind, so it goes last among them and wins the files they share. It sits " +
+                    $"with the rest of its kind because {ModRoleClassifier.Explain(role)}.",
+                _ =>
+                    $"\"{mod.GetName()}\" now loads {direction}, with the rest of its kind, because " +
+                    $"{ModRoleClassifier.Explain(role)}."
+            };
+
+            notes.Add(new LoadOrderNote(LoadOrderNoteKind.RoleMove, message)
+            {
+                // A position hint is its own reason to move, so dismissing the plain layering note
+                // for this mod must not also hide this one (and the other way round).
+                IssueKey = position == ModLoadPosition.Default
+                    ? $"{mod.GetId()}|{role}"
+                    : $"{mod.GetId()}|{role}|{position.ToString().ToLowerInvariant()}"
             });
+        }
+    }
+
+    /// <summary>
+    /// The mod's own <c>load_position</c>, treating a failure to read it as no preference: a hint
+    /// is never worth failing a plan over.
+    /// </summary>
+    private static ModLoadPosition PositionOf(IMod mod)
+    {
+        try
+        {
+            return mod.GetLoadPosition();
+        }
+        catch (Exception exception)
+        {
+            Logger.Log($"Could not read {mod.GetName()}'s load position: {exception.Message}");
+            return ModLoadPosition.Default;
         }
     }
 

@@ -30,6 +30,7 @@ Every mod ships exactly one of `manifest.json` or `manifest.toml` at its root. I
 | `download_url` | Optional fallback page or download URL for this mod. |
 | `update_url` | Optional update source: a GitHub repository URL, or JSON returning `{ "version", "download_url" }`. |
 | `requires_hooks` | The hook names the mod cannot run without, as an array of strings. |
+| `load_position` | Optional AIM extension: `"early"` or `"late"`. Where the mod sits among mods of its own kind when AIM suggests a load order. See below. MOMI ignores it. |
 
 ## The Install Namespace
 
@@ -48,6 +49,25 @@ Before installing anything, MOMI checks each listed name against the seam catalo
 
 > [!TIP]
 > List every shipped hook you register. An unlisted hook still works when the catalog has it, but if it is ever missing the failure moves from one install-time message to a warning buried in a log file while the mod silently does nothing. Do not list custom hooks published by another mod; they are not catalog declarations.
+
+## `load_position`
+
+AIM's **Suggest order** sorts mods into layers by what they install: mods that other installed mods require, then code (`gml/`), then new content, then data-table overrides, then file replacements (`images/replace/`, fonts, sound banks). Inside a layer it keeps the order the player chose. `load_position` lets a mod say where it belongs inside its own layer:
+
+- `"early"`: a base for its kind. A broad recolour or retexture that replaces hundreds of sprites should be early, so every narrower mod that changes some of the same sprites (one building, a heart icon, a toolbar) loads after it and wins.
+- `"late"`: a patch for its kind. It loads after the other mods in its layer.
+
+```json
+{
+    "name": "Witching Hour Outdoor Recolor",
+    "author": "Roland",
+    "version": "1.0.0",
+    "minInstallerVersion": "0.12.0",
+    "load_position": "early"
+}
+```
+
+It never moves a mod out of its layer, so an early recolour still loads after every framework, code mod and content mod. A declared `requirements` entry still wins over it. A missing or unrecognised value means no preference, and the value is case-insensitive. Only **Suggest order** reads it; players can still drag mods wherever they like.
 
 ## Validation: One Mod, One Fate
 

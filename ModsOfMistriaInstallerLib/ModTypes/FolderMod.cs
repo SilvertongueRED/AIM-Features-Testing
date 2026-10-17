@@ -31,6 +31,8 @@ public class FolderMod : IMod
 
     private List<ModRequirement> _requirements = [];
 
+    private ModLoadPosition _loadPosition = ModLoadPosition.Default;
+
     private string? _updateUrl;
 
     private string? _downloadUrl;
@@ -76,6 +78,8 @@ public class FolderMod : IMod
 
     public List<string> GetRequiredHooks() => _requiredHooks;
 
+    public ModLoadPosition GetLoadPosition() => _loadPosition;
+
     public string? GetUpdateUrl()   => _updateUrl;
     public string? GetDownloadUrl() => _downloadUrl;
 
@@ -120,7 +124,8 @@ public class FolderMod : IMod
             _localizedNames = manifest.LocalizedNames,
             _localizedDescriptions = manifest.LocalizedDescriptions,
             _requiredHooks = manifest.RequiresHooks,
-            _requiredHooksValid = manifest.RequiresHooksValid
+            _requiredHooksValid = manifest.RequiresHooksValid,
+            _loadPosition = manifest.LoadPosition
         };
     }
 

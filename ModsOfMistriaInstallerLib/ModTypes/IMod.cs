@@ -60,6 +60,10 @@ public interface IMod
     // Hook names the mod cannot run without (manifest `requires_hooks`)
     public List<string> GetRequiredHooks();
 
+    // Where the mod asks to sit among mods of its own kind (manifest `load_position`). A default
+    // body, so a mod type that has no manifest of its own simply has no preference.
+    public ModLoadPosition GetLoadPosition() => ModLoadPosition.Default;
+
     // URL used to check for updates (GitHub repo URL or custom JSON endpoint).
     // Null means no update checking for this mod.
     public string? GetUpdateUrl();

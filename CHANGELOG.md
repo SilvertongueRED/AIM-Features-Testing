@@ -40,6 +40,14 @@
   files that really are FMOD banks, so a typo or a stray file can't silence the game.
 - Audio mods load in the file-replacement layer, and two mods replacing the same bank are reported
   as a replacement conflict: the one installed last wins.
+### Mods can say where they belong among their own kind
+
+- A manifest can now set `load_position` to `"early"` or `"late"`. **Suggest order** keeps its
+  layers (frameworks, then code, then new content, then data overrides, then file replacements),
+  but inside a layer an `early` mod - a broad recolour, say - now goes first, so the narrower
+  recolours that share its files load after it and win. A `late` mod goes last among its kind.
+- A declared requirement still wins over the hint, an unrecognised value is ignored, and MOMI
+  ignores the field entirely. The note explaining a move says when it came from the mod's own hint.
 
 ## 0.2.2 - 2026-09-18
 
