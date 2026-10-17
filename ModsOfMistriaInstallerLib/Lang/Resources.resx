@@ -1109,7 +1109,7 @@ Open download page(s) in browser?</value></data>
   <data name="GUICrashNoModList" xml:space="preserve"><value>AIM cannot see your mod list from here, so it can show the crash but not say which mod caused it.</value></data>
   <data name="GUICrashFailed" xml:space="preserve"><value>AIM could not finish reading this crash: {0}</value></data>
   <data name="GUICrashStale" xml:space="preserve"><value>This crash is older than the mods you have installed now. AIM rebuilt the game after it happened, so what crashed is not what is on disk - play once before changing anything, and treat the mods below as leads rather than verdicts.</value></data>
-  <data name="GUICrashNoApiKey" xml:space="preserve"><value>Not signed in to Nexus, so AIM cannot read the mods' bug trackers. Everything above was worked out from your own files.</value></data>
+  <data name="GUICrashNoApiKey" xml:space="preserve"><value>Not signed in to Nexus, so AIM read only the mods' public comments and bug reports, not their descriptions or release notes. Everything above was worked out from your own files.</value></data>
   <data name="GUICrashWorking" xml:space="preserve"><value>Reading the bug trackers and comments on the mods this points at…</value></data>
   <data name="GUICrashNothingToResearch" xml:space="preserve"><value>Nothing points clearly enough at a mod to be worth reading its page.</value></data>
   <data name="GUICrashResearchFailed" xml:space="preserve"><value>AIM could not read the mod pages: {0}. What it worked out from your own files still stands.</value></data>
@@ -1250,4 +1250,53 @@ Open download page(s) in browser?</value></data>
   <data name="GUISettingsUpToDate" xml:space="preserve"><value>AIM is up to date.</value></data>
   <data name="GUISettingsUpdateAvailable" xml:space="preserve"><value>An AIM update is available. Use the notice below to open its release page.</value></data>
   <data name="GUISettingsUpdateCheckFailed" xml:space="preserve"><value>AIM update check failed.</value></data>
+  <data name="GUIIssueSearchDismissed" xml:space="preserve"><value>Search the issues you marked fine…</value></data>
+  <data name="GUIIssueSortNewest" xml:space="preserve"><value>Recently marked first</value></data>
+  <data name="GUIIssueSortOldest" xml:space="preserve"><value>Oldest marked first</value></data>
+  <data name="GUIIssueSortName" xml:space="preserve"><value>A to Z</value></data>
+  <data name="GUIIssueDismissedMatches" xml:space="preserve"><value>Marked as fine - {0} of {1} match</value></data>
+  <data name="GUIIssueDismissedNoMatch" xml:space="preserve"><value>None of the issues you marked fine match "{0}".</value></data>
+  <data name="GUIIssueMarkedFineOn" xml:space="preserve"><value>Marked fine {0}</value></data>
+  <data name="GUIIssueOpenModPage" xml:space="preserve"><value>Open {0} on Nexus</value></data>
+  <data name="GUIVerdictWinnerChosen" xml:space="preserve"><value>You chose {0} to win.</value></data>
+  <data name="GUIVersionsUnknownVersion" xml:space="preserve"><value>Unknown version</value></data>
+  <data name="GUIVersionsChangelogTooltip" xml:space="preserve"><value>Release notes, opened at version {0}</value></data>
+  <data name="GUIVersionsChangelogTooltipNoVersion" xml:space="preserve"><value>Release notes</value></data>
+  <data name="GUIChangelogVersionNotListed" xml:space="preserve"><value>The author wrote no release notes for version {0}. Every version they did write notes for is below.</value></data>
+  <data name="GUIChangelogShowingVersion" xml:space="preserve"><value>Opened at version {0}, highlighted below.</value></data>
+  <data name="GUICrashResearchProgress" xml:space="preserve"><value>Reading {0}'s Nexus pages ({1} of {2})…</value></data>
+  <data name="GUICrashTreatmentsHeader" xml:space="preserve"><value>What to try, from the mods' own pages</value></data>
+  <data name="GUICrashTreatmentsHint" xml:space="preserve"><value>Fixes the authors and other players describe for crashes like this one. Try the first that fits, then check it with the button above.</value></data>
+  <data name="GUICrashMentionsHeader" xml:space="preserve"><value>What the comments say about your other mods</value></data>
+  <data name="GUICrashMentionsHint" xml:space="preserve"><value>Comments on the suspects' pages that name another mod you have switched on - usually someone asking whether the two work together - with the author's answer when there was one.</value></data>
+  <data name="GUICrashMentionsGroup" xml:space="preserve"><value>On {0}'s page, about {1}</value></data>
+  <data name="GUICrashNothingReadable" xml:space="preserve"><value>Nothing found - but Nexus blocked AIM from reading some of the pages. See "What AIM read" below.</value></data>
+  <data name="GUICrashFoundSummary" xml:space="preserve"><value>Found {0} things on the suspects' pages: {1} to try, {2} about your other mods.</value></data>
+  <data name="GUICrashCoverageHeader" xml:space="preserve"><value>What AIM read ({0} of {1} parts of the pages)</value></data>
+  <data name="GUICrashResearchBlocked" xml:space="preserve"><value>Nexus answered some of AIM's requests with its bot check instead of the page, so those comments or bug reports could not be read. Nexus has no API for comments or bug reports - your Nexus sign-in only covers descriptions, release notes and files. Use the buttons at the bottom to read the blocked pages in your browser.</value></data>
+  <data name="GUICrashResearchSignedOut" xml:space="preserve"><value>You are not signed in to Nexus, so AIM skipped the mods' descriptions and release notes. Sign in from the gear menu → Nexus downloads to include them.</value></data>
+  <data name="GUICrashSourceDescription" xml:space="preserve"><value>description</value></data>
+  <data name="GUICrashSourceChangelog" xml:space="preserve"><value>release notes</value></data>
+  <data name="GUICrashSourceReadme" xml:space="preserve"><value>readme</value></data>
+  <data name="GUICrashSourceComments" xml:space="preserve"><value>comments</value></data>
+  <data name="GUICrashSourceBugs" xml:space="preserve"><value>bug reports</value></data>
+  <data name="GUICrashCoverageBlocked" xml:space="preserve"><value>blocked by Nexus's bot check</value></data>
+  <data name="GUICrashCoverageFailed" xml:space="preserve"><value>could not be read (Nexus answered {0})</value></data>
+  <data name="GUICrashCoverageOffline" xml:space="preserve"><value>could not be read (no answer - offline or timed out)</value></data>
+  <data name="GUICrashCoverageNoPage" xml:space="preserve"><value>skipped - AIM does not know this mod's Nexus page</value></data>
+  <data name="GUICrashCoverageNotSignedIn" xml:space="preserve"><value>skipped - sign in to Nexus to include it</value></data>
+  <data name="GUICrashCoverageStopped" xml:space="preserve"><value>skipped - Nexus blocked an earlier page</value></data>
+  <data name="GUICrashCoverageComments" xml:space="preserve"><value>read {0} comments in {1} searches, kept {2}</value></data>
+  <data name="GUICrashCoverageBugs" xml:space="preserve"><value>read {0} reports, opened {1}, kept {2}</value></data>
+  <data name="GUICrashCoverageChangelog" xml:space="preserve"><value>read {0} versions, kept {1}</value></data>
+  <data name="GUICrashCoverageKept" xml:space="preserve"><value>read, kept {0}</value></data>
+  <data name="GUICrashTreatmentBasis" xml:space="preserve"><value>From {0} · {1} · {2}</value></data>
+  <data name="GUICrashOpenSource" xml:space="preserve"><value>Open the page ↗</value></data>
+  <data name="GUICrashChipSameCrash" xml:space="preserve"><value>Same crash</value></data>
+  <data name="GUICrashChipMentions" xml:space="preserve"><value>Mentions {0}</value></data>
+  <data name="GUICrashChipAuthor" xml:space="preserve"><value>Mod author</value></data>
+  <data name="GUICrashChipAuthorAnswered" xml:space="preserve"><value>Author answered</value></data>
+  <data name="GUICrashAuthorAnswered" xml:space="preserve"><value>↳ {0} answered: “{1}”</value></data>
+  <data name="GUICrashTheAuthor" xml:space="preserve"><value>The author</value></data>
+  <data name="GUICrashWhatToDo" xml:space="preserve"><value>What to do: {0}</value></data>
 </root>

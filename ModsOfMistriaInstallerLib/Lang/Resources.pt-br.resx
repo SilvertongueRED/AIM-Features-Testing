@@ -1093,7 +1093,7 @@ Clique para ler todas as versões.</value></data>
   <data name="GUICrashNoModList" xml:space="preserve"><value>O AIM não consegue ver sua lista de mods daqui, então pode mostrar o crash, mas não dizer qual mod o causou.</value></data>
   <data name="GUICrashFailed" xml:space="preserve"><value>O AIM não conseguiu terminar de ler este crash: {0}</value></data>
   <data name="GUICrashStale" xml:space="preserve"><value>Este crash é mais antigo que os mods instalados agora. O AIM reconstruiu o jogo depois, então a causa do crash não é mais o que está no disco. Jogue uma vez antes de alterar qualquer coisa e trate os mods abaixo como pistas, não vereditos.</value></data>
-  <data name="GUICrashNoApiKey" xml:space="preserve"><value>Você não está conectado ao Nexus, então o AIM não pode ler os rastreadores de bugs dos mods. Tudo acima foi descoberto a partir dos seus próprios arquivos.</value></data>
+  <data name="GUICrashNoApiKey" xml:space="preserve"><value>Você não está conectado ao Nexus, então o AIM leu apenas os comentários e relatórios de bugs públicos dos mods, não as descrições nem as notas de versão. Tudo acima foi deduzido dos seus próprios arquivos.</value></data>
   <data name="GUICrashWorking" xml:space="preserve"><value>Lendo os rastreadores de bugs e comentários dos mods indicados…</value></data>
   <data name="GUICrashNothingToResearch" xml:space="preserve"><value>Nada aponta claramente para um mod a ponto de valer a pena ler sua página.</value></data>
   <data name="GUICrashResearchFailed" xml:space="preserve"><value>O AIM não conseguiu ler as páginas dos mods: {0}. As conclusões dos seus próprios arquivos continuam válidas.</value></data>
@@ -1176,4 +1176,53 @@ Clique para ler todas as versões.</value></data>
   <data name="GUISettingsUpToDate" xml:space="preserve"><value>O AIM está atualizado.</value></data>
   <data name="GUISettingsUpdateAvailable" xml:space="preserve"><value>Há uma atualização do AIM disponível. Use o aviso abaixo para abrir a página do lançamento.</value></data>
   <data name="GUISettingsUpdateCheckFailed" xml:space="preserve"><value>Não foi possível verificar atualizações do AIM.</value></data>
+  <data name="GUIIssueSearchDismissed" xml:space="preserve"><value>Pesquisar nos problemas marcados como resolvidos…</value></data>
+  <data name="GUIIssueSortNewest" xml:space="preserve"><value>Marcados recentemente primeiro</value></data>
+  <data name="GUIIssueSortOldest" xml:space="preserve"><value>Marcados há mais tempo primeiro</value></data>
+  <data name="GUIIssueSortName" xml:space="preserve"><value>De A a Z</value></data>
+  <data name="GUIIssueDismissedMatches" xml:space="preserve"><value>Marcados como resolvidos - {0} de {1} correspondem</value></data>
+  <data name="GUIIssueDismissedNoMatch" xml:space="preserve"><value>Nenhum dos problemas marcados como resolvidos corresponde a "{0}".</value></data>
+  <data name="GUIIssueMarkedFineOn" xml:space="preserve"><value>Marcado como resolvido em {0}</value></data>
+  <data name="GUIIssueOpenModPage" xml:space="preserve"><value>Abrir {0} no Nexus</value></data>
+  <data name="GUIVerdictWinnerChosen" xml:space="preserve"><value>Você escolheu que {0} vença.</value></data>
+  <data name="GUIVersionsUnknownVersion" xml:space="preserve"><value>Versão desconhecida</value></data>
+  <data name="GUIVersionsChangelogTooltip" xml:space="preserve"><value>Notas de versão, abertas na versão {0}</value></data>
+  <data name="GUIVersionsChangelogTooltipNoVersion" xml:space="preserve"><value>Notas de versão</value></data>
+  <data name="GUIChangelogVersionNotListed" xml:space="preserve"><value>O autor não escreveu notas para a versão {0}. Todas as versões com notas estão abaixo.</value></data>
+  <data name="GUIChangelogShowingVersion" xml:space="preserve"><value>Aberto na versão {0}, destacada abaixo.</value></data>
+  <data name="GUICrashResearchProgress" xml:space="preserve"><value>Lendo as páginas do Nexus de {0} ({1} de {2})…</value></data>
+  <data name="GUICrashTreatmentsHeader" xml:space="preserve"><value>O que tentar, segundo as páginas dos mods</value></data>
+  <data name="GUICrashTreatmentsHint" xml:space="preserve"><value>Correções que os autores e outros jogadores descrevem para travamentos como este. Tente a primeira que servir e confira com o botão acima.</value></data>
+  <data name="GUICrashMentionsHeader" xml:space="preserve"><value>O que os comentários dizem sobre seus outros mods</value></data>
+  <data name="GUICrashMentionsHint" xml:space="preserve"><value>Comentários nas páginas dos suspeitos que citam outro mod que você tem ativado - geralmente alguém perguntando se funcionam juntos - com a resposta do autor quando houve.</value></data>
+  <data name="GUICrashMentionsGroup" xml:space="preserve"><value>Na página de {0}, sobre {1}</value></data>
+  <data name="GUICrashNothingReadable" xml:space="preserve"><value>Nada encontrado - mas o Nexus bloqueou a leitura de algumas páginas pelo AIM. Veja "O que o AIM leu" abaixo.</value></data>
+  <data name="GUICrashFoundSummary" xml:space="preserve"><value>Encontradas {0} coisas nas páginas dos suspeitos: {1} para tentar, {2} sobre seus outros mods.</value></data>
+  <data name="GUICrashCoverageHeader" xml:space="preserve"><value>O que o AIM leu ({0} de {1} partes das páginas)</value></data>
+  <data name="GUICrashResearchBlocked" xml:space="preserve"><value>O Nexus respondeu a algumas solicitações do AIM com sua verificação de robôs em vez da página, então esses comentários ou relatórios de bugs não puderam ser lidos. O Nexus não tem API para comentários ou relatórios de bugs - seu login no Nexus cobre apenas descrições, notas de versão e arquivos. Use os botões abaixo para ler as páginas bloqueadas no navegador.</value></data>
+  <data name="GUICrashResearchSignedOut" xml:space="preserve"><value>Você não está conectado ao Nexus, então o AIM pulou as descrições e notas de versão dos mods. Entre pelo menu da engrenagem → Downloads do Nexus para incluí-las.</value></data>
+  <data name="GUICrashSourceDescription" xml:space="preserve"><value>descrição</value></data>
+  <data name="GUICrashSourceChangelog" xml:space="preserve"><value>notas de versão</value></data>
+  <data name="GUICrashSourceReadme" xml:space="preserve"><value>leia-me</value></data>
+  <data name="GUICrashSourceComments" xml:space="preserve"><value>comentários</value></data>
+  <data name="GUICrashSourceBugs" xml:space="preserve"><value>relatórios de bugs</value></data>
+  <data name="GUICrashCoverageBlocked" xml:space="preserve"><value>bloqueado pela verificação de robôs do Nexus</value></data>
+  <data name="GUICrashCoverageFailed" xml:space="preserve"><value>não foi possível ler (o Nexus respondeu {0})</value></data>
+  <data name="GUICrashCoverageOffline" xml:space="preserve"><value>não foi possível ler (sem resposta - offline ou tempo esgotado)</value></data>
+  <data name="GUICrashCoverageNoPage" xml:space="preserve"><value>ignorado - o AIM não conhece a página deste mod no Nexus</value></data>
+  <data name="GUICrashCoverageNotSignedIn" xml:space="preserve"><value>ignorado - entre no Nexus para incluir</value></data>
+  <data name="GUICrashCoverageStopped" xml:space="preserve"><value>ignorado - o Nexus bloqueou uma página anterior</value></data>
+  <data name="GUICrashCoverageComments" xml:space="preserve"><value>{0} comentários lidos em {1} pesquisas, {2} mantidos</value></data>
+  <data name="GUICrashCoverageBugs" xml:space="preserve"><value>{0} relatórios lidos, {1} abertos, {2} mantidos</value></data>
+  <data name="GUICrashCoverageChangelog" xml:space="preserve"><value>{0} versões lidas, {1} mantidas</value></data>
+  <data name="GUICrashCoverageKept" xml:space="preserve"><value>lido, {0} mantidos</value></data>
+  <data name="GUICrashTreatmentBasis" xml:space="preserve"><value>De {0} · {1} · {2}</value></data>
+  <data name="GUICrashOpenSource" xml:space="preserve"><value>Abrir a página ↗</value></data>
+  <data name="GUICrashChipSameCrash" xml:space="preserve"><value>Mesmo travamento</value></data>
+  <data name="GUICrashChipMentions" xml:space="preserve"><value>Menciona {0}</value></data>
+  <data name="GUICrashChipAuthor" xml:space="preserve"><value>Autor do mod</value></data>
+  <data name="GUICrashChipAuthorAnswered" xml:space="preserve"><value>O autor respondeu</value></data>
+  <data name="GUICrashAuthorAnswered" xml:space="preserve"><value>↳ {0} respondeu: “{1}”</value></data>
+  <data name="GUICrashTheAuthor" xml:space="preserve"><value>O autor</value></data>
+  <data name="GUICrashWhatToDo" xml:space="preserve"><value>O que fazer: {0}</value></data>
 </root>

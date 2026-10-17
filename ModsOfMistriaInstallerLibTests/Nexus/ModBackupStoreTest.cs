@@ -180,4 +180,53 @@ public class ModBackupStoreTest
             Assert.That(store.Archive(Path.Combine(_modsFolder, "Never Installed"), "1.0"), Is.Null);
         });
     }
+
+    // The versions dropdown showed only a date for most restore points, because only an update
+    // downloaded through Nexus wrote the version into the label. The mod inside still says.
+    [Test]
+    public void ShouldReadTheVersionOffTheModWhenTheCallerDidNotKnowIt()
+    {
+        var store = new ModBackupStore(_modsFolder);
+        var mod = Path.Combine(_modsFolder, "March Expanded");
+        Directory.CreateDirectory(mod);
+        File.WriteAllText(Path.Combine(mod, "manifest.json"),
+            "{\"name\":\"March Expanded\",\"author\":\"caterpixie\",\"version\":\"2.0.10\"}");
+
+        var backup = store.Archive(mod, null);
+
+        Assert.That(backup?.Version, Is.EqualTo("2.0.10"));
+        Assert.That(store.List("March Expanded").Single().Version, Is.EqualTo("2.0.10"));
+    }
+
+    [Test]
+    public void ShouldFindTheVersionOfABackupTakenWithoutOne()
+    {
+        // As every backup made before versions were recorded is: a stamp and nothing else.
+        var stamped = Path.Combine(_modsFolder, ModBackupStore.DirectoryName, "Old Mod", "20260101-120000");
+        Directory.CreateDirectory(Path.Combine(stamped, "Old Mod"));
+        File.WriteAllText(Path.Combine(stamped, "Old Mod", "manifest.json"), "{\"name\":\"Old Mod\",\"version\":\"1.3\"}");
+
+        var listed = new ModBackupStore(_modsFolder).List("Old Mod").Single();
+
+        Assert.That(listed.Version, Is.EqualTo("1.3"));
+        Assert.That(listed.Describe(), Does.StartWith("1.3 ("));
+    }
+
+    [TestCase("2.0.10", "2.0.10", "")]
+    [TestCase("2.1.0 before AIM's fix", "2.1.0", "before AIM's fix")]
+    [TestCase("before AIM's fix", null, "before AIM's fix")]
+    [TestCase("replaced", null, "replaced")]
+    [TestCase("V1.0.10", "V1.0.10", "")]
+    [TestCase("Beta", "Beta", "")]
+    public void ShouldSplitALabelIntoItsVersionAndItsNote(string label, string? version, string note)
+    {
+        Assert.That(ModBackupStore.SplitLabel(label), Is.EqualTo((version, note)));
+    }
+
+    [Test]
+    public void ShouldNotRepeatAVersionThatIsNotANumber()
+    {
+        Assert.That(ModBackupStore.SplitLabel("Beta 2 replaced"), Is.EqualTo(("Beta 2", "replaced")));
+        Assert.That(ModBackupStore.SplitLabel("Beta 2 before AIM's fix"), Is.EqualTo(("Beta 2", "before AIM's fix")));
+    }
 }

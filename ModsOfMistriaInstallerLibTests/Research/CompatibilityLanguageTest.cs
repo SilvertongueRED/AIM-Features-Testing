@@ -163,4 +163,118 @@ public class CompatibilityLanguageTest
                 "but a question that merely mentions the subject does not");
         });
     }
+
+    // ── Problems that are already gone ───────────────────────────────────────────
+
+    // Verbatim from March Expanded's 2.0.10 release notes. The bare "breaks with" rule used to file
+    // it as a named conflict, and the crash window showed it under "says this is a known problem".
+    // It says the opposite, and about the game rather than about any other mod.
+    [Test]
+    public void ShouldReadAModKeepingUpWithTheGameAsAFixNotAConflict()
+    {
+        const string line = "• Updates the mod so it no longer breaks with game patches/GML updates";
+
+        var signal = CompatibilityLanguage.Classify(line);
+
+        Assert.That(signal, Is.Not.Null);
+        Assert.That(signal!.Polarity, Is.EqualTo(Polarity.Clearance));
+        Assert.That(signal.Reason, Is.EqualTo("says a problem was fixed"));
+        Assert.That(CompatibilityLanguage.BearsOnThePairing(signal, namesTheOtherMod: false), Is.False,
+            "a fix only clears a pairing it names");
+    }
+
+    [TestCase("Fixed a conflict with the bakery mod")]
+    [TestCase("It no longer crashes with Seasonal Grass")]
+    public void ShouldReadAFixAsAFix(string sentence)
+    {
+        Assert.That(CompatibilityLanguage.Classify(sentence)?.Reason, Is.EqualTo("says a problem was fixed"));
+    }
+
+    [TestCase("It doesn't conflict with Seasonal Grass")]
+    [TestCase("They won't clash")]
+    public void ShouldReadADeniedConflictAsAnAllClear(string sentence)
+    {
+        var signal = CompatibilityLanguage.Classify(sentence);
+
+        Assert.That(signal?.Polarity, Is.EqualTo(Polarity.Clearance));
+        Assert.That(signal!.NeedsPairing, Is.True);
+    }
+
+    [TestCase("It doesn't work and crashes")]
+    [TestCase("Fixed the icons but it still crashes with Seasonal Grass")]
+    public void ShouldNotReadAComplaintAsAnAllClear(string sentence)
+    {
+        Assert.That(CompatibilityLanguage.Classify(sentence)?.Polarity, Is.Not.EqualTo(Polarity.Clearance));
+    }
+
+    [Test]
+    public void ShouldTellBreakingWithTheGameFromConflictingWithAMod()
+    {
+        Assert.That(CompatibilityLanguage.Classify("This broke with the latest game update")?.Reason,
+            Is.EqualTo("says it breaks with a game update"));
+        Assert.That(CompatibilityLanguage.Classify("It breaks with Seasonal Grass")?.Reason,
+            Is.EqualTo("names a conflict"));
+    }
+
+    // How an author answers "does this work with X?".
+    [TestCase("Yeah it should be compatible!", Polarity.Clearance)]
+    [TestCase("They're compatible now", Polarity.Clearance)]
+    [TestCase("It should not be compatible with the old version", Polarity.Blocker)]
+    [TestCase("This won't be compatible", Polarity.Blocker)]
+    public void ShouldReadAnAuthorsAnswer(string sentence, Polarity expected)
+    {
+        Assert.That(CompatibilityLanguage.Classify(sentence)?.Polarity, Is.EqualTo(expected));
+    }
+
+    // A question or a doubt reads exactly like an author's answer without guarding against it, and
+    // would otherwise count as evidence the conflict is not real.
+    [TestCase("Will this be compatible with March Expanded?")]
+    [TestCase("Would it be compatible with Seasonal Grass")]
+    [TestCase("Is it compatible with the portrait mods")]
+    [TestCase("I'm not sure it will be compatible with March Expanded")]
+    [TestCase("I don't think it's compatible with Seasonal Grass")]
+    public void ShouldNotReadAQuestionOrADoubtAsAnAllClear(string sentence)
+    {
+        Assert.That(CompatibilityLanguage.Classify(sentence)?.Polarity, Is.Not.EqualTo(Polarity.Clearance));
+    }
+
+    [Test]
+    public void ShouldStillReadAConditionalAnswerAsAnAnswer()
+    {
+        // Verbatim from March Expanded's comments, answering "does this work with March Sylus?".
+        Assert.That(CompatibilityLanguage.Classify(
+                "Hey! If it only changes the portraits then yeah it should be compatible! Just make sure to download the portrait compatibility path as well")?.Polarity,
+            Is.EqualTo(Polarity.Clearance));
+    }
+
+    [TestCase("No crashes in the game since I installed it")]
+    [TestCase("It crashes on game start")]
+    [TestCase("Breaks with Steam Deck controls")]
+    public void ShouldNotCallEveryMentionOfTheGameABreakingUpdate(string sentence)
+    {
+        Assert.That(CompatibilityLanguage.Classify(sentence)?.Reason, Is.Not.EqualTo("says it breaks with a game update"));
+    }
+
+    [TestCase("Broke after the 1.0.5 update")]
+    [TestCase("It crashes since the latest game patch")]
+    public void ShouldRecogniseABreakingGameUpdate(string sentence)
+    {
+        Assert.That(CompatibilityLanguage.Classify(sentence)?.Reason, Is.EqualTo("says it breaks with a game update"));
+    }
+
+    [Test]
+    public void ShouldNotReadTheNounFixAsAFix()
+    {
+        Assert.That(CompatibilityLanguage.Classify("Tried the fix you posted, game crashes on load anyway with March Sylus")?.Reason,
+            Is.Not.EqualTo("says a problem was fixed"));
+        Assert.That(CompatibilityLanguage.Classify("Fix crash when opening the shop")?.Reason,
+            Is.EqualTo("says a problem was fixed"), "but a changelog's imperative is a fix");
+    }
+
+    [Test]
+    public void ShouldNotTakeAnotherModsUpdateForTheGames()
+    {
+        Assert.That(CompatibilityLanguage.Classify("This breaks with the latest update of March Expanded.")?.Reason,
+            Is.Not.EqualTo("says it breaks with a game update"));
+    }
 }

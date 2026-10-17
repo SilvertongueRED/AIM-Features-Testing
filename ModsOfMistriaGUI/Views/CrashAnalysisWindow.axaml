@@ -102,6 +102,34 @@
           </StackPanel>
         </Border>
 
+        <!-- Said up front when Nexus refused AIM the comments or the bug tracker, so an empty
+             result below is not mistaken for "nobody has reported this". -->
+        <Border x:Name="ResearchNotice"
+                IsVisible="False"
+                Background="#22d08a2a"
+                BorderBrush="#d08a2a"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="10 8">
+          <TextBlock x:Name="ResearchNoticeText" TextWrapping="Wrap" />
+        </Border>
+
+        <!-- What the pages say to do: a fixed version, a folder to delete, a patch to install. The
+             most useful thing research can turn up, so it comes before the evidence it came from. -->
+        <StackPanel x:Name="TreatmentsSection" Spacing="6" IsVisible="False">
+          <TextBlock x:Name="TreatmentsHeader" FontWeight="SemiBold" Foreground="#4c8bf5" />
+          <TextBlock x:Name="TreatmentsHint" TextWrapping="Wrap" Opacity="0.75" FontSize="12" />
+          <StackPanel x:Name="TreatmentsPanel" Spacing="6" />
+        </StackPanel>
+
+        <!-- Comments on the suspects' pages that name another mod the user runs - "does this work
+             with March Expanded?" - with the author's answer where there was one. -->
+        <StackPanel x:Name="MentionsSection" Spacing="6" IsVisible="False">
+          <TextBlock x:Name="MentionsHeader" FontWeight="SemiBold" Foreground="#8a6df0" />
+          <TextBlock x:Name="MentionsHint" TextWrapping="Wrap" Opacity="0.75" FontSize="12" />
+          <StackPanel x:Name="MentionsPanel" Spacing="8" />
+        </StackPanel>
+
         <!-- What the mod pages say about this crash: the bug tracker first, because a crash
              somebody has already reported is a crash with a known answer. -->
         <StackPanel x:Name="ForSection" Spacing="6" IsVisible="False">
@@ -121,6 +149,12 @@
 
         <Expander x:Name="FindingsSection" IsVisible="False" IsExpanded="False" HorizontalAlignment="Stretch">
           <StackPanel x:Name="FindingsPanel" Spacing="6" Margin="0 6 0 0" />
+        </Expander>
+
+        <!-- What AIM actually read, mod by mod and part by part. An empty research result used to
+             look the same whether the pages said nothing or were never read. -->
+        <Expander x:Name="CoverageSection" IsVisible="False" IsExpanded="False" HorizontalAlignment="Stretch">
+          <StackPanel x:Name="CoveragePanel" Spacing="3" Margin="0 6 0 0" />
         </Expander>
 
         <StackPanel x:Name="LinksSection" Spacing="8" IsVisible="False">

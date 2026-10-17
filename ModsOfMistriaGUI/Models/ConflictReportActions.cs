@@ -40,4 +40,12 @@ public sealed record ConflictReportActions(
     Func<LoadOrderNote, IssueParticipant, bool> MakeModWin,
     Func<Window, LoadOrderNote, Task<IssueVerdict?>> Research,
     Func<LoadOrderNote, IssueParticipant, RebindCapability> InspectRebind,
-    Func<LoadOrderNote, IssueParticipant, Task<string?>> RebindHotkey);
+    Func<LoadOrderNote, IssueParticipant, Task<string?>> RebindHotkey)
+{
+    /// <summary>
+    /// The mod's Nexus page, when AIM knows where it came from - so the name in an issue can be a
+    /// link straight to the source. Null for a mod installed by hand that was never matched to a
+    /// page; its name then stays plain text.
+    /// </summary>
+    public Func<IssueParticipant, string?>? PageFor { get; init; }
+}

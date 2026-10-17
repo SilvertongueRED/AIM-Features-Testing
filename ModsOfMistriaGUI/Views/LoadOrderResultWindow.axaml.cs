@@ -39,6 +39,19 @@ public partial class LoadOrderResultWindow : Window
 
     private bool _showDismissed;
 
+    /// <summary>The issues currently marked fine, as of the last rebuild. The search filters these.</summary>
+    private List<LoadOrderNote> _dismissedNotes = [];
+
+    /// <summary>How the marked-fine list is ordered. Newest first unless the user picks otherwise.</summary>
+    private DismissedOrder _dismissedOrder = DismissedOrder.NewestFirst;
+
+    private enum DismissedOrder
+    {
+        NewestFirst,
+        OldestFirst,
+        ByName
+    }
+
     // Rebuilt alongside the visible list so that what "Copy report" produces matches what the
     // window shows, dismissals included.
     private string _report = string.Empty;
@@ -105,6 +118,27 @@ public partial class LoadOrderResultWindow : Window
             if (wanted == _showDismissed) return;
             _showDismissed = wanted;
             Rebuild();
+        };
+
+        DismissedSearch.Watermark = Texts.GUIIssueSearchDismissed;
+        DismissedSearch.TextChanged += (_, _) => RebuildDismissed();
+
+        DismissedSort.ItemsSource = new[]
+        {
+            Texts.GUIIssueSortNewest,
+            Texts.GUIIssueSortOldest,
+            Texts.GUIIssueSortName
+        };
+        DismissedSort.SelectedIndex = 0;
+        DismissedSort.SelectionChanged += (_, _) =>
+        {
+            _dismissedOrder = DismissedSort.SelectedIndex switch
+            {
+                1 => DismissedOrder.OldestFirst,
+                2 => DismissedOrder.ByName,
+                _ => DismissedOrder.NewestFirst
+            };
+            RebuildDismissed();
         };
 
         Rebuild();
@@ -223,6 +257,7 @@ public partial class LoadOrderResultWindow : Window
             foreach (var note in _notes)
                 NotesPanel.Children.Add(CreateNoteControl(note));
             ShowDismissedToggle.IsVisible = false;
+            DismissedSection.IsVisible = false;
             return;
         }
 
@@ -258,18 +293,63 @@ public partial class LoadOrderResultWindow : Window
         ShowDismissedToggle.IsVisible = dismissed.Count > 0;
         ShowDismissedToggle.Content = string.Format(Texts.GUIIssueShowDismissed, dismissed.Count);
 
-        if (dismissed.Count == 0 || !_showDismissed) return;
+        _dismissedNotes = dismissed;
+        DismissedSection.IsVisible = dismissed.Count > 0 && _showDismissed;
+        RebuildDismissed();
+    }
 
-        NotesPanel.Children.Add(new TextBlock
+    /// <summary>
+    /// Redraws only the issues marked fine, filtered by the search box and in the chosen order.
+    ///
+    /// Kept apart from <see cref="Rebuild"/> so typing in the search box redraws the rows under it
+    /// and nothing else - rebuilding the whole window on every keystroke would throw away the box
+    /// the user is typing in.
+    /// </summary>
+    private void RebuildDismissed()
+    {
+        DismissedPanel.Children.Clear();
+        if (!DismissedSection.IsVisible || _dismissedIssues is null) return;
+
+        var query = DismissedSearch.Text?.Trim() ?? "";
+        var matches = _dismissedNotes.Where(note => MatchesSearch(note, query)).ToList();
+
+        var store = _dismissedIssues;
+        IEnumerable<LoadOrderNote> ordered = _dismissedOrder switch
         {
-            Text = Texts.GUIIssueDismissedHeader,
-            FontWeight = FontWeight.SemiBold,
-            Opacity = 0.7,
-            Margin = new Avalonia.Thickness(0, 12, 0, 0)
-        });
+            // Never-dated entries (a file written before timestamps were kept) sort as oldest.
+            DismissedOrder.OldestFirst => matches.OrderBy(note => store.RecordedAt(note.StableKey) ?? DateTimeOffset.MinValue),
+            DismissedOrder.ByName => matches.OrderBy(note => SplitMessage(note.Message).Header, StringComparer.CurrentCultureIgnoreCase),
+            _ => matches.OrderByDescending(note => store.RecordedAt(note.StableKey) ?? DateTimeOffset.MinValue)
+        };
 
-        foreach (var note in dismissed)
-            NotesPanel.Children.Add(CreateDismissableRow(note, isDismissed: true));
+        DismissedHeader.Text = query.Length == 0
+            ? Texts.GUIIssueDismissedHeader
+            : string.Format(Texts.GUIIssueDismissedMatches, matches.Count, _dismissedNotes.Count);
+
+        DismissedNoMatch.IsVisible = query.Length > 0 && matches.Count == 0;
+        DismissedNoMatch.Text = string.Format(Texts.GUIIssueDismissedNoMatch, query);
+
+        foreach (var note in ordered)
+            DismissedPanel.Children.Add(CreateDismissableRow(note, isDismissed: true));
+    }
+
+    /// <summary>
+    /// Whether an issue matches what was typed: every word somewhere in its wording, its mods,
+    /// the files at stake, or the verdict the user recorded - so "witchy arch" finds the conflict
+    /// between Witchy Garden Furniture and the garden-arch sprites without the exact title.
+    /// </summary>
+    private bool MatchesSearch(LoadOrderNote note, string query)
+    {
+        if (query.Length == 0) return true;
+
+        var verdict = _dismissedIssues?.Verdict(note.StableKey);
+        var haystack = string.Join("\n", new[] { note.Message, verdict is null ? "" : DescribeVerdict(verdict) }
+            .Concat(note.Participants.Select(participant => participant.Display))
+            .Concat(note.Details));
+
+        return query
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .All(word => haystack.Contains(word, StringComparison.CurrentCultureIgnoreCase));
     }
 
     /// <summary>
@@ -312,7 +392,30 @@ public partial class LoadOrderResultWindow : Window
             Dispatcher.UIThread.Post(Rebuild);
         };
 
-        var content = CreateNoteControl(note, isDismissed);
+        Control content = CreateNoteControl(note, isDismissed);
+
+        // When it was marked fine, and why, under the issue itself: the list is sorted by the
+        // first, and the second is what the user will want to remember when they find it again.
+        if (isDismissed && DescribeDismissal(note) is { Length: > 0 } caption)
+        {
+            content = new StackPanel
+            {
+                Spacing = 2,
+                Children =
+                {
+                    content,
+                    new TextBlock
+                    {
+                        Text = caption,
+                        FontSize = 11,
+                        Opacity = 0.8,
+                        TextWrapping = TextWrapping.Wrap,
+                        Margin = new Avalonia.Thickness(0, 0, 0, 2)
+                    }
+                }
+            };
+        }
+
         Grid.SetColumn(content, 1);
 
         var row = new Grid
@@ -324,6 +427,21 @@ public partial class LoadOrderResultWindow : Window
         row.Children.Add(checkbox);
         row.Children.Add(content);
         return row;
+    }
+
+    /// <summary>"Marked fine 10/10/2026 9:42 AM - you chose Witchy Garden Furniture to win."</summary>
+    private string DescribeDismissal(LoadOrderNote note)
+    {
+        var when = _dismissedIssues?.RecordedAt(note.StableKey);
+        var verdict = _dismissedIssues?.Verdict(note.StableKey);
+        var why = verdict is null ? "" : DescribeVerdict(verdict);
+
+        var stamp = when is null
+            ? ""
+            : string.Format(Texts.GUIIssueMarkedFineOn,
+                when.Value.LocalDateTime.ToString("g", System.Globalization.CultureInfo.CurrentCulture));
+
+        return string.Join(" - ", new[] { stamp, why }.Where(part => part.Length > 0));
     }
 
     private Control CreateNoteControl(LoadOrderNote note, bool struckThrough = false)
@@ -375,6 +493,14 @@ public partial class LoadOrderResultWindow : Window
     {
         var panel = new StackPanel { Spacing = 8 };
 
+        // "Find a fix" first, always. It used to sit beside the file list, which put it wherever
+        // that list happened to start - below the detail text and one row per mod, so on a
+        // three-way conflict it began half a screen down, and on a conflict with no files it fell
+        // to the very bottom. It is the one control on an issue that does something about it, so
+        // it is the first thing the issue shows when opened.
+        var research = CreateResearchRow(note);
+        if (research is not null) panel.Children.Add(research);
+
         if (!string.IsNullOrWhiteSpace(detail))
         {
             panel.Children.Add(new SelectableTextBlock
@@ -386,8 +512,6 @@ public partial class LoadOrderResultWindow : Window
 
         foreach (var participant in note.Participants)
             panel.Children.Add(CreateParticipantRow(note, participant));
-
-        var research = CreateResearchRow(note);
 
         if (note.Details.Count > 0)
         {
@@ -409,35 +533,8 @@ public partial class LoadOrderResultWindow : Window
                 });
             }
 
-            // "Find a fix" belongs beside the file list, not under it. A cosmetics conflict lists
-            // seventy-odd sprite paths, and the one control that does something about them sat at
-            // the bottom of all of it - so the user had to scroll past every file to reach the
-            // button, having already decided from the first three lines what the conflict was. The
-            // paths take the width they need and the button sits in the space to their right, which
-            // on a wide report is empty anyway.
-            if (research is not null)
-            {
-                Grid.SetColumn(research, 1);
-                research.VerticalAlignment = VerticalAlignment.Top;
-                research.HorizontalAlignment = HorizontalAlignment.Right;
-
-                var withAction = new Grid
-                {
-                    ColumnDefinitions = new ColumnDefinitions("*,Auto"),
-                    HorizontalAlignment = HorizontalAlignment.Stretch
-                };
-                withAction.Children.Add(paths);
-                withAction.Children.Add(research);
-
-                panel.Children.Add(withAction);
-                return panel;
-            }
-
             panel.Children.Add(paths);
         }
-
-        // No file list to sit beside - a hook or hotkey clash - so it keeps its old place.
-        if (research is not null) panel.Children.Add(research);
 
         return panel.Children.Count == 0 ? null : panel;
     }
@@ -456,17 +553,11 @@ public partial class LoadOrderResultWindow : Window
         var isCurrentWinner = note.Kind == LoadOrderNoteKind.FileConflict &&
                               ReferenceEquals(participant, note.Participants[^1]);
 
-        var name = new TextBlock
-        {
-            Text = participant.Display,
-            VerticalAlignment = VerticalAlignment.Center,
-            TextWrapping = TextWrapping.Wrap
-        };
-
         var tip = participant.Detail.Length > 0
             ? $"{participant.SourcePath}\n{participant.Detail}"
             : participant.SourcePath;
-        ToolTip.SetTip(name, tip);
+
+        var name = CreateParticipantName(participant, tip);
 
         var row = new StackPanel
         {
@@ -498,6 +589,49 @@ public partial class LoadOrderResultWindow : Window
         return row;
     }
 
+    /// <summary>
+    /// The mod's name - a link to its Nexus page when AIM knows the page, so the source of an issue
+    /// is one click from the issue itself rather than a trip back to the mod list and its menu.
+    /// Plain text for a mod AIM cannot place on Nexus.
+    /// </summary>
+    private Control CreateParticipantName(IssueParticipant participant, string tip)
+    {
+        var page = _actions?.PageFor?.Invoke(participant);
+
+        if (!ExternalUrl.IsAllowed(page))
+        {
+            var plain = new TextBlock
+            {
+                Text = participant.Display,
+                VerticalAlignment = VerticalAlignment.Center,
+                TextWrapping = TextWrapping.Wrap
+            };
+            ToolTip.SetTip(plain, tip);
+            return plain;
+        }
+
+        var link = new Button
+        {
+            Content = new TextBlock
+            {
+                Text = participant.Display,
+                TextWrapping = TextWrapping.Wrap,
+                TextDecorations = TextDecorations.Underline
+            },
+            Foreground = new SolidColorBrush(Color.Parse("#4c8bf5")),
+            Background = Brushes.Transparent,
+            BorderThickness = new Avalonia.Thickness(0),
+            Padding = new Avalonia.Thickness(0),
+            VerticalAlignment = VerticalAlignment.Center,
+            Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand)
+        };
+
+        ToolTip.SetTip(link, $"{string.Format(Texts.GUIIssueOpenModPage, participant.Name)}\n{page}\n{tip}");
+        link.Click += (_, _) => ExternalUrl.Open(page);
+
+        return link;
+    }
+
     private Control? CreateWinnerButton(LoadOrderNote note, IssueParticipant participant)
     {
         if (_actions is null) return null;
@@ -516,11 +650,24 @@ public partial class LoadOrderResultWindow : Window
                 .Append(participant)
                 .ToList();
 
-            Replace(note, note with
+            var settled = note with
             {
                 Message = string.Format(Texts.GUIConflictWinnerNow, participant.Display),
                 Participants = reordered
-            });
+            };
+
+            // Choosing the winner is the decision the issue was asking for, so it is marked fine
+            // with that choice as the reason - the same way rebinding a clashing shortcut settles
+            // a hotkey issue. Leaving it unticked meant an issue the user had just resolved sat in
+            // the open list describing what they had done, waiting for a second click to agree
+            // with themselves. The verdict travels with the tick, so the choice is still on record
+            // in the marked-fine list and un-ticking it reopens the question.
+            _dismissedIssues?.SetDismissed(
+                note.StableKey, true, settled.Message,
+                new IssueVerdict(DismissedIssueStore.VerdictWinnerChosen, null, participant.Display));
+
+            DismissalsChanged();
+            Replace(note, settled);
         };
 
         return button;
@@ -600,8 +747,7 @@ public partial class LoadOrderResultWindow : Window
         var button = new Button
         {
             Content = Texts.GUIConflictFindAFix,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            Margin = new Avalonia.Thickness(0, 6, 0, 0)
+            HorizontalAlignment = HorizontalAlignment.Left
         };
         ToolTip.SetTip(button, Texts.GUIConflictFindAFixTooltip);
 
@@ -638,8 +784,7 @@ public partial class LoadOrderResultWindow : Window
             {
                 Text = DescribeVerdict(recorded),
                 VerticalAlignment = VerticalAlignment.Center,
-                TextWrapping = TextWrapping.Wrap,
-                Margin = new Avalonia.Thickness(0, 6, 0, 0)
+                TextWrapping = TextWrapping.Wrap
             };
             row.Children.Add(label);
 
@@ -647,8 +792,7 @@ public partial class LoadOrderResultWindow : Window
             {
                 var open = new Button
                 {
-                    Content = Texts.GUIResearchOpenPatch,
-                    Margin = new Avalonia.Thickness(0, 6, 0, 0)
+                    Content = Texts.GUIResearchOpenPatch
                 };
                 ToolTip.SetTip(open, recorded.Link);
                 open.Click += (_, _) => ExternalUrl.Open(recorded.Link);
@@ -665,6 +809,7 @@ public partial class LoadOrderResultWindow : Window
         DismissedIssueStore.VerdictPatchExists => Texts.GUIVerdictPatchExists,
         DismissedIssueStore.VerdictIncompatible => Texts.GUIVerdictIncompatible,
         DismissedIssueStore.VerdictRebound => string.Format(Texts.GUIVerdictRebound, verdict.Note ?? ""),
+        DismissedIssueStore.VerdictWinnerChosen => string.Format(Texts.GUIVerdictWinnerChosen, verdict.Note ?? ""),
         _ => ""
     };
 

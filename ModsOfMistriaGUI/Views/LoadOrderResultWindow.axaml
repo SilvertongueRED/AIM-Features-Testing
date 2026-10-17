@@ -10,7 +10,24 @@
   <Grid Margin="18" RowDefinitions="Auto,*,Auto,Auto">
     <SelectableTextBlock x:Name="SummaryText" TextWrapping="Wrap" />
     <ScrollViewer x:Name="NotesScroller" Grid.Row="1" MaxHeight="560" VerticalScrollBarVisibility="Auto">
-      <StackPanel x:Name="NotesPanel" Spacing="10" HorizontalAlignment="Stretch" />
+      <StackPanel Spacing="10" HorizontalAlignment="Stretch">
+        <StackPanel x:Name="NotesPanel" Spacing="10" HorizontalAlignment="Stretch" />
+
+        <!-- The issues already marked fine. A section of its own rather than more rows in the list
+             above, so the search box can redraw just these while the user types without tearing
+             down the control they are typing into. -->
+        <StackPanel x:Name="DismissedSection" Spacing="8" IsVisible="False" Margin="0 12 0 0"
+                    HorizontalAlignment="Stretch">
+          <TextBlock x:Name="DismissedHeader" FontWeight="SemiBold" Opacity="0.7" TextWrapping="Wrap" />
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBox x:Name="DismissedSearch" />
+            <ComboBox x:Name="DismissedSort" Grid.Column="1" Margin="8 0 0 0" MinWidth="170"
+                      VerticalAlignment="Stretch" />
+          </Grid>
+          <TextBlock x:Name="DismissedNoMatch" IsVisible="False" Opacity="0.7" TextWrapping="Wrap" />
+          <StackPanel x:Name="DismissedPanel" Spacing="10" HorizontalAlignment="Stretch" />
+        </StackPanel>
+      </StackPanel>
     </ScrollViewer>
     <CheckBox x:Name="ShowDismissedToggle" Grid.Row="2" Margin="0 10 0 0" IsVisible="False" />
     <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0 10 0 0">

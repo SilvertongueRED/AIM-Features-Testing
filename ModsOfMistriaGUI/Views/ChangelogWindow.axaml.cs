@@ -22,7 +22,7 @@ public partial class ChangelogWindow : Window
     {
     }
 
-    private ChangelogWindow(string modName, IReadOnlyList<ModChangelogEntry>? entries)
+    private ChangelogWindow(string modName, IReadOnlyList<ModChangelogEntry>? entries, string? focusVersion = null)
     {
         InitializeComponent();
         App.ApplyThemeClass(this);
@@ -60,11 +60,54 @@ public partial class ChangelogWindow : Window
         }
 
         StatusText.Text = string.Format(texts.GUIChangelogVersionCount, entries.Count);
-        foreach (var entry in entries) VersionsPanel.Children.Add(CreateVersion(entry));
+
+        Control? focused = null;
+        foreach (var entry in entries)
+        {
+            var isFocus = focused is null && SameVersion(entry.Version, focusVersion);
+            var control = CreateVersion(entry, isFocus);
+            if (isFocus) focused = control;
+            VersionsPanel.Children.Add(control);
+        }
+
+        if (!string.IsNullOrWhiteSpace(focusVersion))
+        {
+            // Said either way: opened from a restore point, the user is asking about one version,
+            // and "the author wrote no notes for 1.0.3" is an answer too.
+            StatusText.Text = focused is null
+                ? string.Format(texts.GUIChangelogVersionNotListed, focusVersion)
+                : string.Format(texts.GUIChangelogShowingVersion, focusVersion);
+        }
+
+        // After layout, or there is nothing to scroll to yet.
+        if (focused is not null)
+            Opened += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(
+                () => focused.BringIntoView(), Avalonia.Threading.DispatcherPriority.Background);
     }
 
     public static Task ShowAsync(Window owner, string modName, IReadOnlyList<ModChangelogEntry>? entries) =>
         new ChangelogWindow(modName, entries).ShowDialog(owner);
+
+    /// <summary>
+    /// Opens the history scrolled to one version, which is highlighted - for the release-notes icon
+    /// beside a restore point, where the question is about that version specifically.
+    /// </summary>
+    public static Task ShowAsync(
+        Window owner, string modName, IReadOnlyList<ModChangelogEntry>? entries, string? focusVersion) =>
+        new ChangelogWindow(modName, entries, focusVersion).ShowDialog(owner);
+
+    /// <summary>
+    /// Nexus versions and manifest versions are typed by hand in two different places, so "v2.0.10"
+    /// and "2.0.10" are the same release.
+    /// </summary>
+    internal static bool SameVersion(string? left, string? right)
+    {
+        if (string.IsNullOrWhiteSpace(left) || string.IsNullOrWhiteSpace(right)) return false;
+
+        static string Clean(string version) => version.Trim().TrimStart('v', 'V').Trim();
+
+        return string.Equals(Clean(left), Clean(right), StringComparison.OrdinalIgnoreCase);
+    }
 
     /// <summary>
     /// One version: its number as a heading, a rule under it, then the author's lines.
@@ -72,7 +115,7 @@ public partial class ChangelogWindow : Window
     /// A rule rather than only a bold heading, because several versions of terse one-line notes run
     /// together otherwise and the reader loses track of which line belongs to which release.
     /// </summary>
-    private static Control CreateVersion(ModChangelogEntry entry)
+    private static Control CreateVersion(ModChangelogEntry entry, bool highlighted = false)
     {
         var lines = new StackPanel { Spacing = 4, Margin = new Avalonia.Thickness(0, 8, 0, 0) };
 
@@ -85,7 +128,7 @@ public partial class ChangelogWindow : Window
             });
         }
 
-        return new StackPanel
+        var version = new StackPanel
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             Children =
@@ -106,6 +149,22 @@ public partial class ChangelogWindow : Window
                 },
                 lines
             }
+        };
+
+        if (!highlighted) return version;
+
+        // A tinted band with an accent edge, the same shape the crash window uses for a finding,
+        // so the version the user asked about stands out without a colour that only reads in one
+        // theme.
+        var accent = Color.Parse("#4c8bf5");
+        return new Border
+        {
+            Background = new SolidColorBrush(accent, 0.10),
+            BorderBrush = new SolidColorBrush(accent),
+            BorderThickness = new Avalonia.Thickness(3, 0, 0, 0),
+            CornerRadius = new Avalonia.CornerRadius(0, 4, 4, 0),
+            Padding = new Avalonia.Thickness(10, 6, 10, 8),
+            Child = version
         };
     }
 

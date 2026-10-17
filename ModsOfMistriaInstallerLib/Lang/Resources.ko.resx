@@ -721,7 +721,7 @@ AIM이 처리하도록 할까요?</value></data>
   <data name="GUICrashNoModList" xml:space="preserve"><value>여기서는 모드 목록을 볼 수 없어 충돌은 표시할 수 있지만 원인 모드는 말할 수 없습니다.</value></data>
   <data name="GUICrashFailed" xml:space="preserve"><value>AIM이 이 충돌을 끝까지 읽지 못했습니다: {0}</value></data>
   <data name="GUICrashStale" xml:space="preserve"><value>이 충돌은 현재 설치된 모드보다 오래되었습니다. AIM이 이후 게임을 다시 빌드했으므로 충돌한 게임과 현재 디스크의 게임은 다릅니다. 변경하기 전에 한 번 플레이하고, 아래 모드는 결론이 아닌 단서로 취급하세요.</value></data>
-  <data name="GUICrashNoApiKey" xml:space="preserve"><value>Nexus에 로그인하지 않아 AIM이 모드의 버그 추적기를 읽을 수 없습니다. 위 내용은 모두 내 파일에서 확인한 결과입니다.</value></data>
+  <data name="GUICrashNoApiKey" xml:space="preserve"><value>Nexus에 로그인하지 않아 AIM은 모드의 공개 댓글과 버그 리포트만 읽었고, 설명과 릴리스 노트는 읽지 않았습니다. 위 내용은 모두 사용자 파일에서 알아낸 것입니다.</value></data>
   <data name="GUICrashWorking" xml:space="preserve"><value>지목된 모드의 버그 추적기와 댓글을 읽는 중…</value></data>
   <data name="GUICrashNothingToResearch" xml:space="preserve"><value>페이지를 읽을 만큼 명확하게 지목된 모드가 없습니다.</value></data>
   <data name="GUICrashResearchFailed" xml:space="preserve"><value>AIM이 모드 페이지를 읽지 못했습니다: {0}. 내 파일에서 분석한 결과는 그대로 유효합니다.</value></data>
@@ -852,4 +852,53 @@ AIM이 처리하도록 할까요?</value></data>
   <data name="GUISettingsUpToDate" xml:space="preserve"><value>AIM이 최신 상태입니다.</value></data>
   <data name="GUISettingsUpdateAvailable" xml:space="preserve"><value>AIM 업데이트를 사용할 수 있습니다. 아래 알림을 사용해 릴리스 페이지를 여세요.</value></data>
   <data name="GUISettingsUpdateCheckFailed" xml:space="preserve"><value>AIM 업데이트 확인에 실패했습니다.</value></data>
+  <data name="GUIIssueSearchDismissed" xml:space="preserve"><value>괜찮다고 표시한 문제 검색…</value></data>
+  <data name="GUIIssueSortNewest" xml:space="preserve"><value>최근 표시한 순</value></data>
+  <data name="GUIIssueSortOldest" xml:space="preserve"><value>오래전에 표시한 순</value></data>
+  <data name="GUIIssueSortName" xml:space="preserve"><value>이름순</value></data>
+  <data name="GUIIssueDismissedMatches" xml:space="preserve"><value>괜찮다고 표시함 - {1}개 중 {0}개 일치</value></data>
+  <data name="GUIIssueDismissedNoMatch" xml:space="preserve"><value>괜찮다고 표시한 문제 중 "{0}"과(와) 일치하는 항목이 없습니다.</value></data>
+  <data name="GUIIssueMarkedFineOn" xml:space="preserve"><value>{0}에 괜찮다고 표시함</value></data>
+  <data name="GUIIssueOpenModPage" xml:space="preserve"><value>Nexus에서 {0} 열기</value></data>
+  <data name="GUIVerdictWinnerChosen" xml:space="preserve"><value>{0}이(가) 이기도록 선택했습니다.</value></data>
+  <data name="GUIVersionsUnknownVersion" xml:space="preserve"><value>알 수 없는 버전</value></data>
+  <data name="GUIVersionsChangelogTooltip" xml:space="preserve"><value>릴리스 노트 ({0} 버전 위치로 열기)</value></data>
+  <data name="GUIVersionsChangelogTooltipNoVersion" xml:space="preserve"><value>릴리스 노트</value></data>
+  <data name="GUIChangelogVersionNotListed" xml:space="preserve"><value>제작자가 {0} 버전의 릴리스 노트를 작성하지 않았습니다. 노트가 있는 모든 버전은 아래에 있습니다.</value></data>
+  <data name="GUIChangelogShowingVersion" xml:space="preserve"><value>{0} 버전 위치로 열었습니다 (아래 강조 표시).</value></data>
+  <data name="GUICrashResearchProgress" xml:space="preserve"><value>{0}의 Nexus 페이지 읽는 중 ({2}개 중 {1}번째)…</value></data>
+  <data name="GUICrashTreatmentsHeader" xml:space="preserve"><value>시도해 볼 것 (모드 페이지에서)</value></data>
+  <data name="GUICrashTreatmentsHint" xml:space="preserve"><value>제작자와 다른 플레이어들이 이런 충돌에 대해 설명한 해결 방법입니다. 맞는 것부터 시도한 뒤 위 버튼으로 확인하세요.</value></data>
+  <data name="GUICrashMentionsHeader" xml:space="preserve"><value>다른 모드에 대한 댓글 내용</value></data>
+  <data name="GUICrashMentionsHint" xml:space="preserve"><value>의심되는 모드 페이지에서 켜 둔 다른 모드를 언급한 댓글입니다(대개 함께 쓸 수 있는지 묻는 질문). 제작자 답변이 있으면 함께 표시합니다.</value></data>
+  <data name="GUICrashMentionsGroup" xml:space="preserve"><value>{0} 페이지 - {1} 관련</value></data>
+  <data name="GUICrashNothingReadable" xml:space="preserve"><value>찾은 것이 없습니다. 하지만 Nexus가 일부 페이지 읽기를 차단했습니다. 아래 "AIM이 읽은 내용"을 확인하세요.</value></data>
+  <data name="GUICrashFoundSummary" xml:space="preserve"><value>의심되는 모드 페이지에서 {0}개 발견: 시도할 것 {1}개, 다른 모드 관련 {2}개.</value></data>
+  <data name="GUICrashCoverageHeader" xml:space="preserve"><value>AIM이 읽은 내용 (페이지 {1}개 항목 중 {0}개)</value></data>
+  <data name="GUICrashResearchBlocked" xml:space="preserve"><value>Nexus가 AIM의 일부 요청에 페이지 대신 봇 확인으로 응답해서 해당 댓글이나 버그 리포트를 읽지 못했습니다. Nexus에는 댓글이나 버그 리포트용 API가 없으며, Nexus 로그인으로는 설명, 릴리스 노트, 파일만 읽을 수 있습니다. 아래 버튼으로 차단된 페이지를 브라우저에서 확인하세요.</value></data>
+  <data name="GUICrashResearchSignedOut" xml:space="preserve"><value>Nexus에 로그인하지 않아 AIM이 모드 설명과 릴리스 노트를 건너뛰었습니다. 톱니바퀴 메뉴 → Nexus 다운로드에서 로그인하면 포함됩니다.</value></data>
+  <data name="GUICrashSourceDescription" xml:space="preserve"><value>설명</value></data>
+  <data name="GUICrashSourceChangelog" xml:space="preserve"><value>릴리스 노트</value></data>
+  <data name="GUICrashSourceReadme" xml:space="preserve"><value>readme</value></data>
+  <data name="GUICrashSourceComments" xml:space="preserve"><value>댓글</value></data>
+  <data name="GUICrashSourceBugs" xml:space="preserve"><value>버그 리포트</value></data>
+  <data name="GUICrashCoverageBlocked" xml:space="preserve"><value>Nexus 봇 확인에 의해 차단됨</value></data>
+  <data name="GUICrashCoverageFailed" xml:space="preserve"><value>읽을 수 없음 (Nexus 응답 {0})</value></data>
+  <data name="GUICrashCoverageOffline" xml:space="preserve"><value>읽을 수 없음 (응답 없음 - 오프라인 또는 시간 초과)</value></data>
+  <data name="GUICrashCoverageNoPage" xml:space="preserve"><value>건너뜀 - 이 모드의 Nexus 페이지를 알 수 없음</value></data>
+  <data name="GUICrashCoverageNotSignedIn" xml:space="preserve"><value>건너뜀 - 포함하려면 Nexus에 로그인하세요</value></data>
+  <data name="GUICrashCoverageStopped" xml:space="preserve"><value>건너뜀 - Nexus가 앞선 페이지를 차단함</value></data>
+  <data name="GUICrashCoverageComments" xml:space="preserve"><value>{1}번 검색으로 댓글 {0}개 읽음, {2}개 사용</value></data>
+  <data name="GUICrashCoverageBugs" xml:space="preserve"><value>리포트 {0}개 읽음, {1}개 열어 봄, {2}개 사용</value></data>
+  <data name="GUICrashCoverageChangelog" xml:space="preserve"><value>{0}개 버전 읽음, {1}개 사용</value></data>
+  <data name="GUICrashCoverageKept" xml:space="preserve"><value>읽음, {0}개 사용</value></data>
+  <data name="GUICrashTreatmentBasis" xml:space="preserve"><value>출처: {0} · {1} · {2}</value></data>
+  <data name="GUICrashOpenSource" xml:space="preserve"><value>페이지 열기 ↗</value></data>
+  <data name="GUICrashChipSameCrash" xml:space="preserve"><value>같은 충돌</value></data>
+  <data name="GUICrashChipMentions" xml:space="preserve"><value>{0} 언급</value></data>
+  <data name="GUICrashChipAuthor" xml:space="preserve"><value>모드 제작자</value></data>
+  <data name="GUICrashChipAuthorAnswered" xml:space="preserve"><value>제작자 답변</value></data>
+  <data name="GUICrashAuthorAnswered" xml:space="preserve"><value>↳ {0}의 답변: "{1}"</value></data>
+  <data name="GUICrashTheAuthor" xml:space="preserve"><value>제작자</value></data>
+  <data name="GUICrashWhatToDo" xml:space="preserve"><value>할 일: {0}</value></data>
 </root>

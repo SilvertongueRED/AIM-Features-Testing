@@ -11,6 +11,45 @@ public sealed record NexusPagePost(string Author, string Text, string Tab);
 public sealed record NexusRelatedMod(int ModId, string Title, string Url);
 
 /// <summary>
+/// One comment or bug reply with its place in the conversation: who wrote it, whether that was the
+/// mod's own author, and which post it answers.
+///
+/// <see cref="NexusPagePost"/> is a flat list of text, which is all the conflict researcher needed.
+/// It is not enough to answer "is this compatible with March Expanded?", because on Nexus the
+/// answer is never in the question - it is the author's reply nested underneath it, and a flat
+/// list has already forgotten which reply belongs to which question.
+/// </summary>
+/// <param name="Id">The site's own comment id, or a position-based stand-in where it has none.</param>
+/// <param name="ParentId">The comment this one replies to, or null for a top-level post.</param>
+/// <param name="ByModAuthor">True for a post by the mod's author, which Nexus marks on the post.</param>
+public sealed record NexusComment(
+    string Id,
+    string? ParentId,
+    string Author,
+    bool ByModAuthor,
+    string Text,
+    string Tab)
+{
+    public NexusPagePost ToPost() => new(Author, Text, Tab);
+}
+
+/// <summary>
+/// What came back from one request: the page, or why there is no page.
+///
+/// The readers below used to return null for every failure alike, and the crash window then said
+/// "nothing found" - which was true and told the user nothing, because the pages had never been
+/// read. Nexus answers a client its bot check does not like with a challenge page instead of the
+/// one asked for, and that is worth saying in so many words.
+/// </summary>
+/// <param name="Blocked">True when the answer was Nexus's bot check rather than the page.</param>
+public sealed record NexusFetch(string? Html, int StatusCode, bool Blocked)
+{
+    public bool Succeeded => Html is not null;
+
+    public static readonly NexusFetch Offline = new(null, 0, false);
+}
+
+/// <summary>
 /// Reads the parts of a mod page the Nexus API does not expose: its bug reports and its comments.
 ///
 /// This is scraping, and it is treated as such. The public API has no endpoint for either, yet that
@@ -130,33 +169,86 @@ public static class NexusPageReader
     /// </param>
     public static async Task<string?> FetchAsync(
         HttpClient http, string url, Research.NexusSession session, CancellationToken ct = default,
-        bool asXhr = false)
+        bool asXhr = false) =>
+        (await FetchWithStatusAsync(http, url, session, ct, asXhr)).Html;
+
+    /// <summary>
+    /// Fetches a page and says what happened, including when Nexus's bot check answered instead.
+    /// </summary>
+    /// <param name="form">
+    /// Sends the request as a form POST with these fields - the bug tracker's reply list is only
+    /// served that way. Null for an ordinary GET.
+    /// </param>
+    public static async Task<NexusFetch> FetchWithStatusAsync(
+        HttpClient http, string url, Research.NexusSession session, CancellationToken ct = default,
+        bool asXhr = false, IReadOnlyDictionary<string, string>? form = null)
     {
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            using var request = new HttpRequestMessage(form is null ? HttpMethod.Get : HttpMethod.Post, url);
             session.Apply(request);
 
             if (asXhr) request.Headers.Add("X-Requested-With", "XMLHttpRequest");
+            if (form is not null) request.Content = new FormUrlEncodedContent(form);
 
             using var response = await http.SendAsync(request, ct);
-            if (!response.IsSuccessStatusCode)
+            var body = await response.Content.ReadAsStringAsync(ct);
+            var status = (int)response.StatusCode;
+
+            // Cloudflare says so in a header when it challenges. Without the header, the page itself
+            // is only taken for a challenge when it also came back as a refusal: a real page can
+            // load Cloudflare's scripts too, and reading every successful page as blocked would
+            // stop the research dead.
+            var challenged = response.Headers.TryGetValues("cf-mitigated", out var mitigated) &&
+                             mitigated.Any(value => value.Contains("challenge", StringComparison.OrdinalIgnoreCase));
+
+            var refused = status is 403 or 429 or 503;
+
+            if (challenged || (refused && LooksLikeABotCheck(body)))
             {
-                Logger.Log($"Could not read {url}: {(int)response.StatusCode}");
-                return null;
+                Logger.Log($"Nexus answered {url} with its bot check ({status}) instead of the page.");
+                return new NexusFetch(null, status, true);
             }
 
-            return await response.Content.ReadAsStringAsync(ct);
+            if (!response.IsSuccessStatusCode)
+            {
+                Logger.Log($"Could not read {url}: {status}");
+                return new NexusFetch(null, status, false);
+            }
+
+            return new NexusFetch(body, status, false);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
             throw;
         }
         catch (Exception exception)
         {
+            // A timeout surfaces as a cancellation the caller did not ask for, and is just another
+            // failed read - not a reason to abandon the whole research run.
             Logger.Log($"Could not read {url}: {exception.Message}");
-            return null;
+            return NexusFetch.Offline;
         }
+    }
+
+    /// <summary>
+    /// True for the interstitial Cloudflare serves in place of a page it wants a browser to solve.
+    ///
+    /// Recognised by its own markers rather than by status alone: it arrives as a 403 or a 503,
+    /// and so does an ordinary refusal, but only the challenge carries these.
+    /// </summary>
+    public static bool LooksLikeABotCheck(string? body)
+    {
+        if (string.IsNullOrEmpty(body)) return false;
+
+        // Only the head of the document: a genuine page can quote these words in a comment.
+        var head = body.Length > 6000 ? body[..6000] : body;
+
+        // The interstitial's own title and its configuration object - not merely a reference to
+        // Cloudflare's script host, which an ordinary page can carry for a sign-up widget.
+        return head.Contains("<title>Just a moment", StringComparison.OrdinalIgnoreCase) ||
+               head.Contains("cf_chl_opt", StringComparison.OrdinalIgnoreCase) ||
+               head.Contains("/cdn-cgi/challenge-platform/", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -207,11 +299,67 @@ public static class NexusPageReader
         CancellationToken ct = default,
         string search = "")
     {
+        var url = CommentPageUrl(gameId, objectId, threadId, page, search, 0);
+
+        var html = await FetchAsync(http, url, session, ct, asXhr: true);
+
+        return html is null ? [] : Extract(html, "posts");
+    }
+
+    /// <summary>
+    /// One page of a comment thread with its replies still attached to their questions, and what
+    /// the request came back with. See <see cref="ReadCommentPageAsync"/> for the parameters.
+    /// </summary>
+    public static async Task<(List<NexusComment> Comments, NexusFetch Fetch)> ReadCommentThreadPageAsync(
+        HttpClient http,
+        int gameId,
+        int objectId,
+        int threadId,
+        int page,
+        Research.NexusSession session,
+        CancellationToken ct = default,
+        string search = "")
+    {
+        var fetch = await FetchWithStatusAsync(
+            http, CommentPageUrl(gameId, objectId, threadId, page, search, 0), session, ct, asXhr: true);
+
+        return (fetch.Html is null ? [] : ExtractComments(fetch.Html, "posts"), fetch);
+    }
+
+    /// <summary>
+    /// The page of a thread that holds one particular comment, with the conversation around it.
+    ///
+    /// A search answers with matching comments only, and flat: an author's "yes, just grab the
+    /// portrait patch" arrives without the "does this work with March Sylus?" it was answering,
+    /// and a question arrives without its answer. Asked for by comment id, the same widget serves
+    /// the page that comment sits on with every reply nested under its question - which is how
+    /// the site's own "view in thread" link works - so one request recovers both halves.
+    /// </summary>
+    public static async Task<(List<NexusComment> Comments, NexusFetch Fetch)> ReadCommentContextAsync(
+        HttpClient http,
+        int gameId,
+        int objectId,
+        int threadId,
+        string commentId,
+        Research.NexusSession session,
+        CancellationToken ct = default)
+    {
+        if (!long.TryParse(commentId, out var id) || id <= 0) return ([], NexusFetch.Offline);
+
+        var fetch = await FetchWithStatusAsync(
+            http, CommentPageUrl(gameId, objectId, threadId, 1, "", id), session, ct, asXhr: true);
+
+        return (fetch.Html is null ? [] : ExtractComments(fetch.Html, "posts"), fetch);
+    }
+
+    private static string CommentPageUrl(int gameId, int objectId, int threadId, int page, string search, long commentId)
+    {
         // Exactly the parameters the site's own pager sends, in its order. comment_id is not
         // optional: without it the widget answers every page with page one, which is precisely the
-        // bug that made an earlier attempt at this silently read nothing new.
+        // bug that made an earlier attempt at this silently read nothing new. Zero means "no
+        // particular comment"; a real id asks for the page that comment is on.
         var parameters = string.Join(",",
-            "comment_id:0",
+            $"comment_id:{commentId}",
             $"game_id:{gameId}",
             $"object_id:{objectId}",
             "object_type:1",
@@ -225,12 +373,8 @@ public static class NexusPageReader
             $"page_size:{CommentPageSize}",
             $"page:{page}");
 
-        var url = "https://www.nexusmods.com/Core/Libs/Common/Widgets/CommentContainer" +
-                  $"?RH_CommentContainer={Uri.EscapeDataString(parameters)}";
-
-        var html = await FetchAsync(http, url, session, ct, asXhr: true);
-
-        return html is null ? [] : Extract(html, "posts");
+        return "https://www.nexusmods.com/Core/Libs/Common/Widgets/CommentContainer" +
+               $"?RH_CommentContainer={Uri.EscapeDataString(parameters)}";
     }
 
     /// <summary>The page size the site itself asks for.</summary>
@@ -399,6 +543,252 @@ public static class NexusPageReader
         }
 
         return posts;
+    }
+
+    // ── Comments with their structure ────────────────────────────────────────────
+
+    // List items and the lists that hold them. The lists matter because HTML lets an item go
+    // unclosed until its list ends, and a comment body is somebody's own markup: a "<ul><li>one
+    // <li>two</ul>" inside one post must not leave that post open, or the next post reads as its reply.
+    private static readonly Regex ListItemTag = new(
+        @"<li\b(?<attrs>[^>]*)>|</li\s*>|<(?<list>ul|ol)\b[^>]*>|</(?<endlist>ul|ol)\s*>",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly Regex ClassAttribute = new(
+        @"\bclass\s*=\s*""(?<value>[^""]*)""", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    // Comments are "comment-123"; the bug tracker's report and replies are "bug-issue-tile-123" and
+    // "bug-reply-tile-123", in the same markup otherwise.
+    private static readonly Regex CommentIdAttribute = new(
+        @"\bid\s*=\s*""(?:comment|bug-issue-tile|bug-reply-tile)-(?<id>\d+)""",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly Regex CommentNamePattern = new(
+        @"class=""[^""]*\bcomment-name\b[^""]*""[^>]*>(?:\s*<[^>]+>)*\s*(?<name>[^<]{1,60})",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly Regex DivTag = new(@"<div\b[^>]*>|</div\s*>", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly Regex ContentTextDiv = new(
+        @"<div\b[^>]*class=""[^""]*\bcomment-content-text\b[^""]*""[^>]*>",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    // "comment-content" exactly - not "comment-content-text", which the pattern above handles.
+    private static readonly Regex ContentDiv = new(
+        @"<div\b[^>]*class=""(?:[^""]*\s)?comment-content(?:\s[^""]*)?""[^>]*>",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly Regex NotProse = new(
+        @"<(time|blockquote|script|style)\b[^>]*>.*?</\1\s*>|<div\b[^>]*class=""[^""]*\b(?:locked|sticky)\b[^""]*""[^>]*>.*?</div\s*>",
+        RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+
+    private const int MaxCommentLength = 2000;
+
+    /// <summary>
+    /// Every comment in a page of a thread, with who wrote it and what it replies to.
+    ///
+    /// Nexus renders a thread as nested lists: each post is an <c>li.comment</c>, the author's own
+    /// posts carry <c>comment-author</c> as well, and replies sit in an <c>ol.comment-kids</c>
+    /// inside the post they answer. The bug tracker's reply list uses the same markup without the
+    /// ids. Walking the list tags with a stack recovers the nesting without an HTML parser, which
+    /// this project does not otherwise need.
+    ///
+    /// Like everything else here, a layout change produces fewer comments rather than wrong ones:
+    /// a post whose body cannot be found is skipped, never attributed to a neighbour.
+    /// </summary>
+    public static List<NexusComment> ExtractComments(string html, string tab)
+    {
+        var comments = new List<NexusComment>();
+        if (string.IsNullOrWhiteSpace(html)) return comments;
+
+        var open = new List<OpenItem>();
+        var closed = new List<(OpenItem Item, string? ParentId, int End)>();
+
+        void Close(int end)
+        {
+            var top = open[^1];
+            open.RemoveAt(open.Count - 1);
+
+            if (top.IsComment)
+                closed.Add((top, open.LastOrDefault(item => item.IsComment)?.Id, end));
+        }
+
+        foreach (Match tag in ListItemTag.Matches(html))
+        {
+            if (tag.Groups["list"].Success)
+            {
+                open.Add(new OpenItem(false, "", false, tag.Index, tag.Index + tag.Length) { IsList = true });
+                continue;
+            }
+
+            if (tag.Groups["endlist"].Success)
+            {
+                // Ends every item still open inside this list, then the list itself. A stray close
+                // with no list open is ignored rather than allowed to close a post.
+                if (!open.Any(item => item.IsList)) continue;
+
+                while (open.Count > 0 && !open[^1].IsList) Close(tag.Index);
+                if (open.Count > 0) open.RemoveAt(open.Count - 1);
+                continue;
+            }
+
+            if (tag.Value.StartsWith("</", StringComparison.Ordinal))
+            {
+                // Closes the innermost open item. A close with only a list above it is a stray.
+                if (open.Count == 0 || open[^1].IsList) continue;
+
+                Close(tag.Index);
+                continue;
+            }
+
+            // An item opened while a sibling item is still open in the same list closes that sibling
+            // first - which is what a browser does with "<li>one<li>two".
+            if (open.Count >= 2 && !open[^1].IsList && open[^2].IsList)
+                Close(tag.Index);
+
+            var attributes = tag.Groups["attrs"].Value;
+            var classes = ClassAttribute.Match(attributes) is { Success: true } classMatch
+                ? classMatch.Groups["value"].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                : [];
+
+            var isComment = classes.Contains("comment", StringComparer.OrdinalIgnoreCase);
+            var id = CommentIdAttribute.Match(attributes) is { Success: true } idMatch
+                ? idMatch.Groups["id"].Value
+                : $"@{tag.Index}";
+
+            open.Add(new OpenItem(isComment, id,
+                classes.Contains("comment-author", StringComparer.OrdinalIgnoreCase),
+                tag.Index, tag.Index + tag.Length));
+        }
+
+        // Truncated markup leaves posts open at the end of the page. They still happened.
+        while (open.Count > 0)
+        {
+            if (open[^1].IsList)
+            {
+                open.RemoveAt(open.Count - 1);
+                continue;
+            }
+
+            Close(html.Length);
+        }
+
+        var posts = closed.OrderBy(entry => entry.Item.TagStart).ToList();
+
+        foreach (var (item, parentId, end) in posts)
+        {
+            // A post's own part ends where its first reply begins; the replies are posts of their
+            // own and must not be read as part of this one.
+            var firstReply = posts
+                .Where(other => other.Item.TagStart > item.TagStart && other.Item.TagStart < end)
+                .Select(other => other.Item.TagStart)
+                .DefaultIfEmpty(end)
+                .Min();
+
+            var own = html[item.ContentStart..Math.Max(item.ContentStart, firstReply)];
+
+            var text = BodyOf(own);
+            if (text.Length < 10) continue;
+
+            var author = CommentNamePattern.Match(own) is { Success: true } name
+                ? WebUtility.HtmlDecode(name.Groups["name"].Value).Trim()
+                : AuthorPattern.Match(own) is { Success: true } fallback
+                    ? WebUtility.HtmlDecode(fallback.Groups[1].Value).Trim()
+                    : "";
+
+            comments.Add(new NexusComment(
+                item.Id, parentId, author, item.ByModAuthor,
+                text.Length <= MaxCommentLength ? text : text[..MaxCommentLength] + "…",
+                tab));
+        }
+
+        return comments;
+    }
+
+    private sealed record OpenItem(bool IsComment, string Id, bool ByModAuthor, int TagStart, int ContentStart)
+    {
+        /// <summary>A ul or ol rather than an item - what an unclosed item is closed by.</summary>
+        public bool IsList { get; init; }
+    }
+
+    /// <summary>The comment a reply answers, from a list <see cref="ExtractComments"/> produced.</summary>
+    public static NexusComment? ParentOf(IReadOnlyList<NexusComment> comments, NexusComment reply) =>
+        reply.ParentId is null
+            ? null
+            : comments.FirstOrDefault(comment => comment.Id == reply.ParentId);
+
+    /// <summary>The direct replies to a comment, in the order they were posted.</summary>
+    public static IEnumerable<NexusComment> RepliesTo(IReadOnlyList<NexusComment> comments, NexusComment question) =>
+        comments.Where(comment => comment.ParentId == question.Id);
+
+    /// <summary>
+    /// How many comments a search matched in all, as the widget reports it above the results -
+    /// "52 comments". Null when the page does not say, which is not an error: the count is only
+    /// used to tell the user how much of the thread was covered.
+    /// </summary>
+    public static int? ExtractResultCount(string? html)
+    {
+        if (string.IsNullOrWhiteSpace(html)) return null;
+
+        var match = Regex.Match(html, @">\s*(\d[\d,]*)\s+(?:comments?|results?)\s*<", RegexOptions.IgnoreCase);
+        return match.Success && int.TryParse(match.Groups[1].Value.Replace(",", ""), out var count) ? count : null;
+    }
+
+    /// <summary>
+    /// The prose of one post: the comment text where the page marks it, otherwise the content
+    /// block with the reply form and the timestamp taken out.
+    /// </summary>
+    private static string BodyOf(string own)
+    {
+        var textDiv = ContentTextDiv.Match(own);
+        string inner;
+
+        if (textDiv.Success)
+        {
+            inner = InnerOfDiv(own, textDiv.Index);
+        }
+        else
+        {
+            var contentDiv = ContentDiv.Match(own);
+            if (!contentDiv.Success) return "";
+
+            inner = InnerOfDiv(own, contentDiv.Index);
+
+            // The bug tracker puts the reply form inside the post's own content block.
+            var form = inner.IndexOf("comment-reply", StringComparison.OrdinalIgnoreCase);
+            if (form >= 0)
+            {
+                var formStart = inner.LastIndexOf("<div", form, StringComparison.OrdinalIgnoreCase);
+                inner = inner[..(formStart >= 0 ? formStart : form)];
+            }
+        }
+
+        return PlainText(NotProse.Replace(inner, " "));
+    }
+
+    /// <summary>What is inside a div, counting nested divs so an inner one does not end it early.</summary>
+    private static string InnerOfDiv(string html, int openIndex)
+    {
+        var first = DivTag.Match(html, openIndex);
+        if (!first.Success) return "";
+
+        var contentStart = first.Index + first.Length;
+        var depth = 0;
+
+        for (var tag = first; tag.Success; tag = tag.NextMatch())
+        {
+            if (tag.Value.StartsWith("</", StringComparison.Ordinal))
+            {
+                depth--;
+                if (depth == 0) return html[contentStart..tag.Index];
+            }
+            else
+            {
+                depth++;
+            }
+        }
+
+        return html[contentStart..];
     }
 
     private static string PlainText(string html)

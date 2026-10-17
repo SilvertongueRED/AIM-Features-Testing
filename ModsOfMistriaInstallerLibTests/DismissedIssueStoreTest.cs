@@ -287,4 +287,33 @@ public class DismissedIssueStoreTest
 
         Assert.That(store.Count, Is.EqualTo(0));
     }
+
+    // The marked-fine list is sorted by when each issue was marked, newest first.
+    [Test]
+    public void ShouldRememberWhenAnIssueWasMarkedFine()
+    {
+        var before = DateTimeOffset.UtcNow.AddSeconds(-1);
+        new DismissedIssueStore(_modsFolder).SetDismissed("FileConflict|a,b", true, "a overrides b");
+
+        var reopened = new DismissedIssueStore(_modsFolder);
+        var at = reopened.RecordedAt("FileConflict|a,b");
+
+        Assert.That(at, Is.Not.Null);
+        Assert.That(at!.Value, Is.GreaterThan(before));
+        Assert.That(reopened.RecordedAt("FileConflict|never,marked"), Is.Null);
+    }
+
+    [Test]
+    public void ShouldRecordTheChosenWinnerAsTheReason()
+    {
+        var store = new DismissedIssueStore(_modsFolder);
+        store.SetDismissed("FileConflict|a,b", true, "b now wins",
+            new IssueVerdict(DismissedIssueStore.VerdictWinnerChosen, null, "Witchy Garden Furniture"));
+
+        var reopened = new DismissedIssueStore(_modsFolder);
+
+        Assert.That(reopened.IsDismissed("FileConflict|a,b"), Is.True);
+        Assert.That(reopened.Verdict("FileConflict|a,b"),
+            Is.EqualTo(new IssueVerdict("winner", null, "Witchy Garden Furniture")));
+    }
 }
