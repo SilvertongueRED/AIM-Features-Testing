@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Colour recolours can overwrite a palette LUT
+
+- A LUT replacement (`images/replace/*_lut.png`) can now ask to **overwrite** the installed palettes
+  instead of being appended after them, with `lut_mode = "overwrite"` in its `.meta.toml`. Appending
+  is still the default, for mods that add colour variants; overwriting is what lets a recolour change
+  LUT-drawn UI such as the HUD's day/night palette and the font colours.
+
 ## 0.2.2 - 2026-09-18
 
 ### Fields of Mistria 1.0.5 support

@@ -58,6 +58,30 @@ The replacement image must have a width compatible with its frame count. AIM
 can recalculate frame dimensions when the image strip is divisible by the
 declared frame count; otherwise it skips the replacement and reports why.
 
+## Palette LUTs
+
+A replacement whose name ends in `_lut` (for example `spr_ui_master_lut.png`) is a palette lookup
+table: the game draws some sprites through it, taking the row from each pixel's red value and the
+column from the palette it wants (the HUD's `spr_ui_master_lut` uses column 0 for daytime and the
+later columns as night falls). AIM does not overwrite an installed LUT by default. It appends the
+mod's columns that the installed LUT does not already have, so several mods can each add colour
+variants to the same LUT.
+
+A recolour needs the opposite, because the game asks for palettes by column index and an appended
+column is never asked for. Ship a matching `images/replace/<name>_lut.meta.toml` with:
+
+```toml
+[asset_properties]
+lut_mode = "overwrite"
+```
+
+and AIM lays the mod's LUT over the installed one column for column. Columns past the mod's width,
+such as ones another mod appended earlier, are kept. `lut_mode` is read from the mod's meta only and
+is never written into the game's meta file.
+
+Sprites drawn through a LUT have to keep their exact pixel values, since those values are the
+lookup keys. Recolour them through their LUT instead of repainting them.
+
 ## Important limitations
 
 This is a replacement mechanism, not a general language-aware asset resolver.

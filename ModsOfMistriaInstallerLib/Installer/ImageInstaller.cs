@@ -133,10 +133,16 @@ public class ImageInstaller(
             // Also accepts an explicit replace_id to target a different texture_id than
             // the one the game file names (edge case; rarely needed).
             var modMetaRelPath = $"images/replace/{spriteName}.meta.toml";
+            var lutOverwrite = false;
             if (mod.FileExists(modMetaRelPath))
             {
                 var modMeta = TomlSerializer.Deserialize<SpriteMetaFile>(mod.ReadFile(modMetaRelPath));
                 gameMeta.Merge(modMeta);
+
+                // A recolour's LUT has to replace the palettes the game indexes, not be appended
+                // after them (see SpriteMetaFileAssetProperties.LutMode).
+                lutOverwrite = string.Equals(modMeta?.Asset?.LutMode?.Trim(), "overwrite",
+                    StringComparison.OrdinalIgnoreCase);
             }
             
             gameMeta.Asset.Atlas = Atlas.CanonicalType(gameMeta.Asset.Atlas);
@@ -150,7 +156,7 @@ public class ImageInstaller(
             }
 
             if (baseName.EndsWith("_lut", StringComparison.OrdinalIgnoreCase) &&
-                TryMergeLut(spriteName, baseName, pngBytes, gameMeta, gameMetaPath, reportStatus))
+                TryMergeLut(spriteName, baseName, pngBytes, gameMeta, gameMetaPath, reportStatus, lutOverwrite))
             {
                 continue;
             }
@@ -229,7 +235,7 @@ public class ImageInstaller(
     private bool TryMergeLut(
         string spriteName, string baseName, byte[] pngBytes,
         SpriteMetaFile gameMeta, string gameMetaPath,
-        Action<string, string> reportStatus)
+        Action<string, string> reportStatus, bool overwrite = false)
     {
         if (gameMeta.Asset?.Atlas is null || gameMeta.Meta is null) return false;
 
@@ -238,7 +244,9 @@ public class ImageInstaller(
 
         using var incoming = Image.Load<Rgba32>(new MemoryStream(pngBytes));
         using var existing = atlasUtils.ExtractFrame(id);
-        using var merged   = LutMerger.Merge(existing, incoming);
+        using var merged   = overwrite
+            ? LutMerger.Overwrite(existing, incoming)
+            : LutMerger.Merge(existing, incoming);
 
         if (merged is null)
         {
@@ -263,7 +271,9 @@ public class ImageInstaller(
         var packed = atlasUtils.AddStrip(gameMeta.Asset.Atlas!, merged.Width, merged.Height, 1,
             mergedStream, FileNameUIDMapping, baseName);
 
-        reportStatus($"Merged LUT {spriteName} → {merged.Width} colour columns (id {packed})", "");
+        reportStatus(overwrite
+            ? $"Overwrote LUT {spriteName} → {merged.Width} colour columns (id {packed})"
+            : $"Merged LUT {spriteName} → {merged.Width} colour columns (id {packed})", "");
         return true;
     }
 
