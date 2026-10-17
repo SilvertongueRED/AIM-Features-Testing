@@ -28,6 +28,10 @@ public class ModManifest
     // False when requires_hooks is not an array of strings
     public readonly bool RequiresHooksValid;
 
+    // Optional AIM extension (manifest `load_position`): where the mod asks to sit among mods of its
+    // own kind when AIM suggests a load order. Unknown to MOMI, which ignores it.
+    public readonly ModLoadPosition LoadPosition;
+
     public static string LocalizedValue(IReadOnlyDictionary<string, string> values, string fallback,
         string? languageCode)
     {
@@ -57,7 +61,8 @@ public class ModManifest
         List<string>? requiresHooks = null,
         bool requiresHooksValid = true,
         IReadOnlyDictionary<string, string>? localizedNames = null,
-        IReadOnlyDictionary<string, string>? localizedDescriptions = null
+        IReadOnlyDictionary<string, string>? localizedDescriptions = null,
+        ModLoadPosition loadPosition = ModLoadPosition.Default
     ) {
         Name = name;
         Author = author;
@@ -72,6 +77,7 @@ public class ModManifest
         LocalizedDescriptions = localizedDescriptions ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         RequiresHooks = requiresHooks ?? [];
         RequiresHooksValid = requiresHooksValid;
+        LoadPosition = loadPosition;
     }
 
     public static ModManifest FromJson(JObject json)
@@ -104,7 +110,8 @@ public class ModManifest
                 : [],
             requiresHooksValid,
             localizedNames,
-            localizedDescriptions
+            localizedDescriptions,
+            ModLoadPositions.Parse(json["load_position"]?.ToString())
         );
     }
 
@@ -122,6 +129,7 @@ public class ModManifest
         toml.TryGetValue("download_url", out var downloadUrl);
         toml.TryGetValue("update_url", out var updateUrl);
         toml.TryGetValue("requires_hooks", out var requiresHooksObject);
+        toml.TryGetValue("load_position", out var loadPositionObject);
 
         var requiresHooksValid = requiresHooksObject is null
                                  || (requiresHooksObject is IList<object?> hookList
@@ -163,7 +171,8 @@ public class ModManifest
             requiresHooks,
             requiresHooksValid,
             localizedNames,
-            localizedDescriptions
+            localizedDescriptions,
+            ModLoadPositions.Parse(loadPositionObject)
         );
     }
 

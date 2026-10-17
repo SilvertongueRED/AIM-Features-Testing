@@ -35,6 +35,8 @@ public class ZipMod() : IMod, IDisposable
 
     private List<ModRequirement> _requirements = [];
 
+    private ModLoadPosition _loadPosition = ModLoadPosition.Default;
+
     private string? _updateUrl;
 
     private string? _downloadUrl;
@@ -77,6 +79,7 @@ public class ZipMod() : IMod, IDisposable
         _localizedDescriptions = manifest.LocalizedDescriptions;
         _requiredHooks = manifest.RequiresHooks;
         _requiredHooksValid = manifest.RequiresHooksValid;
+        _loadPosition = manifest.LoadPosition;
 
     }
 
@@ -297,6 +300,8 @@ public class ZipMod() : IMod, IDisposable
     public List<ModRequirement> GetRequirements() => _requirements;
 
     public List<string> GetRequiredHooks() => _requiredHooks;
+
+    public ModLoadPosition GetLoadPosition() => _loadPosition;
 
     public string? GetUpdateUrl()   => _updateUrl;
     public string? GetDownloadUrl() => _downloadUrl;
